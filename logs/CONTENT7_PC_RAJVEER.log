@@ -1,0 +1,65 @@
+{
+    "net_rx_bytes": 3613782334,
+    "ram_used_pct": 39.4,
+    "storage": [
+        {
+            "Used_Pct": 28.2,
+            "Serial": "N/A",
+            "DriveLetter": "C:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "464.9 GB"
+        }
+    ],
+    "peripherals": [
+        {
+            "Name": "Generic USB Hub"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant mouse"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "HID Keyboard Device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "Standard PS/2 Keyboard"
+        },
+        {
+            "Name": "Microsoft PS/2 Mouse"
+        }
+    ],
+    "ip_address": "156.156.50.41",
+    "cpu_load": 51,
+    "adapters": [
+        {
+            "Interface": "Wi-Fi",
+            "IP": "156.156.50.41"
+        }
+    ],
+    "gpu_load_pct": 0,
+    "ram_total_gb": 16,
+    "os": "Windows 11 Pro",
+    "net_tx_bytes": 1064017243,
+    "cpu_serial": "BFEBFBFF00090675",
+    "gpu_primary": "NVIDIA GeForce GT 1030",
+    "hostname": "CONTENT7_PC_RAJVEER",
+    "gpu_vram_gb": 4,
+    "cpu_name": "12th Gen Intel(R) Core(TM) i5-12400F",
+    "ssd_used_pct": 28.2,
+    "hdd_used_pct": 0.0
+}

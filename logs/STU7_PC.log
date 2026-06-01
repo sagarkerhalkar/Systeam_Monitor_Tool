@@ -1,0 +1,14 @@
+{
+    "net_rx_bytes": 117347266,
+    "cpu_load": 33,
+    "ram_used_pct": 17.74,
+    "hostname": "STU7_PC",
+    "adapters": {
+        "Name": "Ethernet",
+        "IP": "156.156.10.41"
+    },
+    "net_tx_bytes": 3794246,
+    "os": "Windows 11 Pro",
+    "ssd_used_pct": 0.0,
+    "hdd_used_pct": 0.0
+}

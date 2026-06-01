@@ -1,0 +1,85 @@
+{
+    "net_rx_bytes": 6158711153,
+    "ram_used_pct": 12.2,
+    "storage": [
+        {
+            "Used_Pct": 56.7,
+            "Serial": "N/A",
+            "DriveLetter": "C:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "930.5 GB"
+        },
+        {
+            "Used_Pct": 82,
+            "Serial": "N/A",
+            "DriveLetter": "D:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "931.5 GB"
+        }
+    ],
+    "peripherals": [
+        {
+            "Name": "Generic USB Hub"
+        },
+        {
+            "Name": "HID Keyboard Device"
+        },
+        {
+            "Name": "Generic SuperSpeed USB Hub"
+        },
+        {
+            "Name": "HID-compliant vendor-defined device"
+        },
+        {
+            "Name": "HID-compliant vendor-defined device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant mouse"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant device"
+        },
+        {
+            "Name": "HID-compliant headset"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "USB Input Device"
+        }
+    ],
+    "ip_address": "156.156.40.63",
+    "cpu_load": 1,
+    "adapters": [
+        {
+            "Interface": "Ethernet",
+            "IP": "156.156.40.63"
+        }
+    ],
+    "gpu_load_pct": 0,
+    "ram_total_gb": 32,
+    "os": "Windows 11 Pro",
+    "net_tx_bytes": 590327443,
+    "cpu_serial": "178BFBFF00A60F12",
+    "gpu_primary": "AMD Radeon(TM) Graphics + NVIDIA GeForce RTX 5070",
+    "hostname": "EDITOR6_PC_SONAL",
+    "gpu_vram_gb": 4.5,
+    "cpu_name": "AMD Ryzen 9 7900X3D 12-Core Processor",
+    "ssd_used_pct": 56.7,
+    "hdd_used_pct": 0.0
+}

@@ -1,0 +1,20 @@
+{
+    "hostname": "admin-sagar-VirtualBox",
+    "os": "Ubuntu Linux",
+    "cpu_load": 0.7,
+    "ram_used_pct": 7.37863,
+    "net_rx_bytes": 24118044,
+    "net_tx_bytes": 2552381,
+    "adapters": [
+        {
+            "Name": "enp0s3",
+            "IP": "10.0.2.15"
+        },
+        {
+            "Name": "docker0",
+            "IP": "172.17.0.1"
+        }
+    ],
+    "ssd_used_pct": 0.0,
+    "hdd_used_pct": 0.0
+}

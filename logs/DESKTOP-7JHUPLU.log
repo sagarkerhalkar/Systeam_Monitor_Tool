@@ -1,0 +1,73 @@
+{
+    "net_rx_bytes": 1041340372,
+    "ram_used_pct": 77.4,
+    "storage": [
+        {
+            "Used_Pct": 28,
+            "Serial": "N/A",
+            "DriveLetter": "C:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "237.6 GB"
+        },
+        {
+            "Used_Pct": 62.6,
+            "Serial": "N/A",
+            "DriveLetter": "D:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "1863 GB"
+        }
+    ],
+    "peripherals": [
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant mouse"
+        },
+        {
+            "Name": "HID Keyboard Device"
+        },
+        {
+            "Name": "Standard PS/2 Keyboard"
+        },
+        {
+            "Name": "Microsoft PS/2 Mouse"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        }
+    ],
+    "ip_address": "156.156.20.122",
+    "cpu_load": 8,
+    "adapters": [
+        {
+            "Interface": "Ethernet",
+            "IP": "156.156.20.122"
+        }
+    ],
+    "gpu_load_pct": 0,
+    "ram_total_gb": 8,
+    "os": "Windows 11 Pro",
+    "net_tx_bytes": 40962752,
+    "cpu_serial": "BFEBFBFF000906EB",
+    "gpu_primary": "Intel(R) UHD Graphics 630",
+    "hostname": "DESKTOP-7JHUPLU",
+    "gpu_vram_gb": 0,
+    "cpu_name": "Intel(R) Core(TM) i3-9100 CPU @ 3.60GHz",
+    "ssd_used_pct": 28.0,
+    "hdd_used_pct": 0.0
+}

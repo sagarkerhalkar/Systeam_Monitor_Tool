@@ -1,0 +1,64 @@
+{
+    "net_rx_bytes": 1692080453,
+    "ram_used_pct": 23.6,
+    "storage": [
+        {
+            "Used_Pct": 26.8,
+            "Serial": "N/A",
+            "DriveLetter": "C:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "930.6 GB"
+        },
+        {
+            "Used_Pct": 8.5,
+            "Serial": "N/A",
+            "DriveLetter": "E:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "931.5 GB"
+        }
+    ],
+    "peripherals": [
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID Keyboard Device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "Generic USB Hub"
+        },
+        {
+            "Name": "HID-compliant mouse"
+        }
+    ],
+    "ip_address": "156.156.40.54",
+    "cpu_load": 25,
+    "adapters": [
+        {
+            "Interface": "Ethernet",
+            "IP": "156.156.40.54"
+        }
+    ],
+    "gpu_load_pct": 0,
+    "ram_total_gb": 16,
+    "os": "Windows 11 Pro",
+    "net_tx_bytes": 894304674,
+    "cpu_serial": "BFEBFBFF00090675",
+    "gpu_primary": "NVIDIA GeForce GT 610",
+    "hostname": "CONTENT6_PC_LAKSHYA",
+    "gpu_vram_gb": 2,
+    "cpu_name": "12th Gen Intel(R) Core(TM) i5-12400F",
+    "ssd_used_pct": 26.8,
+    "hdd_used_pct": 0.0
+}

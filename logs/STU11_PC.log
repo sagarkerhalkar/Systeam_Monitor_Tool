@@ -1,0 +1,86 @@
+{
+    "net_rx_bytes": 109601286640,
+    "ram_used_pct": 16.7,
+    "storage": [
+        {
+            "Used_Pct": 80.8,
+            "Serial": "N/A",
+            "DriveLetter": "C:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "430 GB"
+        },
+        {
+            "Used_Pct": 0,
+            "Serial": "N/A",
+            "DriveLetter": "D:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "500 GB"
+        },
+        {
+            "Used_Pct": 62.6,
+            "Serial": "N/A",
+            "DriveLetter": "F:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "1863 GB"
+        },
+        {
+            "Used_Pct": 81.7,
+            "Serial": "N/A",
+            "DriveLetter": "G:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "430 GB"
+        }
+    ],
+    "peripherals": [
+        {
+            "Name": "Generic USB Hub"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant Optical Wheel Mouse"
+        },
+        {
+            "Name": "HID Keyboard Device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant device"
+        }
+    ],
+    "ip_address": "156.156.10.27",
+    "cpu_load": 6,
+    "adapters": [
+        {
+            "Interface": "Ethernet",
+            "IP": "156.156.10.27"
+        }
+    ],
+    "gpu_load_pct": 0,
+    "ram_total_gb": 32,
+    "os": "Windows 11 Pro",
+    "net_tx_bytes": 116719202944,
+    "cpu_serial": "BFEBFBFF000B06F2",
+    "gpu_primary": "NVIDIA GeForce RTX 3070 Ti",
+    "hostname": "STU11_PC",
+    "gpu_vram_gb": 4,
+    "cpu_name": "Intel(R) Core(TM) i5-14400F",
+    "ssd_used_pct": 80.8,
+    "hdd_used_pct": 0.0
+}

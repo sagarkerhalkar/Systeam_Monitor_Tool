@@ -1,0 +1,107 @@
+{
+    "net_rx_bytes": 10359475242,
+    "ram_used_pct": 85.5,
+    "storage": [
+        {
+            "Used_Pct": 80.6,
+            "Serial": "N/A",
+            "DriveLetter": "C:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "952.8 GB"
+        }
+    ],
+    "peripherals": [
+        {
+            "Name": "HID Keyboard Device"
+        },
+        {
+            "Name": "HID Keyboard Device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "Generic USB Hub"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "HID-compliant vendor-defined device"
+        },
+        {
+            "Name": "Microsoft Input Configuration Device"
+        },
+        {
+            "Name": "ELAN PrecisionTouchpad Filter Driver"
+        },
+        {
+            "Name": "HID-compliant device"
+        },
+        {
+            "Name": "ELAN HID Class Filter Driver"
+        },
+        {
+            "Name": "ELAN Input Device"
+        },
+        {
+            "Name": "I2C HID Device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant headset"
+        },
+        {
+            "Name": "HID-compliant vendor-defined device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "OMEN Lighting"
+        },
+        {
+            "Name": "HID-compliant mouse"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "Generic USB Hub"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "Standard PS/2 Keyboard"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        }
+    ],
+    "ip_address": "156.156.50.41",
+    "cpu_load": 24,
+    "adapters": [
+        {
+            "Interface": "Wi-Fi",
+            "IP": "156.156.50.41"
+        }
+    ],
+    "gpu_load_pct": 0,
+    "ram_total_gb": 32,
+    "os": "Windows 11 Home Single Language",
+    "net_tx_bytes": 1957845446,
+    "cpu_serial": "178BFBFF00A60F12",
+    "gpu_primary": "AMD Radeon(TM) 610M + NVIDIA GeForce RTX 5070 Laptop GPU",
+    "hostname": "EDITOR4_LAPTOP",
+    "gpu_vram_gb": 4.5,
+    "cpu_name": "AMD Ryzen 9 8940HX with Radeon Graphics",
+    "ssd_used_pct": 80.6,
+    "hdd_used_pct": 0.0
+}

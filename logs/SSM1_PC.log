@@ -1,0 +1,59 @@
+{
+    "net_rx_bytes": 20409516,
+    "ram_used_pct": 38.9,
+    "storage": [
+        {
+            "Used_Pct": 49.7,
+            "Serial": "N/A",
+            "DriveLetter": "C:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "237.5 GB"
+        }
+    ],
+    "peripherals": [
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID Keyboard Device"
+        },
+        {
+            "Name": "Standard PS/2 Keyboard"
+        },
+        {
+            "Name": "HID-compliant mouse"
+        },
+        {
+            "Name": "Microsoft PS/2 Mouse"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "USB Input Device"
+        }
+    ],
+    "ip_address": "156.156.40.80",
+    "cpu_load": 19,
+    "adapters": [
+        {
+            "Interface": "Ethernet",
+            "IP": "156.156.40.80"
+        }
+    ],
+    "gpu_load_pct": 0,
+    "ram_total_gb": 8,
+    "os": "Windows 11 Pro",
+    "net_tx_bytes": 12240306,
+    "cpu_serial": "BFEBFBFF000906EB",
+    "gpu_primary": "Intel(R) UHD Graphics 630",
+    "hostname": "SSM1_PC",
+    "gpu_vram_gb": 0,
+    "cpu_name": "Intel(R) Core(TM) i3-9100 CPU @ 3.60GHz",
+    "ssd_used_pct": 49.7,
+    "hdd_used_pct": 0.0
+}

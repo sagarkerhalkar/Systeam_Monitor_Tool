@@ -1,0 +1,14 @@
+{
+    "net_rx_bytes": 131665896,
+    "cpu_load": 27,
+    "ram_used_pct": 36.23,
+    "hostname": "content1_PC",
+    "adapters": {
+        "Name": "Ethernet",
+        "IP": "156.156.40.81"
+    },
+    "net_tx_bytes": 1818431,
+    "os": "Windows 11 Pro",
+    "ssd_used_pct": 0.0,
+    "hdd_used_pct": 0.0
+}

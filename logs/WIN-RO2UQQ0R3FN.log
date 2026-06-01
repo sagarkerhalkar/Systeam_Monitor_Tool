@@ -1,0 +1,100 @@
+{
+    "net_rx_bytes": 1268268083,
+    "ram_used_pct": 56.6,
+    "storage": [
+        {
+            "Used_Pct": 12.2,
+            "Serial": "N/A",
+            "DriveLetter": "C:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "924.6 GB"
+        },
+        {
+            "Used_Pct": 60.6,
+            "Serial": "N/A",
+            "DriveLetter": "D:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "1863 GB"
+        }
+    ],
+    "peripherals": [
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID Button over Interrupt Driver"
+        },
+        {
+            "Name": "Microsoft Input Configuration Device"
+        },
+        {
+            "Name": "HID-compliant wireless radio controls"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "HID-compliant mouse"
+        },
+        {
+            "Name": "Generic USB Hub"
+        },
+        {
+            "Name": "HID-compliant device"
+        },
+        {
+            "Name": "I2C HID Device"
+        },
+        {
+            "Name": "Generic USB Hub"
+        },
+        {
+            "Name": "Generic SuperSpeed USB Hub"
+        },
+        {
+            "Name": "HID-compliant mouse"
+        },
+        {
+            "Name": "HID-compliant vendor-defined device"
+        },
+        {
+            "Name": "Standard PS/2 Keyboard"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant touch pad"
+        },
+        {
+            "Name": "HID Keyboard Device"
+        }
+    ],
+    "ip_address": "169.254.96.180",
+    "cpu_load": 40,
+    "adapters": [
+        {
+            "Interface": "Wi-Fi",
+            "IP": "156.156.50.6"
+        }
+    ],
+    "gpu_load_pct": 0,
+    "ram_total_gb": 32,
+    "os": "Windows 11 Home Single Language",
+    "net_tx_bytes": 1823199944,
+    "cpu_serial": "178BFBFF00A60F12",
+    "gpu_primary": "NVIDIA GeForce RTX 5060 Laptop GPU + AMD Radeon(TM) 610M",
+    "hostname": "WIN-RO2UQQ0R3FN",
+    "gpu_vram_gb": 4.5,
+    "cpu_name": "AMD Ryzen 7 8840HX with Radeon Graphics",
+    "ssd_used_pct": 12.2,
+    "hdd_used_pct": 0.0
+}

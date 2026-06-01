@@ -1,0 +1,1 @@
+CreateObject("Wscript.Shell").Run "python C:\CustomMonitor\server.py", 0, True

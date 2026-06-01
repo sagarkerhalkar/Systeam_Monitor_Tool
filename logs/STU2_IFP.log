@@ -1,0 +1,127 @@
+{
+    "net_rx_bytes": 3679621,
+    "ram_used_pct": 77.1,
+    "storage": [
+        {
+            "Used_Pct": 83.5,
+            "Serial": "N/A",
+            "DriveLetter": "C:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "237.6 GB"
+        },
+        {
+            "Used_Pct": 62.6,
+            "Serial": "N/A",
+            "DriveLetter": "D:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "1863 GB"
+        }
+    ],
+    "peripherals": [
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "Generic USB Hub"
+        },
+        {
+            "Name": "Microsoft Input Configuration Device"
+        },
+        {
+            "Name": "HID-compliant vendor-defined device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "Generic SuperSpeed USB Hub"
+        },
+        {
+            "Name": "HID Keyboard Device"
+        },
+        {
+            "Name": "HID-compliant vendor-defined device"
+        },
+        {
+            "Name": "HID-compliant pen"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant phone"
+        },
+        {
+            "Name": "Generic SuperSpeed USB Hub"
+        },
+        {
+            "Name": "HID-compliant mouse"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "Generic SuperSpeed USB Hub"
+        },
+        {
+            "Name": "HID-compliant vendor-defined device"
+        },
+        {
+            "Name": "HID-compliant pen"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "Generic SuperSpeed USB Hub"
+        },
+        {
+            "Name": "Generic USB Hub"
+        },
+        {
+            "Name": "Generic USB Hub"
+        },
+        {
+            "Name": "HID-compliant mouse"
+        },
+        {
+            "Name": "HID-compliant touch screen"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "Generic USB Hub"
+        },
+        {
+            "Name": "Generic USB Hub"
+        },
+        {
+            "Name": "HID-compliant touch screen"
+        },
+        {
+            "Name": "HID Keyboard Device"
+        }
+    ],
+    "ip_address": "156.156.10.36",
+    "cpu_load": 14,
+    "adapters": [
+        {
+            "Interface": "Ethernet",
+            "IP": "156.156.10.36"
+        }
+    ],
+    "gpu_load_pct": 0,
+    "ram_total_gb": 8,
+    "os": "Windows 11 Pro",
+    "net_tx_bytes": 714861,
+    "cpu_serial": "BFEBFBFF000906A3",
+    "gpu_primary": "Intel(R) UHD Graphics",
+    "hostname": "STU2_IFP",
+    "gpu_vram_gb": 0,
+    "cpu_name": "12th Gen Intel(R) Core(TM) i5-12450H",
+    "ssd_used_pct": 83.5,
+    "hdd_used_pct": 0.0
+}

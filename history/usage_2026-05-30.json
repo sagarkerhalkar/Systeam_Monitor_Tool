@@ -1,0 +1,855 @@
+{
+    "date": "2026-05-30",
+    "devices": {
+        "SSM3_PC": {
+            "daily_rx_bytes": 1968105252468,
+            "daily_tx_bytes": 387480980195,
+            "online_minutes": 640,
+            "offline_minutes": 0,
+            "last_raw_rx": 140590626417,
+            "last_raw_tx": 29844911119,
+            "last_seen_timestamp": 1780165794.5659242,
+            "cpu_name": "Intel(R) Core(TM) i3-9100 CPU @ 3.60GHz",
+            "cpu_serial": "BFEBFBFF000906EB",
+            "ram_total_gb": 8,
+            "storage": [
+                {
+                    "Used_Pct": 88.5,
+                    "Serial": "N/A",
+                    "DriveLetter": "C:",
+                    "Type": "SSD",
+                    "Model": "Local Fixed Disk",
+                    "Size": "237.6 GB"
+                }
+            ],
+            "peripherals": [
+                {
+                    "Name": "HID-compliant consumer control device"
+                },
+                {
+                    "Name": "HID-compliant mouse"
+                },
+                {
+                    "Name": "USB Input Device"
+                },
+                {
+                    "Name": "USB Input Device"
+                },
+                {
+                    "Name": "USB Input Device"
+                },
+                {
+                    "Name": "Standard PS/2 Keyboard"
+                },
+                {
+                    "Name": "HID Keyboard Device"
+                },
+                {
+                    "Name": "Microsoft PS/2 Mouse"
+                }
+            ],
+            "gpu_primary": "Intel(R) UHD Graphics 630",
+            "gpu_vram_gb": 0
+        },
+        "DESKTOP-1VTKP12": {
+            "daily_rx_bytes": 286594948923,
+            "daily_tx_bytes": 102358733355,
+            "online_minutes": 640,
+            "offline_minutes": 0,
+            "last_raw_rx": 286594948923,
+            "last_raw_tx": 102358733355,
+            "last_seen_timestamp": 1780165794.439494,
+            "cpu_name": "Intel(R) Core(TM) i5-14400F",
+            "cpu_serial": "BFEBFBFF000B06F2",
+            "ram_total_gb": 32,
+            "storage": [
+                {
+                    "Used_Pct": 50.3,
+                    "Serial": "N/A",
+                    "DriveLetter": "C:",
+                    "Type": "SSD",
+                    "Model": "Local Fixed Disk",
+                    "Size": "451.4 GB"
+                },
+                {
+                    "Used_Pct": 23.2,
+                    "Serial": "N/A",
+                    "DriveLetter": "D:",
+                    "Type": "SSD",
+                    "Model": "Local Fixed Disk",
+                    "Size": "478.5 GB"
+                }
+            ],
+            "peripherals": [
+                {
+                    "Name": "Generic USB Hub"
+                },
+                {
+                    "Name": "USB Input Device"
+                },
+                {
+                    "Name": "USB Input Device"
+                },
+                {
+                    "Name": "USB Input Device"
+                },
+                {
+                    "Name": "HID-compliant mouse"
+                },
+                {
+                    "Name": "HID Keyboard Device"
+                },
+                {
+                    "Name": "Bluetooth Low Energy GATT compliant HID device"
+                },
+                {
+                    "Name": "HID-compliant consumer control device"
+                },
+                {
+                    "Name": "USB Input Device"
+                },
+                {
+                    "Name": "HID-compliant device"
+                }
+            ],
+            "gpu_primary": "NVIDIA GeForce RTX 3070 Ti",
+            "gpu_vram_gb": 4
+        },
+        "SSM2_PC": {
+            "daily_rx_bytes": 567413756583,
+            "daily_tx_bytes": 141416636067,
+            "online_minutes": 640,
+            "offline_minutes": 0,
+            "last_raw_rx": 23667290456,
+            "last_raw_tx": 17694445971,
+            "last_seen_timestamp": 1780165793.5296526,
+            "cpu_name": "Intel(R) Core(TM) i3-9100 CPU @ 3.60GHz",
+            "cpu_serial": "BFEBFBFF000906EB",
+            "ram_total_gb": 8,
+            "storage": [
+                {
+                    "Used_Pct": 43,
+                    "Serial": "N/A",
+                    "DriveLetter": "C:",
+                    "Type": "SSD",
+                    "Model": "Local Fixed Disk",
+                    "Size": "222.7 GB"
+                }
+            ],
+            "peripherals": [
+                {
+                    "Name": "USB Input Device"
+                },
+                {
+                    "Name": "USB Input Device"
+                },
+                {
+                    "Name": "USB Input Device"
+                },
+                {
+                    "Name": "HID-compliant mouse"
+                },
+                {
+                    "Name": "Standard PS/2 Keyboard"
+                },
+                {
+                    "Name": "HID Keyboard Device"
+                },
+                {
+                    "Name": "Microsoft PS/2 Mouse"
+                },
+                {
+                    "Name": "HID-compliant consumer control device"
+                }
+            ],
+            "gpu_primary": "Intel(R) UHD Graphics 630",
+            "gpu_vram_gb": 0
+        },
+        "TEACHER4_PC": {
+            "daily_rx_bytes": 1085493447,
+            "daily_tx_bytes": 190607125,
+            "online_minutes": 640,
+            "offline_minutes": 0,
+            "last_raw_rx": 1085493447,
+            "last_raw_tx": 190607125,
+            "last_seen_timestamp": 1780165632.256609,
+            "cpu_name": "Generic Processor",
+            "cpu_serial": "N/A",
+            "ram_total_gb": 0.0,
+            "storage": [],
+            "peripherals": [],
+            "gpu_primary": "Integrated Graphics",
+            "gpu_vram_gb": 0.0
+        },
+        "DESIGNER2_PC_PAWAN": {
+            "daily_rx_bytes": 5053819237,
+            "daily_tx_bytes": 834186424,
+            "online_minutes": 10,
+            "offline_minutes": 630,
+            "last_raw_rx": 5053819237,
+            "last_raw_tx": 834186424,
+            "last_seen_timestamp": 1780146461.4549813,
+            "cpu_name": "Intel(R) Core(TM) i7-14700K",
+            "cpu_serial": "BFEBFBFF000B0671",
+            "ram_total_gb": 64,
+            "storage": [
+                {
+                    "Used_Pct": 57.2,
+                    "Serial": "N/A",
+                    "DriveLetter": "C:",
+                    "Type": "SSD",
+                    "Model": "Local Fixed Disk",
+                    "Size": "435.1 GB"
+                },
+                {
+                    "Used_Pct": 44.8,
+                    "Serial": "N/A",
+                    "DriveLetter": "D:",
+                    "Type": "SSD",
+                    "Model": "Local Fixed Disk",
+                    "Size": "1075.6 GB"
+                },
+                {
+                    "Used_Pct": 11.6,
+                    "Serial": "N/A",
+                    "DriveLetter": "E:",
+                    "Type": "SSD",
+                    "Model": "Local Fixed Disk",
+                    "Size": "351.6 GB"
+                }
+            ],
+            "peripherals": [
+                {
+                    "Name": "HID-compliant consumer control device"
+                },
+                {
+                    "Name": "HID-compliant headset"
+                },
+                {
+                    "Name": "HID-compliant device"
+                },
+                {
+                    "Name": "Bluetooth Low Energy GATT compliant HID device"
+                },
+                {
+                    "Name": "Logitech USB Input Device"
+                },
+                {
+                    "Name": "USB Input Device"
+                },
+                {
+                    "Name": "USB Input Device"
+                },
+                {
+                    "Name": "HID-compliant vendor-defined device"
+                },
+                {
+                    "Name": "HID-compliant device"
+                },
+                {
+                    "Name": "USB Input Device"
+                },
+                {
+                    "Name": "USB Input Device"
+                },
+                {
+                    "Name": "Generic USB Hub"
+                },
+                {
+                    "Name": "HID-compliant vendor-defined device"
+                },
+                {
+                    "Name": "HID-compliant vendor-defined device"
+                },
+                {
+                    "Name": "HID-compliant vendor-defined device"
+                },
+                {
+                    "Name": "HID Keyboard Device"
+                },
+                {
+                    "Name": "USB Input Device"
+                },
+                {
+                    "Name": "HID-compliant touch pad"
+                },
+                {
+                    "Name": "HID-compliant consumer control device"
+                },
+                {
+                    "Name": "USB Input Device"
+                },
+                {
+                    "Name": "HID-compliant mouse"
+                },
+                {
+                    "Name": "HID-compliant mouse"
+                },
+                {
+                    "Name": "HID Keyboard Device"
+                },
+                {
+                    "Name": "HID-compliant consumer control device"
+                },
+                {
+                    "Name": "USB Input Device"
+                }
+            ],
+            "gpu_primary": "Intel(R) UHD Graphics 770 + NVIDIA GeForce RTX 5060 Ti",
+            "gpu_vram_gb": 4
+        },
+        "EDITOR7_PC_PRANSHU": {
+            "daily_rx_bytes": 25003374294,
+            "daily_tx_bytes": 49968635807,
+            "online_minutes": 70,
+            "offline_minutes": 570,
+            "last_raw_rx": 25003374294,
+            "last_raw_tx": 49968635807,
+            "last_seen_timestamp": 1780148185.0006802,
+            "cpu_name": "AMD Ryzen 5 7600X 6-Core Processor",
+            "cpu_serial": "178BFBFF00A60F12",
+            "ram_total_gb": 32,
+            "storage": [
+                {
+                    "Used_Pct": 73.2,
+                    "Serial": "N/A",
+                    "DriveLetter": "C:",
+                    "Type": "SSD",
+                    "Model": "Local Fixed Disk",
+                    "Size": "930.6 GB"
+                }
+            ],
+            "peripherals": [
+                {
+                    "Name": "HID-compliant consumer control device"
+                },
+                {
+                    "Name": "HID Keyboard Device"
+                },
+                {
+                    "Name": "USB Input Device"
+                },
+                {
+                    "Name": "HID-compliant headset"
+                },
+                {
+                    "Name": "HID-compliant device"
+                },
+                {
+                    "Name": "HID-compliant mouse"
+                },
+                {
+                    "Name": "Generic SuperSpeed USB Hub"
+                },
+                {
+                    "Name": "Generic USB Hub"
+                },
+                {
+                    "Name": "USB Input Device"
+                },
+                {
+                    "Name": "USB Input Device"
+                },
+                {
+                    "Name": "HID-compliant consumer control device"
+                },
+                {
+                    "Name": "HID-compliant consumer control device"
+                },
+                {
+                    "Name": "USB Input Device"
+                },
+                {
+                    "Name": "USB Input Device"
+                }
+            ],
+            "gpu_primary": "AMD Radeon(TM) Graphics + NVIDIA GeForce RTX 5060",
+            "gpu_vram_gb": 4.5
+        },
+        "SUP2PC9-H310MHP": {
+            "daily_rx_bytes": 1015380234,
+            "daily_tx_bytes": 277938643,
+            "online_minutes": 420,
+            "offline_minutes": 220,
+            "last_raw_rx": 1015380234,
+            "last_raw_tx": 277938643,
+            "last_seen_timestamp": 1780158602.2542987,
+            "cpu_name": "Intel(R) Core(TM) i3-9100T CPU @ 3.10GHz Intel(R) Core(TM) i3-9100T CPU @ 3.10GHz To Be Filled By O.E.M. CPU @ 3.1GHz",
+            "cpu_serial": "N/A",
+            "ram_total_gb": 7,
+            "storage": [
+                {
+                    "Model": "Drive C:",
+                    "Type": "SSD",
+                    "Size": "218G",
+                    "Used_Pct": 9
+                },
+                {
+                    "Model": "Drive /boot/efi",
+                    "Type": "SSD",
+                    "Size": "1.1G",
+                    "Used_Pct": 1
+                }
+            ],
+            "peripherals": [
+                "ID 1d6b ID 1532 ID 046d ID 046d ID 1d6b"
+            ],
+            "gpu_primary": "Intel Corporation CoffeeLake-S GT2 [UHD Graphics 630]",
+            "gpu_vram_gb": 0.0
+        },
+        "SUP2PC15-H310MHP": {
+            "daily_rx_bytes": 1591968189,
+            "daily_tx_bytes": 434677088,
+            "online_minutes": 420,
+            "offline_minutes": 220,
+            "last_raw_rx": 1591968189,
+            "last_raw_tx": 434677088,
+            "last_seen_timestamp": 1780158601.460581,
+            "cpu_name": "Intel(R) Core(TM) i3-9100T CPU @ 3.10GHz Intel(R) Core(TM) i3-9100T CPU @ 3.10GHz To Be Filled By O.E.M. CPU @ 3.1GHz",
+            "cpu_serial": "N/A",
+            "ram_total_gb": 7,
+            "storage": [
+                {
+                    "Model": "Drive C:",
+                    "Type": "SSD",
+                    "Size": "218G",
+                    "Used_Pct": 8
+                },
+                {
+                    "Model": "Drive /boot/efi",
+                    "Type": "SSD",
+                    "Size": "1.1G",
+                    "Used_Pct": 1
+                }
+            ],
+            "peripherals": [
+                "ID 1d6b ID 046d ID 1532 ID 046d ID 1d6b"
+            ],
+            "gpu_primary": "Intel Corporation CoffeeLake-S GT2 [UHD Graphics 630]",
+            "gpu_vram_gb": 0.0
+        },
+        "SUP2PC1-H310MHP": {
+            "daily_rx_bytes": 1056134934,
+            "daily_tx_bytes": 227031040,
+            "online_minutes": 420,
+            "offline_minutes": 220,
+            "last_raw_rx": 1056134934,
+            "last_raw_tx": 227031040,
+            "last_seen_timestamp": 1780158602.0563445,
+            "cpu_name": "Intel(R) Core(TM) i3-9100T CPU @ 3.10GHz Intel(R) Core(TM) i3-9100T CPU @ 3.10GHz To Be Filled By O.E.M. CPU @ 3.1GHz",
+            "cpu_serial": "N/A",
+            "ram_total_gb": 7,
+            "storage": [
+                {
+                    "Model": "Drive C:",
+                    "Type": "SSD",
+                    "Size": "218G",
+                    "Used_Pct": 9
+                },
+                {
+                    "Model": "Drive /boot/efi",
+                    "Type": "SSD",
+                    "Size": "1.1G",
+                    "Used_Pct": 1
+                }
+            ],
+            "peripherals": [
+                "ID 1d6b ID 1532 ID 046d ID 046d ID 1d6b"
+            ],
+            "gpu_primary": "Intel Corporation CoffeeLake-S GT2 [UHD Graphics 630]",
+            "gpu_vram_gb": 0.0
+        },
+        "SUP2PC7-H310MHP": {
+            "daily_rx_bytes": 2105455329,
+            "daily_tx_bytes": 288502316,
+            "online_minutes": 410,
+            "offline_minutes": 230,
+            "last_raw_rx": 2105455329,
+            "last_raw_tx": 288502316,
+            "last_seen_timestamp": 1780158542.0100956,
+            "cpu_name": "Intel(R) Core(TM) i3-9300T CPU @ 3.20GHz Intel(R) Core(TM) i3-9300T CPU @ 3.20GHz To Be Filled By O.E.M. CPU @ 3.2GHz",
+            "cpu_serial": "N/A",
+            "ram_total_gb": 7,
+            "storage": [
+                {
+                    "Model": "Drive C:",
+                    "Type": "SSD",
+                    "Size": "218G",
+                    "Used_Pct": 9
+                },
+                {
+                    "Model": "Drive /boot/efi",
+                    "Type": "SSD",
+                    "Size": "1.1G",
+                    "Used_Pct": 1
+                }
+            ],
+            "peripherals": [
+                "ID 1d6b ID 1532 ID 046d ID 046d ID 1d6b"
+            ],
+            "gpu_primary": "Intel Corporation CoffeeLake-S GT2 [UHD Graphics 630]",
+            "gpu_vram_gb": 0.0
+        },
+        "SUP2PC2-H310MHP": {
+            "daily_rx_bytes": 1916321289,
+            "daily_tx_bytes": 255201916,
+            "online_minutes": 420,
+            "offline_minutes": 220,
+            "last_raw_rx": 1916321289,
+            "last_raw_tx": 255201916,
+            "last_seen_timestamp": 1780158602.3489847,
+            "cpu_name": "Intel(R) Core(TM) i3-9100 CPU @ 3.60GHz Intel(R) Core(TM) i3-9100 CPU @ 3.60GHz To Be Filled By O.E.M. CPU @ 3.6GHz",
+            "cpu_serial": "N/A",
+            "ram_total_gb": 7,
+            "storage": [
+                {
+                    "Model": "Drive C:",
+                    "Type": "SSD",
+                    "Size": "218G",
+                    "Used_Pct": 9
+                },
+                {
+                    "Model": "Drive /boot/efi",
+                    "Type": "SSD",
+                    "Size": "1.1G",
+                    "Used_Pct": 1
+                }
+            ],
+            "peripherals": [
+                "ID 1d6b ID 1532 ID 046d ID 046d ID 1d6b"
+            ],
+            "gpu_primary": "Intel Corporation CoffeeLake-S GT2 [UHD Graphics 630]",
+            "gpu_vram_gb": 0.0
+        },
+        "SUP2PC3-H310MHP": {
+            "daily_rx_bytes": 2125075895,
+            "daily_tx_bytes": 850204424,
+            "online_minutes": 420,
+            "offline_minutes": 220,
+            "last_raw_rx": 1160356144,
+            "last_raw_tx": 364363357,
+            "last_seen_timestamp": 1780158602.1852787,
+            "cpu_name": "Intel(R) Core(TM) i3-9100 CPU @ 3.60GHz Intel(R) Core(TM) i3-9100 CPU @ 3.60GHz To Be Filled By O.E.M. CPU @ 3.6GHz",
+            "cpu_serial": "N/A",
+            "ram_total_gb": 7,
+            "storage": [
+                {
+                    "Model": "Drive C:",
+                    "Type": "SSD",
+                    "Size": "218G",
+                    "Used_Pct": 9
+                },
+                {
+                    "Model": "Drive /boot/efi",
+                    "Type": "SSD",
+                    "Size": "1.1G",
+                    "Used_Pct": 1
+                }
+            ],
+            "peripherals": [
+                "ID 1d6b ID 1532 ID 046d ID 046d ID 1d6b"
+            ],
+            "gpu_primary": "Intel Corporation CoffeeLake-S GT2 [UHD Graphics 630]",
+            "gpu_vram_gb": 0.0
+        },
+        "SUP2PC8-H310MHP": {
+            "daily_rx_bytes": 1826272234,
+            "daily_tx_bytes": 397018481,
+            "online_minutes": 420,
+            "offline_minutes": 220,
+            "last_raw_rx": 1826272234,
+            "last_raw_tx": 397018481,
+            "last_seen_timestamp": 1780158601.7630408,
+            "cpu_name": "Intel(R) Core(TM) i3-9100 CPU @ 3.60GHz Intel(R) Core(TM) i3-9100 CPU @ 3.60GHz To Be Filled By O.E.M. CPU @ 3.6GHz",
+            "cpu_serial": "N/A",
+            "ram_total_gb": 7,
+            "storage": [
+                {
+                    "Model": "Drive C:",
+                    "Type": "SSD",
+                    "Size": "218G",
+                    "Used_Pct": 9
+                },
+                {
+                    "Model": "Drive /boot/efi",
+                    "Type": "SSD",
+                    "Size": "1.1G",
+                    "Used_Pct": 1
+                }
+            ],
+            "peripherals": [
+                "ID 1d6b ID 1532 ID 046d ID 046d ID 1d6b"
+            ],
+            "gpu_primary": "Intel Corporation CoffeeLake-S GT2 [UHD Graphics 630]",
+            "gpu_vram_gb": 0.0
+        },
+        "SUP2PC12-H310MHP": {
+            "daily_rx_bytes": 915642437,
+            "daily_tx_bytes": 292756284,
+            "online_minutes": 420,
+            "offline_minutes": 220,
+            "last_raw_rx": 915642437,
+            "last_raw_tx": 292756284,
+            "last_seen_timestamp": 1780158601.6536536,
+            "cpu_name": "Intel(R) Core(TM) i3-9100 CPU @ 3.60GHz Intel(R) Core(TM) i3-9100 CPU @ 3.60GHz To Be Filled By O.E.M. CPU @ 3.6GHz",
+            "cpu_serial": "N/A",
+            "ram_total_gb": 7,
+            "storage": [
+                {
+                    "Model": "Drive C:",
+                    "Type": "SSD",
+                    "Size": "218G",
+                    "Used_Pct": 9
+                },
+                {
+                    "Model": "Drive /boot/efi",
+                    "Type": "SSD",
+                    "Size": "1.1G",
+                    "Used_Pct": 1
+                }
+            ],
+            "peripherals": [
+                "ID 1d6b ID 046d ID 046d ID 1532 ID 1d6b"
+            ],
+            "gpu_primary": "Intel Corporation CoffeeLake-S GT2 [UHD Graphics 630]",
+            "gpu_vram_gb": 0.0
+        },
+        "SUP2PC10-H310MHP": {
+            "daily_rx_bytes": 655821062,
+            "daily_tx_bytes": 271643859,
+            "online_minutes": 420,
+            "offline_minutes": 220,
+            "last_raw_rx": 655821062,
+            "last_raw_tx": 271643859,
+            "last_seen_timestamp": 1780158601.6419833,
+            "cpu_name": "Intel(R) Core(TM) i3-9100T CPU @ 3.10GHz Intel(R) Core(TM) i3-9100T CPU @ 3.10GHz To Be Filled By O.E.M. CPU @ 3.1GHz",
+            "cpu_serial": "N/A",
+            "ram_total_gb": 7,
+            "storage": [
+                {
+                    "Model": "Drive C:",
+                    "Type": "SSD",
+                    "Size": "218G",
+                    "Used_Pct": 9
+                },
+                {
+                    "Model": "Drive /boot/efi",
+                    "Type": "SSD",
+                    "Size": "1.1G",
+                    "Used_Pct": 1
+                }
+            ],
+            "peripherals": [
+                "ID 1d6b ID 1532 ID 046d ID 046d ID 1d6b"
+            ],
+            "gpu_primary": "Intel Corporation CoffeeLake-S GT2 [UHD Graphics 630]",
+            "gpu_vram_gb": 0.0
+        },
+        "SUP2PC5-H310MHP": {
+            "daily_rx_bytes": 771676820,
+            "daily_tx_bytes": 262784042,
+            "online_minutes": 420,
+            "offline_minutes": 220,
+            "last_raw_rx": 771676820,
+            "last_raw_tx": 262784042,
+            "last_seen_timestamp": 1780158601.7900038,
+            "cpu_name": "Intel(R) Core(TM) i3-9100T CPU @ 3.10GHz Intel(R) Core(TM) i3-9100T CPU @ 3.10GHz To Be Filled By O.E.M. CPU @ 3.1GHz",
+            "cpu_serial": "N/A",
+            "ram_total_gb": 7,
+            "storage": [
+                {
+                    "Model": "Drive C:",
+                    "Type": "SSD",
+                    "Size": "218G",
+                    "Used_Pct": 8
+                },
+                {
+                    "Model": "Drive /boot/efi",
+                    "Type": "SSD",
+                    "Size": "1.1G",
+                    "Used_Pct": 1
+                }
+            ],
+            "peripherals": [
+                "ID 1d6b ID 046d ID 046d ID 1532 ID 1d6b"
+            ],
+            "gpu_primary": "Intel Corporation CoffeeLake-S GT2 [UHD Graphics 630]",
+            "gpu_vram_gb": 0.0
+        },
+        "SUP2PC4-H310MHP": {
+            "daily_rx_bytes": 1008118269,
+            "daily_tx_bytes": 294271429,
+            "online_minutes": 420,
+            "offline_minutes": 220,
+            "last_raw_rx": 1008118269,
+            "last_raw_tx": 294271429,
+            "last_seen_timestamp": 1780158601.4516196,
+            "cpu_name": "Intel(R) Core(TM) i3-9100T CPU @ 3.10GHz Intel(R) Core(TM) i3-9100T CPU @ 3.10GHz To Be Filled By O.E.M. CPU @ 3.1GHz",
+            "cpu_serial": "N/A",
+            "ram_total_gb": 7,
+            "storage": [
+                {
+                    "Model": "Drive C:",
+                    "Type": "SSD",
+                    "Size": "218G",
+                    "Used_Pct": 8
+                },
+                {
+                    "Model": "Drive /boot/efi",
+                    "Type": "SSD",
+                    "Size": "1.1G",
+                    "Used_Pct": 1
+                }
+            ],
+            "peripherals": [
+                "ID 1d6b ID 1532 ID 046d ID 046d ID 1d6b"
+            ],
+            "gpu_primary": "Intel Corporation CoffeeLake-S GT2 [UHD Graphics 630]",
+            "gpu_vram_gb": 0.0
+        },
+        "TEACHER6_PC": {
+            "daily_rx_bytes": 2564097447,
+            "daily_tx_bytes": 693514082,
+            "online_minutes": 640,
+            "offline_minutes": 0,
+            "last_raw_rx": 2564097447,
+            "last_raw_tx": 693514082,
+            "last_seen_timestamp": 1780165694.2319014,
+            "cpu_name": "Generic Processor",
+            "cpu_serial": "N/A",
+            "ram_total_gb": 0.0,
+            "storage": [],
+            "peripherals": [],
+            "gpu_primary": "Integrated Graphics",
+            "gpu_vram_gb": 0.0
+        },
+        "STU10_IFP": {
+            "daily_rx_bytes": 159561180,
+            "daily_tx_bytes": 139687503,
+            "online_minutes": 270,
+            "offline_minutes": 370,
+            "last_raw_rx": 159561180,
+            "last_raw_tx": 139687503,
+            "last_seen_timestamp": 1780154300.403023,
+            "cpu_name": "Generic Processor",
+            "cpu_serial": "N/A",
+            "ram_total_gb": 0.0,
+            "storage": [],
+            "peripherals": [],
+            "gpu_primary": "Integrated Graphics",
+            "gpu_vram_gb": 0.0
+        },
+        "STU12_IFP": {
+            "daily_rx_bytes": 854,
+            "daily_tx_bytes": 1019917,
+            "online_minutes": 140,
+            "offline_minutes": 500,
+            "last_raw_rx": 854,
+            "last_raw_tx": 1019917,
+            "last_seen_timestamp": 1780150457.8579817,
+            "cpu_name": "Generic Processor",
+            "cpu_serial": "N/A",
+            "ram_total_gb": 0.0,
+            "storage": [],
+            "peripherals": [],
+            "gpu_primary": "Integrated Graphics",
+            "gpu_vram_gb": 0.0
+        },
+        "STU11_IFP": {
+            "daily_rx_bytes": 2361315676,
+            "daily_tx_bytes": 1146059776,
+            "online_minutes": 110,
+            "offline_minutes": 530,
+            "last_raw_rx": 2361315676,
+            "last_raw_tx": 1146059776,
+            "last_seen_timestamp": 1780149310.8066053,
+            "cpu_name": "Generic Processor",
+            "cpu_serial": "N/A",
+            "ram_total_gb": 0.0,
+            "storage": [],
+            "peripherals": [],
+            "gpu_primary": "Integrated Graphics",
+            "gpu_vram_gb": 0.0
+        },
+        "STU2_PC": {
+            "daily_rx_bytes": 224133763521,
+            "daily_tx_bytes": 209119036769,
+            "online_minutes": 170,
+            "offline_minutes": 470,
+            "last_raw_rx": 224133763521,
+            "last_raw_tx": 209119036769,
+            "last_seen_timestamp": 1780151170.0120492,
+            "cpu_name": "Generic Processor",
+            "cpu_serial": "N/A",
+            "ram_total_gb": 0.0,
+            "storage": [],
+            "peripherals": [],
+            "gpu_primary": "Integrated Graphics",
+            "gpu_vram_gb": 0.0
+        },
+        "STU10_PC": {
+            "daily_rx_bytes": 15782879600,
+            "daily_tx_bytes": 13781052716,
+            "online_minutes": 30,
+            "offline_minutes": 610,
+            "last_raw_rx": 15782879600,
+            "last_raw_tx": 13781052716,
+            "last_seen_timestamp": 1780146983.683241,
+            "cpu_name": "Generic Processor",
+            "cpu_serial": "N/A",
+            "ram_total_gb": 0.0,
+            "storage": [],
+            "peripherals": [],
+            "gpu_primary": "Integrated Graphics",
+            "gpu_vram_gb": 0.0
+        },
+        "STU5_IFP": {
+            "daily_rx_bytes": 2943824,
+            "daily_tx_bytes": 445702,
+            "online_minutes": 20,
+            "offline_minutes": 590,
+            "last_raw_rx": 2943824,
+            "last_raw_tx": 445702,
+            "last_seen_timestamp": 1780147479.050271,
+            "cpu_name": "Generic Processor",
+            "cpu_serial": "N/A",
+            "ram_total_gb": 0.0,
+            "storage": [],
+            "peripherals": [],
+            "gpu_primary": "Integrated Graphics",
+            "gpu_vram_gb": 0.0
+        },
+        "STU5_PC": {
+            "daily_rx_bytes": 404390960,
+            "daily_tx_bytes": 1668968664,
+            "online_minutes": 170,
+            "offline_minutes": 440,
+            "last_raw_rx": 404390960,
+            "last_raw_tx": 1668968664,
+            "last_seen_timestamp": 1780152054.354335,
+            "cpu_name": "Generic Processor",
+            "cpu_serial": "N/A",
+            "ram_total_gb": 0.0,
+            "storage": [],
+            "peripherals": [],
+            "gpu_primary": "Integrated Graphics",
+            "gpu_vram_gb": 0.0
+        },
+        "ADMIN-SAGAR-VIRTUALBOX": {
+            "daily_rx_bytes": 140924650,
+            "daily_tx_bytes": 329957710,
+            "online_minutes": 230,
+            "offline_minutes": 0,
+            "last_raw_rx": 140924650,
+            "last_raw_tx": 329957710,
+            "last_seen_timestamp": 1780165527.1563241,
+            "cpu_name": "Generic Processor",
+            "cpu_serial": "N/A",
+            "ram_total_gb": 0.0,
+            "storage": [],
+            "peripherals": [],
+            "gpu_primary": "Integrated Graphics",
+            "gpu_vram_gb": 0.0
+        }
+    }
+}

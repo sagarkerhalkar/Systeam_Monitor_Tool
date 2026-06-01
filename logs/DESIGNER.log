@@ -1,0 +1,14 @@
+{
+    "net_rx_bytes": 4361917104,
+    "cpu_load": 2,
+    "ram_used_pct": 74.3,
+    "hostname": "Designer",
+    "adapters": {
+        "Name": "Ethernet",
+        "IP": "156.156.10.48"
+    },
+    "net_tx_bytes": 18810159135,
+    "os": "Windows 11 Home Single Language",
+    "ssd_used_pct": 0.0,
+    "hdd_used_pct": 0.0
+}

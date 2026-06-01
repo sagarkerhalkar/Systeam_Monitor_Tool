@@ -1,0 +1,24 @@
+{
+    "net_rx_bytes": 1671755,
+    "cpu_load": 11,
+    "ram_used_pct": 71.29,
+    "hostname": "STU11_IFP",
+    "adapters": [
+        {
+            "Name": "Ethernet 3",
+            "IP": "169.254.93.199"
+        },
+        {
+            "Name": "Local Area Connection* 10",
+            "IP": "192.168.137.1"
+        },
+        {
+            "Name": "Ethernet",
+            "IP": "156.156.50.32"
+        }
+    ],
+    "net_tx_bytes": 840799,
+    "os": "Windows 11 Pro",
+    "ssd_used_pct": 0.0,
+    "hdd_used_pct": 0.0
+}

@@ -1,0 +1,77 @@
+{
+    "net_rx_bytes": 27179134583,
+    "ram_used_pct": 69.6,
+    "storage": [
+        {
+            "Used_Pct": 73.7,
+            "Serial": "N/A",
+            "DriveLetter": "C:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "930.6 GB"
+        }
+    ],
+    "peripherals": [
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "HID Keyboard Device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant headset"
+        },
+        {
+            "Name": "HID-compliant device"
+        },
+        {
+            "Name": "HID-compliant mouse"
+        },
+        {
+            "Name": "Generic SuperSpeed USB Hub"
+        },
+        {
+            "Name": "Generic USB Hub"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "USB Input Device"
+        }
+    ],
+    "ip_address": "156.156.40.64",
+    "cpu_load": 2,
+    "adapters": [
+        {
+            "Interface": "Ethernet",
+            "IP": "156.156.40.64"
+        }
+    ],
+    "gpu_load_pct": 0,
+    "ram_total_gb": 32,
+    "os": "Windows 11 Pro",
+    "net_tx_bytes": 50084372401,
+    "cpu_serial": "178BFBFF00A60F12",
+    "gpu_primary": "AMD Radeon(TM) Graphics + NVIDIA GeForce RTX 5060",
+    "hostname": "EDITOR7_PC_PRANSHU",
+    "gpu_vram_gb": 4.5,
+    "cpu_name": "AMD Ryzen 5 7600X 6-Core Processor",
+    "ssd_used_pct": 73.7,
+    "hdd_used_pct": 0.0
+}

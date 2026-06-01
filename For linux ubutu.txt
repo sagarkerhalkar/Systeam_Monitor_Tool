@@ -1,0 +1,38 @@
+1. Setting Up the Linux Machines
+Since you have a mixed system, you need to configure your Linux machines to talk to this same server.
+
+Create a script called /usr/local/bin/sysreport.sh on a Linux machine:
+
+Bash
+#!/bin/bash
+# Point to your Windows Server IP
+SERVER="http://156.156.40.51:8080"
+HOSTNAME=$(hostname)
+
+# 1. Get CPU Health
+CPU_LOAD=$(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1}')
+
+# 2. Get RAM Health
+RAM_USED=$(free | grep Mem | awk '{print $3/$2 * 100.0}')
+
+# 3. Get Network Usage
+NET_STATS=$(ip -o link show | awk -F': ' '{print $2}')
+NET_RX=$(cat /sys/class/net/$(echo $NET_STATS | awk '{print $1}')/statistics/rx_bytes 2>/dev/null || echo 0)
+NET_TX=$(cat /sys/class/net/$(echo $NET_STATS | awk '{print $1}')/statistics/tx_bytes 2>/dev/null || echo 0)
+
+# 4. Get ALL Active IP Addresses and Interface Names
+ADAPTERS=$(ip -4 -o addr show | grep -v '127.0.0.1' | awk '{print "{\"Name\":\""$2"\",\"IP\":\""$4"\"}"}' | sed 's/\/.*//' | paste -sd, -)
+
+# Format JSON Payload
+PAYLOAD="{\"hostname\":\"$HOSTNAME\",\"os\":\"Linux\",\"cpu_load\":$CPU_LOAD,\"ram_used_pct\":$RAM_USED,\"net_rx_bytes\":$NET_RX,\"net_tx_bytes\":$NET_TX,\"adapters\":[$ADAPTERS]}"
+
+# Push to your Windows Server
+curl -X POST -H "Content-Type: application/json" -d "$PAYLOAD" $SERVER
+
+
+
+
+Set it to run every 5 minutes using crontab -e:
+
+Plaintext
+*/5 * * * * /bin/bash /usr/local/bin/sysreport.sh >/dev/null 2>&1

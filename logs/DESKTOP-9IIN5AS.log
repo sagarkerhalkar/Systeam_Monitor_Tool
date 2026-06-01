@@ -1,0 +1,78 @@
+{
+    "net_rx_bytes": 448866688,
+    "ram_used_pct": 37.8,
+    "storage": [
+        {
+            "Used_Pct": 98,
+            "Serial": "N/A",
+            "DriveLetter": "C:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "464.9 GB"
+        },
+        {
+            "Used_Pct": 2.1,
+            "Serial": "N/A",
+            "DriveLetter": "D:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "931.5 GB"
+        },
+        {
+            "Used_Pct": 62.6,
+            "Serial": "N/A",
+            "DriveLetter": "E:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "1863 GB"
+        }
+    ],
+    "peripherals": [
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant headset"
+        },
+        {
+            "Name": "HID-compliant mouse"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID Keyboard Device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        }
+    ],
+    "ip_address": "156.156.40.59",
+    "cpu_load": 5,
+    "adapters": [
+        {
+            "Interface": "Ethernet",
+            "IP": "156.156.40.59"
+        }
+    ],
+    "gpu_load_pct": 0,
+    "ram_total_gb": 16,
+    "os": "Windows 11 Pro",
+    "net_tx_bytes": 33424148,
+    "cpu_serial": "BFEBFBFF000A0671",
+    "gpu_primary": "NVIDIA GeForce GT 730",
+    "hostname": "DESKTOP-9IIN5AS",
+    "gpu_vram_gb": 4,
+    "cpu_name": "11th Gen Intel(R) Core(TM) i5-11400F @ 2.60GHz",
+    "ssd_used_pct": 98.0,
+    "hdd_used_pct": 0.0
+}

@@ -1,0 +1,146 @@
+{
+    "net_rx_bytes": 13293476,
+    "ram_used_pct": 39.4,
+    "storage": [
+        {
+            "Used_Pct": 73.2,
+            "Serial": "N/A",
+            "DriveLetter": "C:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "450.4 GB"
+        }
+    ],
+    "peripherals": [
+        {
+            "Name": "Microsoft Input Configuration Device"
+        },
+        {
+            "Name": "HID-compliant headset"
+        },
+        {
+            "Name": "Generic USB Hub"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID Button over Interrupt Driver"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "HID Keyboard Device"
+        },
+        {
+            "Name": "Generic USB Hub"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant wireless radio controls"
+        },
+        {
+            "Name": "HID Keyboard Device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "HID-compliant mouse"
+        },
+        {
+            "Name": "Intel(R) HID Event Filter"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "HID Keyboard Device"
+        },
+        {
+            "Name": "HID-compliant vendor-defined device"
+        },
+        {
+            "Name": "HID-compliant vendor-defined device"
+        },
+        {
+            "Name": "HID-compliant vendor-defined device"
+        },
+        {
+            "Name": "GPIO Laptop or Slate Indicator Driver"
+        },
+        {
+            "Name": "Standard PS/2 Keyboard"
+        },
+        {
+            "Name": "I2C HID Device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "Converted Portable Device Control device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "HID-compliant vendor-defined device"
+        },
+        {
+            "Name": "HID-compliant vendor-defined device"
+        },
+        {
+            "Name": "PS/2 Compatible Mouse"
+        },
+        {
+            "Name": "HID-compliant touch pad"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "HID-compliant mouse"
+        },
+        {
+            "Name": "Portable Device Control device"
+        }
+    ],
+    "ip_address": "156.156.40.78",
+    "cpu_load": 4,
+    "adapters": [
+        {
+            "Interface": "Ethernet",
+            "IP": "156.156.40.78"
+        }
+    ],
+    "gpu_load_pct": 0,
+    "ram_total_gb": 16,
+    "os": "Windows 11 Home Single Language",
+    "net_tx_bytes": 4115921,
+    "cpu_serial": "BFEBFBFF000B06A2",
+    "gpu_primary": "NVIDIA GeForce RTX 3050 Laptop GPU + Intel(R) UHD Graphics",
+    "hostname": "CONTENT3_PC_VIVEK",
+    "gpu_vram_gb": 4,
+    "cpu_name": "13th Gen Intel(R) Core(TM) i5-13420H",
+    "ssd_used_pct": 73.2,
+    "hdd_used_pct": 0.0
+}

@@ -1,0 +1,14 @@
+{
+    "net_rx_bytes": 168945657,
+    "cpu_load": 12,
+    "ram_used_pct": 89.95,
+    "hostname": "YTM1_Laptop_Shivam",
+    "adapters": {
+        "Name": "Ethernet",
+        "IP": "156.156.40.89"
+    },
+    "net_tx_bytes": 4155803,
+    "os": "Windows 11 Pro",
+    "ssd_used_pct": 0.0,
+    "hdd_used_pct": 0.0
+}

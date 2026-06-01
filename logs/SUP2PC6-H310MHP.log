@@ -1,0 +1,45 @@
+{
+    "hostname": "SUP2PC6-H310MHP",
+    "ip_address": "156.156.20.106",
+    "os": "Ubuntu 24.04.4 LTS",
+    "cpu_name": "Intel(R) Core(TM) i3-9100 CPU @ 3.60GHz Intel(R) Core(TM) i3-9100 CPU @ 3.60GHz To Be Filled By O.E.M. CPU @ 3.6GHz",
+    "cpu_serial": "N/A",
+    "ram_total_gb": 7,
+    "ram_used_pct": 64.8,
+    "cpu_load": 28,
+    "gpu_primary": "Intel Corporation CoffeeLake-S GT2 [UHD Graphics 630]",
+    "gpu_load_pct": 0.0,
+    "net_rx_bytes": 1306594913,
+    "net_tx_bytes": 189453824,
+    "storage": [
+        {
+            "Model": "Drive C:",
+            "Type": "SSD",
+            "Size": "218G",
+            "Used_Pct": 8
+        },
+        {
+            "Model": "Drive /boot/efi",
+            "Type": "SSD",
+            "Size": "1.1G",
+            "Used_Pct": 1
+        }
+    ],
+    "gpus": [
+        {
+            "Model": "Intel Corporation CoffeeLake-S GT2 [UHD Graphics 630]",
+            "Load_Pct": 0.0
+        }
+    ],
+    "adapters": [
+        {
+            "Interface": "enp1s0",
+            "IP": "156.156.20.106"
+        }
+    ],
+    "peripherals": [
+        "ID 1d6b ID 1532 ID 1a2c ID 046d ID 1d6b"
+    ],
+    "ssd_used_pct": 0.0,
+    "hdd_used_pct": 0.0
+}

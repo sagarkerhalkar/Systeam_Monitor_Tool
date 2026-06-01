@@ -1,0 +1,159 @@
+{
+    "net_rx_bytes": 299738534,
+    "ram_used_pct": 20.3,
+    "storage": [
+        {
+            "Used_Pct": 70,
+            "Serial": "N/A",
+            "DriveLetter": "C:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "396.5 GB"
+        },
+        {
+            "Used_Pct": 10.3,
+            "Serial": "N/A",
+            "DriveLetter": "D:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "732.4 GB"
+        },
+        {
+            "Used_Pct": 0,
+            "Serial": "N/A",
+            "DriveLetter": "E:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "732.4 GB"
+        }
+    ],
+    "peripherals": [
+        {
+            "Name": "Microsoft Input Configuration Device"
+        },
+        {
+            "Name": "Intel(R) HID Event Filter"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "HID Button over Interrupt Driver"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant headset"
+        },
+        {
+            "Name": "Bluetooth Low Energy GATT compliant HID device"
+        },
+        {
+            "Name": "HID-compliant wireless radio controls"
+        },
+        {
+            "Name": "HID Keyboard Device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "Converted Portable Device Control device"
+        },
+        {
+            "Name": "GPIO Laptop or Slate Indicator Driver"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant mouse"
+        },
+        {
+            "Name": "HID Keyboard Device"
+        },
+        {
+            "Name": "Standard PS/2 Keyboard"
+        },
+        {
+            "Name": "HID-compliant mouse"
+        },
+        {
+            "Name": "HID Keyboard Device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "PS/2 Compatible Mouse"
+        },
+        {
+            "Name": "HID-compliant vendor-defined device"
+        },
+        {
+            "Name": "HID-compliant vendor-defined device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant device"
+        },
+        {
+            "Name": "I2C HID Device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "HID-compliant vendor-defined device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant touch pad"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "Portable Device Control device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        }
+    ],
+    "ip_address": "156.156.50.104",
+    "cpu_load": 10,
+    "adapters": [
+        {
+            "Interface": "Wi-Fi",
+            "IP": "156.156.50.104"
+        }
+    ],
+    "gpu_load_pct": 0,
+    "ram_total_gb": 32,
+    "os": "Windows 11 Home Single Language",
+    "net_tx_bytes": 46627424,
+    "cpu_serial": "BFEBFBFF000906A3",
+    "gpu_primary": "Intel(R) UHD Graphics + NVIDIA GeForce RTX 3050 Laptop GPU",
+    "hostname": "CONTENT5_LAPTOP_SAHIL",
+    "gpu_vram_gb": 4,
+    "cpu_name": "12th Gen Intel(R) Core(TM) i7-12650H",
+    "ssd_used_pct": 70.0,
+    "hdd_used_pct": 0.0
+}

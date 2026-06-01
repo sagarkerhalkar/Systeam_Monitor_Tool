@@ -1,0 +1,45 @@
+{
+    "hostname": "SUP2PC26-HP-280-G3-SFF-BUSINESS-PC",
+    "ip_address": "156.156.20.123",
+    "os": "Ubuntu 24.04.4 LTS",
+    "cpu_name": "Intel(R) Core(TM) i3-8100T CPU @ 3.10GHz Intel(R) Core(TM) i3-8100T CPU @ 3.10GHz CPU @ 2.9GHz",
+    "cpu_serial": "8CG8329KWN",
+    "ram_total_gb": 7,
+    "ram_used_pct": 45.2,
+    "cpu_load": 29.2,
+    "gpu_primary": "Intel Corporation CoffeeLake-S GT2 [UHD Graphics 630]",
+    "gpu_load_pct": 0.0,
+    "net_rx_bytes": 157969304,
+    "net_tx_bytes": 142379458,
+    "storage": [
+        {
+            "Model": "Drive C:",
+            "Type": "SSD",
+            "Size": "468G",
+            "Used_Pct": 4
+        },
+        {
+            "Model": "Drive /boot/efi",
+            "Type": "SSD",
+            "Size": "1.1G",
+            "Used_Pct": 1
+        }
+    ],
+    "gpus": [
+        {
+            "Model": "Intel Corporation CoffeeLake-S GT2 [UHD Graphics 630]",
+            "Load_Pct": 0.0
+        }
+    ],
+    "adapters": [
+        {
+            "Interface": "enp1s0",
+            "IP": "156.156.20.123"
+        }
+    ],
+    "peripherals": [
+        "ID 1d6b ID 046d ID 046d ID 1532 ID 0bda ID 1d6b"
+    ],
+    "ssd_used_pct": 0.0,
+    "hdd_used_pct": 0.0
+}

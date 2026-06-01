@@ -1,0 +1,20 @@
+{
+    "net_rx_bytes": 761627,
+    "cpu_load": 9,
+    "ram_used_pct": 39.89,
+    "hostname": "STU4_PC",
+    "adapters": [
+        {
+            "Name": "Local Area Connection* 10",
+            "IP": "192.168.137.1"
+        },
+        {
+            "Name": "Ethernet",
+            "IP": "156.156.10.19"
+        }
+    ],
+    "net_tx_bytes": 20878821,
+    "os": "Windows 11 Pro",
+    "ssd_used_pct": 0.0,
+    "hdd_used_pct": 0.0
+}

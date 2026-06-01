@@ -1,0 +1,81 @@
+{
+    "net_rx_bytes": 568740275,
+    "ram_used_pct": 46.5,
+    "storage": [
+        {
+            "Used_Pct": 42.8,
+            "Serial": "N/A",
+            "DriveLetter": "C:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "355.3 GB"
+        },
+        {
+            "Used_Pct": 7.5,
+            "Serial": "N/A",
+            "DriveLetter": "D:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "574.6 GB"
+        },
+        {
+            "Used_Pct": 60.6,
+            "Serial": "N/A",
+            "DriveLetter": "E:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "1863 GB"
+        }
+    ],
+    "peripherals": [
+        {
+            "Name": "Generic USB Hub"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID Keyboard Device"
+        },
+        {
+            "Name": "HID-compliant mouse"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant device"
+        }
+    ],
+    "ip_address": "156.156.50.49",
+    "cpu_load": 4,
+    "adapters": [
+        {
+            "Interface": "Wi-Fi",
+            "IP": "156.156.50.49"
+        }
+    ],
+    "gpu_load_pct": 0,
+    "ram_total_gb": 16,
+    "os": "Windows 11 Pro",
+    "net_tx_bytes": 165150286,
+    "cpu_serial": "BFEBFBFF000B06F2",
+    "gpu_primary": "NVIDIA GeForce RTX 3070 Ti",
+    "hostname": "CONTENT9_PC",
+    "gpu_vram_gb": 4,
+    "cpu_name": "13th Gen Intel(R) Core(TM) i5-13400F",
+    "ssd_used_pct": 42.8,
+    "hdd_used_pct": 0.0
+}

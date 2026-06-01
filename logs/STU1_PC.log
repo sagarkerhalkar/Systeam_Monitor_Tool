@@ -1,0 +1,81 @@
+{
+    "net_rx_bytes": 14904980554,
+    "ram_used_pct": 38.8,
+    "storage": [
+        {
+            "Used_Pct": 62.3,
+            "Serial": "N/A",
+            "DriveLetter": "C:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "930.7 GB"
+        }
+    ],
+    "peripherals": [
+        {
+            "Name": "HID Keyboard Device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant vendor-defined device"
+        },
+        {
+            "Name": "HID Keyboard Device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant vendor-defined device"
+        },
+        {
+            "Name": "Generic USB Hub"
+        },
+        {
+            "Name": "HID-compliant vendor-defined device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant mouse"
+        }
+    ],
+    "ip_address": "156.156.10.21",
+    "cpu_load": 6,
+    "adapters": [
+        {
+            "Interface": "Local Area Connection* 10",
+            "IP": "192.168.137.1"
+        },
+        {
+            "Interface": "Ethernet",
+            "IP": "156.156.10.21"
+        }
+    ],
+    "gpu_load_pct": 0,
+    "ram_total_gb": 32,
+    "os": "Windows 11 Pro",
+    "net_tx_bytes": 18698584760,
+    "cpu_serial": "BFEBFBFF000B06F2",
+    "gpu_primary": "NVIDIA GeForce RTX 3070 Ti",
+    "hostname": "STU1_PC",
+    "gpu_vram_gb": 4,
+    "cpu_name": "Intel(R) Core(TM) i5-14400F",
+    "ssd_used_pct": 62.3,
+    "hdd_used_pct": 0.0
+}

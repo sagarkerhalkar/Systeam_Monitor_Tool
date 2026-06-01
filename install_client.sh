@@ -1,0 +1,120 @@
+#!/bin/bash
+# ====================================================================
+# NEXT TOPPERS AUTOMATED UBUNTU CLIENT INITIALIZER & INSTALLER
+# ====================================================================
+
+# 1. Automatically install all raw system infrastructure dependencies silently
+echo "⚙️ Installing missing hardware verification tools..."
+apt-get update -y >/dev/null 2>&1
+apt-get install -y curl sysstat lshw lsb-release >/dev/null 2>&1
+
+# 2. Create the permanent script folders on the system root
+mkdir -p /CustomMonitor
+
+# 3. Deploy the unified loop monitor script file directly to the partition
+cat << 'EOF' > /CustomMonitor/client.sh
+#!/bin/bash
+while true; do
+    try {
+        SERVER_URL="http://156.156.40.51:8080"
+        
+        HOSTNAME=$(hostname | tr 'a-z' 'A-Z' | xargs)
+        OS_NAME=$(lsb_release -ds 2>/dev/null || echo "Ubuntu Linux")
+        
+        CPU_NAME=$(lscpu | grep 'Model name' | awk -F: '{print $2}' | xargs)
+        [ -z "$CPU_NAME" ] && CPU_NAME=$(grep -m1 'model name' /proc/cpuinfo | awk -F: '{print $2}' | xargs)
+        CPU_SERIAL=$(cat /sys/class/dmi/id/product_serial 2>/dev/null || echo "N/A")
+        [[ "$CPU_SERIAL" == "None" || -z "$CPU_SERIAL" ]] && CPU_SERIAL="N/A"
+        
+        TOTAL_RAM=$(free -g | awk '/^Mem:/{print $2}')
+        RAM_LOAD=$(free | awk '/^Mem:/{if($2>0) printf "%.1f", $3/$2 * 100.0; else print "0.0"}')
+
+        ACTIVE_IP=$(hostname -I | awk '{print $1}')
+        [ -z "$ACTIVE_IP" ] && ACTIVE_IP="127.0.0.1"
+        
+        NET_IFACE=$(ip route | grep default | awk '{print $5}' | head -n1)
+        if [ ! -z "$NET_IFACE" ]; then
+            RX_BYTES=$(cat /sys/class/net/$NET_IFACE/statistics/rx_bytes 2>/dev/null || echo 0)
+            TX_BYTES=$(cat /sys/class/net/$NET_IFACE/statistics/tx_bytes 2>/dev/null || echo 0)
+        else
+            RX_BYTES=0 ; TX_BYTES=0
+        fi
+
+        STORAGE_JSON="["
+        FIRST_DRIVE=true
+        while read -r line; do
+            DEV_PATH=$(echo "$line" | awk '{print $1}')
+            MOUNT_PT=$(echo "$line" | awk '{print $2}')
+            SIZE_GB=$(df -h "$MOUNT_PT" | awk 'NR==2 {print $2}')
+            USED_PCT=$(df "$MOUNT_PT" | awk 'NR==2 {print $5}' | sed 's/%//')
+            
+            DISK_BASE=$(basename "$(lsblk -no pkname "$DEV_PATH" 2>/dev/null || echo "$DEV_PATH")" | sed 's/[0-9]*//g')
+            IS_ROTATIONAL=$(cat /sys/block/$DISK_BASE/queue/rotational 2>/dev/null || echo 1)
+            MEDIA_TYPE="SSD"
+            [ "$IS_ROTATIONAL" -eq 1 ] && MEDIA_TYPE="HDD"
+            
+            LABEL="Drive $MOUNT_PT"
+            [ "$MOUNT_PT" == "/" ] && LABEL="Drive C:"
+            
+            if [ "$FIRST_DRIVE" = true ]; then FIRST_DRIVE=false; else STORAGE_JSON+=","; fi
+            STORAGE_JSON+="{\"Model\":\"$LABEL\",\"Type\":\"$MEDIA_TYPE\",\"Size\":\"$SIZE_GB\",\"Used_Pct\":$USED_PCT}"
+        done < <(df -h | grep -E '^/dev/sd|^/dev/nvme|^/dev/vd')
+        STORAGE_JSON+="]"
+
+        GPU_NAME=$(lspci 2>/dev/null | grep -E -i 'vga|3d|display' | head -n1 | awk -F: '{print $3}' | xargs)
+        [ -z "$GPU_NAME" ] && GPU_NAME="Integrated Graphics"
+
+        CPU_LOAD=$(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1}')
+        [ -z "$CPU_LOAD" ] && CPU_LOAD=0.0
+
+        PAYLOAD=$(cat <<EOF
+{
+    "hostname": "$HOSTNAME",
+    "ip_address": "$ACTIVE_IP",
+    "os": "$OS_NAME",
+    "cpu_name": "$CPU_NAME",
+    "cpu_serial": "$CPU_SERIAL",
+    "ram_total_gb": $TOTAL_RAM,
+    "storage": $STORAGE_JSON,
+    "gpus": [],
+    "adapters": [{"Interface":"Active","IP":"$ACTIVE_IP"}],
+    "peripherals": [],
+    "cpu_load": $CPU_LOAD,
+    "ram_used_pct": $RAM_LOAD,
+    "gpu_primary": "$GPU_NAME",
+    "gpu_load_pct": 0.0,
+    "net_rx_bytes": $RX_BYTES,
+    "net_tx_bytes": $TX_BYTES
+}
+EOF
+)
+        curl -X POST -H "Content-Type: application/json" -d "$PAYLOAD" --max-time 10 "$SERVER_URL" > /dev/null 2>&1
+    } catch {}
+    sleep 60
+done
+EOF
+
+# 4. Generate the systemd service layer to survive shutdowns and restarts permanently
+cat << 'EOF' > /etc/systemd/system/network-client.service
+[Unit]
+Description=Next Toppers Network Client Monitor Daemon
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/bin/bash /CustomMonitor/client.sh
+Restart=always
+RestartSec=10
+User=root
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# 5. Load, enable, and fire up the service loop instantly
+systemctl daemon-reload
+systemctl enable network-client.service >/dev/null 2>&1
+systemctl start network-client.service
+
+echo "🚀 SUCCESS: Ubuntu background daemon is registered and permanently live!"

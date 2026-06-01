@@ -1,0 +1,96 @@
+{
+    "net_rx_bytes": 2558574,
+    "ram_used_pct": 18.3,
+    "storage": [
+        {
+            "Used_Pct": 69.9,
+            "Serial": "N/A",
+            "DriveLetter": "C:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "930.6 GB"
+        },
+        {
+            "Used_Pct": 62.6,
+            "Serial": "N/A",
+            "DriveLetter": "D:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "1863 GB"
+        },
+        {
+            "Used_Pct": 71.4,
+            "Serial": "N/A",
+            "DriveLetter": "G:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "930.6 GB"
+        }
+    ],
+    "peripherals": [
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant vendor-defined device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant mouse"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant vendor-defined device"
+        },
+        {
+            "Name": "HID-compliant device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "Generic SuperSpeed USB Hub"
+        },
+        {
+            "Name": "Generic USB Hub"
+        },
+        {
+            "Name": "HID Keyboard Device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant vendor-defined device"
+        },
+        {
+            "Name": "HID Keyboard Device"
+        }
+    ],
+    "ip_address": "156.156.10.24",
+    "cpu_load": 20,
+    "adapters": [
+        {
+            "Interface": "Ethernet",
+            "IP": "156.156.10.24"
+        }
+    ],
+    "gpu_load_pct": 0,
+    "ram_total_gb": 32,
+    "os": "Windows 11 Pro",
+    "net_tx_bytes": 711254,
+    "cpu_serial": "178BFBFF00A60F12",
+    "gpu_primary": "NVIDIA GeForce RTX 5060 + AMD Radeon(TM) Graphics",
+    "hostname": "STU8_PC",
+    "gpu_vram_gb": 4.5,
+    "cpu_name": "AMD Ryzen 5 7600X 6-Core Processor",
+    "ssd_used_pct": 69.9,
+    "hdd_used_pct": 0.0
+}

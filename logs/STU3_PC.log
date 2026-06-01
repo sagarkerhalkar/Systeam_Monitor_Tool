@@ -1,0 +1,85 @@
+{
+    "net_rx_bytes": 5471853,
+    "ram_used_pct": 26.8,
+    "storage": [
+        {
+            "Used_Pct": 92.1,
+            "Serial": "N/A",
+            "DriveLetter": "C:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "930.6 GB"
+        },
+        {
+            "Used_Pct": 62.6,
+            "Serial": "N/A",
+            "DriveLetter": "D:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "1863 GB"
+        }
+    ],
+    "peripherals": [
+        {
+            "Name": "HID Keyboard Device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant vendor-defined device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant vendor-defined device"
+        },
+        {
+            "Name": "HID Keyboard Device"
+        },
+        {
+            "Name": "HID-compliant device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant vendor-defined device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "Generic USB Hub"
+        },
+        {
+            "Name": "HID-compliant mouse"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "USB Input Device"
+        }
+    ],
+    "ip_address": "156.156.10.31",
+    "cpu_load": 1,
+    "adapters": [
+        {
+            "Interface": "Ethernet",
+            "IP": "156.156.10.31"
+        }
+    ],
+    "gpu_load_pct": 0,
+    "ram_total_gb": 32,
+    "os": "Windows 11 Pro",
+    "net_tx_bytes": 1620206,
+    "cpu_serial": "BFEBFBFF000B06F2",
+    "gpu_primary": "NVIDIA GeForce RTX 3070 Ti",
+    "hostname": "STU3_PC",
+    "gpu_vram_gb": 4,
+    "cpu_name": "Intel(R) Core(TM) i5-14400F",
+    "ssd_used_pct": 92.1,
+    "hdd_used_pct": 0.0
+}

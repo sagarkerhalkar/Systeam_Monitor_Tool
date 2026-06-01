@@ -1,0 +1,103 @@
+{
+    "net_rx_bytes": 2591749599,
+    "ram_used_pct": 91,
+    "storage": [
+        {
+            "Used_Pct": 94.7,
+            "Serial": "N/A",
+            "DriveLetter": "C:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "475.9 GB"
+        },
+        {
+            "Used_Pct": 94.9,
+            "Serial": "N/A",
+            "DriveLetter": "H:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "475.9 GB"
+        }
+    ],
+    "peripherals": [
+        {
+            "Name": "HID-compliant vendor-defined device"
+        },
+        {
+            "Name": "Standard PS/2 Keyboard"
+        },
+        {
+            "Name": "HID-compliant vendor-defined device"
+        },
+        {
+            "Name": "USB Root Hub (USB 3.0)"
+        },
+        {
+            "Name": "Intel(R) USB 3.10 eXtensible Host Controller - 1.20 (Microsoft)"
+        },
+        {
+            "Name": "HID Keyboard Device"
+        },
+        {
+            "Name": "HID-compliant mouse"
+        },
+        {
+            "Name": "HID-compliant mouse"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "HID-compliant touch pad"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "USB Root Hub (USB 3.0)"
+        },
+        {
+            "Name": "HID-compliant system controller"
+        },
+        {
+            "Name": "Microsoft Input Configuration Device"
+        },
+        {
+            "Name": "I2C HID Device"
+        },
+        {
+            "Name": "Intel(R) USB 3.20 eXtensible Host Controller - 1.20 (Microsoft)"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "USB Composite Device"
+        },
+        {
+            "Name": "USB Composite Device"
+        },
+        {
+            "Name": "HID-compliant vendor-defined device"
+        }
+    ],
+    "ip_address": "156.156.40.74",
+    "cpu_load": 6,
+    "adapters": [
+        {
+            "Interface": "Ethernet",
+            "IP": "156.156.40.74"
+        }
+    ],
+    "gpu_load_pct": 0,
+    "ram_total_gb": 8,
+    "os": "Windows 11 Pro",
+    "net_tx_bytes": 1265421614,
+    "cpu_serial": "BFEBFBFF000906A4",
+    "gpu_primary": "Intel(R) UHD Graphics",
+    "hostname": "SHIVDEEP_LAPPTOP",
+    "gpu_vram_gb": 0,
+    "cpu_name": "12th Gen Intel(R) Core(TM) i5-1235U",
+    "ssd_used_pct": 94.7,
+    "hdd_used_pct": 0.0
+}

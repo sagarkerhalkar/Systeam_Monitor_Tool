@@ -1,0 +1,100 @@
+{
+    "net_rx_bytes": 798200827,
+    "ram_used_pct": 11.5,
+    "storage": [
+        {
+            "Used_Pct": 71.1,
+            "Serial": "N/A",
+            "DriveLetter": "C:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "470.7 GB"
+        },
+        {
+            "Used_Pct": 64.1,
+            "Serial": "N/A",
+            "DriveLetter": "D:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "878.9 GB"
+        },
+        {
+            "Used_Pct": 49.4,
+            "Serial": "N/A",
+            "DriveLetter": "E:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "511.9 GB"
+        },
+        {
+            "Used_Pct": 72.5,
+            "Serial": "N/A",
+            "DriveLetter": "G:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "470.7 GB"
+        },
+        {
+            "Used_Pct": 72.5,
+            "Serial": "N/A",
+            "DriveLetter": "H:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "470.7 GB"
+        }
+    ],
+    "peripherals": [
+        {
+            "Name": "Generic USB Hub"
+        },
+        {
+            "Name": "Generic USB Hub"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "HID-compliant vendor-defined device"
+        },
+        {
+            "Name": "HID-compliant vendor-defined device"
+        },
+        {
+            "Name": "HID Keyboard Device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant vendor-defined device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant mouse"
+        }
+    ],
+    "ip_address": "156.156.40.55",
+    "cpu_load": 5,
+    "adapters": [
+        {
+            "Interface": "Ethernet",
+            "IP": "156.156.40.55"
+        }
+    ],
+    "gpu_load_pct": 0,
+    "ram_total_gb": 64,
+    "os": "Windows 11 Pro",
+    "net_tx_bytes": 143437203,
+    "cpu_serial": "BFEBFBFF000B0671",
+    "gpu_primary": "NVIDIA GeForce RTX 5060 Ti",
+    "hostname": "EDITOR1_PC_ROHAN",
+    "gpu_vram_gb": 4,
+    "cpu_name": "Intel(R) Core(TM) i9-14900K",
+    "ssd_used_pct": 71.1,
+    "hdd_used_pct": 0.0
+}

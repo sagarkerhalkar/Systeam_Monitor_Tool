@@ -1,0 +1,112 @@
+{
+    "net_rx_bytes": 88999209,
+    "ram_used_pct": 70.6,
+    "storage": [
+        {
+            "Used_Pct": 88,
+            "Serial": "N/A",
+            "DriveLetter": "C:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "238.4 GB"
+        },
+        {
+            "Used_Pct": 0.4,
+            "Serial": "N/A",
+            "DriveLetter": "D:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "931.5 GB"
+        },
+        {
+            "Used_Pct": 62.6,
+            "Serial": "N/A",
+            "DriveLetter": "E:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "1863 GB"
+        }
+    ],
+    "peripherals": [
+        {
+            "Name": "HID-compliant pen"
+        },
+        {
+            "Name": "Microsoft Input Configuration Device"
+        },
+        {
+            "Name": "Generic USB Hub"
+        },
+        {
+            "Name": "Generic USB Hub"
+        },
+        {
+            "Name": "HID-compliant pen"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "Generic USB Hub"
+        },
+        {
+            "Name": "Generic SuperSpeed USB Hub"
+        },
+        {
+            "Name": "HID-compliant pen"
+        },
+        {
+            "Name": "Generic USB Hub"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "Generic SuperSpeed USB Hub"
+        },
+        {
+            "Name": "HID-compliant pen"
+        },
+        {
+            "Name": "Generic SuperSpeed USB Hub"
+        },
+        {
+            "Name": "Generic USB Hub"
+        },
+        {
+            "Name": "HID-compliant touch screen"
+        },
+        {
+            "Name": "HID-compliant pen"
+        },
+        {
+            "Name": "HID-compliant mouse"
+        },
+        {
+            "Name": "HID-compliant vendor-defined device"
+        }
+    ],
+    "ip_address": "156.156.50.29",
+    "cpu_load": 13,
+    "adapters": [
+        {
+            "Interface": "Ethernet 3",
+            "IP": "169.254.18.106"
+        },
+        {
+            "Interface": "Ethernet",
+            "IP": "156.156.50.29"
+        }
+    ],
+    "gpu_load_pct": 0,
+    "ram_total_gb": 8,
+    "os": "Windows 11 Pro",
+    "net_tx_bytes": 2302325,
+    "cpu_serial": "BFEBFBFF000906A3",
+    "gpu_primary": "Intel(R) UHD Graphics",
+    "hostname": "STU8_IFP",
+    "gpu_vram_gb": 0,
+    "cpu_name": "12th Gen Intel(R) Core(TM) i5-12450H",
+    "ssd_used_pct": 88.0,
+    "hdd_used_pct": 0.0
+}

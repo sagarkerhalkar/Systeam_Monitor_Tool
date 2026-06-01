@@ -1,0 +1,72 @@
+{
+    "net_rx_bytes": 7270871560,
+    "ram_used_pct": 79.1,
+    "storage": [
+        {
+            "Used_Pct": 27.1,
+            "Serial": "N/A",
+            "DriveLetter": "C:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "930.6 GB"
+        },
+        {
+            "Used_Pct": 60.6,
+            "Serial": "N/A",
+            "DriveLetter": "D:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "1863 GB"
+        },
+        {
+            "Used_Pct": 8.5,
+            "Serial": "N/A",
+            "DriveLetter": "E:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "931.5 GB"
+        }
+    ],
+    "peripherals": [
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID Keyboard Device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "Generic USB Hub"
+        },
+        {
+            "Name": "HID-compliant mouse"
+        }
+    ],
+    "ip_address": "156.156.40.71",
+    "cpu_load": 21,
+    "adapters": [
+        {
+            "Interface": "Ethernet",
+            "IP": "156.156.40.71"
+        }
+    ],
+    "gpu_load_pct": 0,
+    "ram_total_gb": 16,
+    "os": "Windows 11 Pro",
+    "net_tx_bytes": 446792532,
+    "cpu_serial": "BFEBFBFF00090675",
+    "gpu_primary": "NVIDIA GeForce GT 610",
+    "hostname": "CONTENT6_PC",
+    "gpu_vram_gb": 2,
+    "cpu_name": "12th Gen Intel(R) Core(TM) i5-12400F",
+    "ssd_used_pct": 27.1,
+    "hdd_used_pct": 0.0
+}

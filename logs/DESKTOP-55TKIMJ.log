@@ -1,0 +1,152 @@
+{
+    "net_rx_bytes": 206715551,
+    "ram_used_pct": 55.9,
+    "storage": [
+        {
+            "Used_Pct": 66.4,
+            "Serial": "N/A",
+            "DriveLetter": "C:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "211.3 GB"
+        },
+        {
+            "Used_Pct": 41.6,
+            "Serial": "N/A",
+            "DriveLetter": "D:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "264.1 GB"
+        },
+        {
+            "Used_Pct": 54.7,
+            "Serial": "N/A",
+            "DriveLetter": "E:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "476.9 GB"
+        },
+        {
+            "Used_Pct": 68.1,
+            "Serial": "N/A",
+            "DriveLetter": "G:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "211.3 GB"
+        }
+    ],
+    "peripherals": [
+        {
+            "Name": "Microsoft Input Configuration Device"
+        },
+        {
+            "Name": "Intel(R) HID Event Filter"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "HID-compliant system controller"
+        },
+        {
+            "Name": "HID Button over Interrupt Driver"
+        },
+        {
+            "Name": "HID-compliant wireless radio controls"
+        },
+        {
+            "Name": "HID Keyboard Device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "Converted Portable Device Control device"
+        },
+        {
+            "Name": "GPIO Laptop or Slate Indicator Driver"
+        },
+        {
+            "Name": "HID-compliant mouse"
+        },
+        {
+            "Name": "Standard PS/2 Keyboard"
+        },
+        {
+            "Name": "HID Keyboard Device"
+        },
+        {
+            "Name": "HID-compliant system controller"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "PS/2 Compatible Mouse"
+        },
+        {
+            "Name": "HID-compliant vendor-defined device"
+        },
+        {
+            "Name": "USB Composite Device"
+        },
+        {
+            "Name": "HID-compliant vendor-defined device"
+        },
+        {
+            "Name": "Bluetooth Low Energy GATT compliant HID device"
+        },
+        {
+            "Name": "I2C HID Device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "HID-compliant vendor-defined device"
+        },
+        {
+            "Name": "HID-compliant touch pad"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "USB Root Hub (USB 3.0)"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "Intel(R) USB 3.10 eXtensible Host Controller - 1.20 (Microsoft)"
+        },
+        {
+            "Name": "Portable Device Control device"
+        }
+    ],
+    "ip_address": "156.156.50.80",
+    "cpu_load": 7,
+    "adapters": [
+        {
+            "Interface": "Wi-Fi",
+            "IP": "156.156.50.80"
+        }
+    ],
+    "gpu_load_pct": 0,
+    "ram_total_gb": 16,
+    "os": "Windows 11 Home Single Language",
+    "net_tx_bytes": 32056381,
+    "cpu_serial": "BFEBFBFF000906A3",
+    "gpu_primary": "Intel(R) UHD Graphics + NVIDIA GeForce RTX 3050 Laptop GPU",
+    "hostname": "DESKTOP-55TKIMJ",
+    "gpu_vram_gb": 4,
+    "cpu_name": "12th Gen Intel(R) Core(TM) i7-12650H",
+    "ssd_used_pct": 66.4,
+    "hdd_used_pct": 0.0
+}

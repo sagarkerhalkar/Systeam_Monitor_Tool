@@ -1,0 +1,45 @@
+{
+    "hostname": "SUP1PC5",
+    "ip_address": "156.156.40.96",
+    "os": "Ubuntu 24.04.4 LTS",
+    "cpu_name": "Intel(R) Core(TM) i3-10105 CPU @ 3.70GHz Intel(R) Core(TM) i3-10105 CPU @ 3.70GHz To Be Filled By O.E.M. CPU @ 3.6GHz",
+    "cpu_serial": "Default string",
+    "ram_total_gb": 7,
+    "ram_used_pct": 60.5,
+    "cpu_load": 1.2,
+    "gpu_primary": "Intel Corporation CometLake-S GT2 [UHD Graphics 630] (rev 03)",
+    "gpu_load_pct": 0.0,
+    "net_rx_bytes": 141654214,
+    "net_tx_bytes": 80661902,
+    "storage": [
+        {
+            "Model": "Drive C:",
+            "Type": "SSD",
+            "Size": "233G",
+            "Used_Pct": 8
+        },
+        {
+            "Model": "Drive /boot/efi",
+            "Type": "SSD",
+            "Size": "1.1G",
+            "Used_Pct": 1
+        }
+    ],
+    "gpus": [
+        {
+            "Model": "Intel Corporation CometLake-S GT2 [UHD Graphics 630] (rev 03)",
+            "Load_Pct": 0.0
+        }
+    ],
+    "adapters": [
+        {
+            "Interface": "enp2s0",
+            "IP": "156.156.40.96"
+        }
+    ],
+    "peripherals": [
+        "ID 1d6b ID 046d ID 046d ID 1532 ID 1d6b"
+    ],
+    "ssd_used_pct": 0.0,
+    "hdd_used_pct": 0.0
+}

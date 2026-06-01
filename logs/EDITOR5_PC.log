@@ -1,0 +1,145 @@
+{
+    "net_rx_bytes": 6141480837,
+    "ram_used_pct": 85.3,
+    "storage": [
+        {
+            "Used_Pct": 45,
+            "Serial": "N/A",
+            "DriveLetter": "C:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "930.4 GB"
+        },
+        {
+            "Used_Pct": 37.4,
+            "Serial": "N/A",
+            "DriveLetter": "D:",
+            "Type": "SSD",
+            "Model": "Local Fixed Disk",
+            "Size": "931.1 GB"
+        }
+    ],
+    "peripherals": [
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant wireless radio controls"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "HID-compliant vendor-defined device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "HID-compliant vendor-defined device"
+        },
+        {
+            "Name": "HID-compliant headset"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "Realtek UcmCx Client Device"
+        },
+        {
+            "Name": "Portable Device Control device"
+        },
+        {
+            "Name": "HID-compliant mouse"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "Generic USB Hub"
+        },
+        {
+            "Name": "Converted Portable Device Control device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "HID-compliant vendor-defined device"
+        },
+        {
+            "Name": "HID Keyboard Device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "USB Input Device"
+        },
+        {
+            "Name": "Intel(R) HID Event Filter"
+        },
+        {
+            "Name": "HID Keyboard Device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "USB4(TM) Host Router (Microsoft)"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "HID Keyboard Device"
+        },
+        {
+            "Name": "HID-compliant vendor-defined device"
+        },
+        {
+            "Name": "HID-compliant consumer control device"
+        },
+        {
+            "Name": "USB4 Root Router (1.0)"
+        }
+    ],
+    "ip_address": "156.156.40.65",
+    "cpu_load": 25,
+    "adapters": [
+        {
+            "Interface": "Ethernet 2",
+            "IP": "156.156.40.65"
+        }
+    ],
+    "gpu_load_pct": 0,
+    "ram_total_gb": 64,
+    "os": "Windows 11 Pro",
+    "net_tx_bytes": 6744712820,
+    "cpu_serial": "BFEBFBFF000C0662",
+    "gpu_primary": "NVIDIA GeForce RTX 5080 + Intel(R) Graphics",
+    "hostname": "EDITOR5_PC",
+    "gpu_vram_gb": 4,
+    "cpu_name": "Intel(R) Core(TM) Ultra 9 285K",
+    "ssd_used_pct": 45.0,
+    "hdd_used_pct": 0.0
+}

@@ -1,0 +1,8 @@
+V8.4 focused on the requested operational flow:
+- Command Center now has colorful system-wise analytics summary tiles.
+- Selected system analysis stays on Command Center.
+- Software, USB, Human Change Log, Machine 360 and Day History have selected-system download flow.
+- Day History export respects date range and selected machine.
+- Client heartbeat default remains 5 seconds. Offline timeout default is about 12 seconds.
+- ISP latency/loss uses ping plus TCP fallback so ICMP-blocked networks should not stay N/A when TCP probe works.
+- Deploy page commands updated to V8.4.

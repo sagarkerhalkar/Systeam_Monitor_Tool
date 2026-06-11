@@ -1,0 +1,24 @@
+Sagar Kerhalkar System Health Monitor Tool V8.4 - Client Install Commands
+
+SERVER
+cd C:\Users\Pc\Downloads\Sagar_Kerhalkar_System_Monitor_Tool_V8_4\SagarMonitor_V8_4
+powershell -ExecutionPolicy Bypass -File .\RUN_SERVER_2278.ps1
+
+WINDOWS CLIENT - 5 SEC LIVE
+mkdir C:\Temp -Force
+iwr http://156.156.40.51:2278/scripts/BOOTSTRAP_WINDOWS_CLIENT_2278.ps1 -OutFile C:\Temp\BOOTSTRAP_WINDOWS_CLIENT_2278.ps1
+powershell -ExecutionPolicy Bypass -File C:\Temp\BOOTSTRAP_WINDOWS_CLIENT_2278.ps1 -ServerUrl http://156.156.40.51:2278 -IntervalSeconds 5
+
+WINDOWS TEST
+type C:\ProgramData\SagarSystemMonitor\client_status.json
+type C:\ProgramData\SagarSystemMonitor\server_messages.log
+powershell -ExecutionPolicy Bypass -File C:\Temp\SagarSystemMonitor\DIAGNOSE_WINDOWS_CLIENT_2278.ps1 -ServerUrl http://156.156.40.51:2278
+
+UBUNTU CLIENT - 5 SEC LIVE
+curl -fsSL http://156.156.40.51:2278/scripts/BOOTSTRAP_UBUNTU_CLIENT_2278.sh -o /tmp/bootstrap.sh
+sudo SERVER_URL=http://156.156.40.51:2278 INTERVAL_SECONDS=5 bash /tmp/bootstrap.sh
+
+UBUNTU TEST
+sudo cat /var/lib/commercial-monitor-pro/client_status.json
+sudo systemctl status sagar-system-monitor-client.service
+sudo journalctl -u sagar-system-monitor-client.service -n 80 --no-pager

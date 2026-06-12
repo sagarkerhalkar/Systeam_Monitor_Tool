@@ -1,5 +1,5 @@
-param(
-  [string]$ServerUrl = "http://156.156.40.51:2278"
+﻿param(
+  [string]$ServerUrl = "https://monitor.sagarkerhalkar.com"
 )
 $ErrorActionPreference = 'Stop'
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -63,3 +63,4 @@ if(-not $candidates){ throw "csc.exe not found. Install .NET Framework Developer
 & $candidates[0] /nologo /target:winexe /out:$exe $src
 Write-Host "Created: $exe" -ForegroundColor Green
 Write-Host "Copy this EXE to Windows clients and double-click as Administrator." -ForegroundColor Cyan
+

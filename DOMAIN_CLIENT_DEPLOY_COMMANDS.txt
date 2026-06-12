@@ -1,0 +1,31 @@
+﻿SAGAR SYSTEM HEALTH MONITOR - DOMAIN CLIENT INSTALL COMMANDS
+
+WINDOWS CLIENT INSTALL / UPDATE - run PowerShell as Administrator:
+
+mkdir C:\Temp -Force
+iwr https://monitor.sagarkerhalkar.com/scripts/BOOTSTRAP_WINDOWS_CLIENT_2278.ps1 -OutFile C:\Temp\BOOTSTRAP_WINDOWS_CLIENT_2278.ps1
+powershell -ExecutionPolicy Bypass -File C:\Temp\BOOTSTRAP_WINDOWS_CLIENT_2278.ps1 -ServerUrl https://monitor.sagarkerhalkar.com -IntervalSeconds 5
+
+WINDOWS CLIENT TEST:
+
+type C:\ProgramData\SagarSystemMonitor\client_status.json
+type C:\ProgramData\SagarSystemMonitor\server_messages.log
+powershell -ExecutionPolicy Bypass -File C:\Temp\SagarSystemMonitor\DIAGNOSE_WINDOWS_CLIENT_2278.ps1 -ServerUrl https://monitor.sagarkerhalkar.com
+
+UBUNTU CLIENT INSTALL / UPDATE:
+
+curl -fsSL https://monitor.sagarkerhalkar.com/scripts/BOOTSTRAP_UBUNTU_CLIENT_2278.sh -o /tmp/bootstrap.sh
+sudo SERVER_URL=https://monitor.sagarkerhalkar.com INTERVAL_SECONDS=5 bash /tmp/bootstrap.sh
+
+UBUNTU CLIENT TEST:
+
+sudo cat /var/lib/commercial-monitor-pro/client_status.json
+sudo cat /var/lib/commercial-monitor-pro/server_messages.log
+sudo systemctl status sagar-system-monitor-client.service
+sudo journalctl -u sagar-system-monitor-client.service -n 80 --no-pager
+curl https://monitor.sagarkerhalkar.com/api/health
+
+
+start server
+
+powershell -ExecutionPolicy Bypass -File .\RUN_SERVER_2278.ps1

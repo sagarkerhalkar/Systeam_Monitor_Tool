@@ -7,52 +7,68 @@
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-  <div id="loginScreen" class="login-screen login-premium">
-    <div class="login-bg-orb orb-a"></div>
-    <div class="login-bg-orb orb-b"></div>
-    <div class="login-bg-grid"></div>
+  <div id="loginScreen" class="login-screen login-industry">
+    <div class="login-mesh"></div>
+    <div class="login-orb login-orb-a"></div>
+    <div class="login-orb login-orb-b"></div>
 
-    <section class="login-stage">
-      <div class="login-product-title premium-title">
-        <span>Sagar Kerhalkar</span>
-        System Health Monitor Tool
-      </div>
-      <p class="login-tagline">Enterprise fleet observability for live classes, labs, Windows and Ubuntu systems.</p>
+    <section class="login-stage industry-stage" aria-label="System overview">
+      <div class="stage-kicker">Industrial fleet observability</div>
+      <h1 class="industry-hero-title">Live system health monitoring for labs, classrooms, offices and mixed Windows + Ubuntu fleets.</h1>
+      <p class="industry-hero-copy">Monitor CPU, RAM, storage, GPU, internet, USB, software inventory, notifications and daily history from one operations console.</p>
 
-      <div class="system-visual" aria-label="Animated system health visualization">
-        <div class="radar-ring r1"></div>
-        <div class="radar-ring r2"></div>
-        <div class="radar-ring r3"></div>
-        <div class="center-core"><b>SK</b><span>LIVE</span></div>
-        <div class="pulse-node cpu"><b>CPU</b><small>Healthy</small></div>
-        <div class="pulse-node net"><b>ISP</b><small>Latency</small></div>
-        <div class="pulse-node ram"><b>RAM</b><small>Capacity</small></div>
-        <div class="pulse-node usb"><b>USB</b><small>Watch</small></div>
-        <svg class="wave-graph" viewBox="0 0 640 280" preserveAspectRatio="none">
-          <defs><linearGradient id="waveGrad" x1="0" x2="1"><stop offset="0" stop-color="#27e1a8"/><stop offset="1" stop-color="#4f7cff"/></linearGradient></defs>
-          <path class="wave-line" d="M0 190 C 70 130, 120 230, 200 165 S 340 105, 420 155 S 540 235, 640 120" />
-          <path class="wave-fill" d="M0 190 C 70 130, 120 230, 200 165 S 340 105, 420 155 S 540 235, 640 120 L640 280 L0 280 Z" />
-        </svg>
+      <div class="hero-ops-grid">
+        <article class="ops-chip"><span>CPU</span><strong>Live load</strong><small>Usage + temperature</small></article>
+        <article class="ops-chip"><span>Network</span><strong>ISP and latency</strong><small>Current traffic + reachability</small></article>
+        <article class="ops-chip"><span>Hardware</span><strong>GPU / disk / RAM</strong><small>Capacity + health view</small></article>
+        <article class="ops-chip"><span>USB</span><strong>Peripheral watch</strong><small>Human readable change tracking</small></article>
       </div>
 
-      <div class="login-metrics-strip">
-        <div><strong>99.98%</strong><span>Visibility target</span></div>
-        <div><strong>5 sec</strong><span>Dashboard poll</span></div>
-        <div><strong>5–10 sec</strong><span>Client heartbeat</span></div>
+      <div class="ops-visual-card">
+        <div class="ops-visual-head">
+          <div>
+            <span class="tiny-label">Operations overview</span>
+            <strong>Real-time system pulse</strong>
+          </div>
+          <div class="ops-status-pill">Live heartbeat 5 sec</div>
+        </div>
+        <div class="ops-visual-body">
+          <div class="signal-board">
+            <div class="signal-core"><b>SK</b><span>LIVE</span></div>
+            <i class="signal-ring ring-1"></i>
+            <i class="signal-ring ring-2"></i>
+            <i class="signal-ring ring-3"></i>
+          </div>
+          <div class="ops-bars" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+        <div class="ops-metrics-row">
+          <div><strong>99.98%</strong><small>Visibility target</small></div>
+          <div><strong>5 sec</strong><small>Dashboard poll</small></div>
+          <div><strong>5-10 sec</strong><small>Client heartbeat</small></div>
+        </div>
       </div>
     </section>
 
-    <aside class="login-card premium-login-card">
-      <div class="login-logo">SK</div>
-      <p class="eyebrow">Secure Admin Portal</p>
-      <h1>Sagar Kerhalkar<br/>System Health Monitor Tool</h1>
-      <p class="login-copy">Real-time ISP health, fleet status, USB/peripherals, software inventory, alerts, history exports and admin messages.</p>
+    <aside class="login-card industry-login-card">
+      <div class="login-card-top">
+        <div class="login-logo">SK</div>
+        <div>
+          <p class="eyebrow">Secure admin portal</p>
+          <h2>System Health Monitor Tool</h2>
+          <p class="login-copy">Fast access to fleet status, alerts, software inventory, hardware health and deploy operations.</p>
+        </div>
+      </div>
+      <div class="login-trust-row">
+        <span>Windows</span><span>Ubuntu</span><span>Real-time alerts</span>
+      </div>
       <label class="login-label">Username</label>
       <input id="adminUsername" type="text" placeholder="admin or viewer" value="admin" autocomplete="username" />
       <label class="login-label">Password</label>
       <input id="adminPassword" type="password" placeholder="Enter password" autocomplete="current-password" />
       <button id="loginBtn" class="btn primary wide">Enter Operations Dashboard</button>
-      <div class="login-footnote">Viewer accounts can see data only. Admin accounts can download, deploy and change settings.</div>
+      <div class="login-footnote">Viewer accounts can see live data only. Admin accounts can download reports, change settings and manage deploy commands.</div>
       <div id="loginError" class="login-error"></div>
     </aside>
   </div>
@@ -165,12 +181,30 @@
       <section id="page-messages" class="page"><div class="two-col"><section class="panel"><div class="panel-head"><h2>Send Message to Client</h2></div><label class="label">Target machine</label><select id="messageMachine" class="full"></select><label class="label">Title</label><input id="msgTitle" class="full" placeholder="Admin message"><label class="label">Message</label><textarea id="msgBody" class="full" rows="5" placeholder="Type message for client machine"></textarea><label class="label">Priority</label><select id="msgPriority" class="full"><option>normal</option><option>high</option><option>critical</option></select><button class="btn primary" onclick="sendClientMessage()">Send Message</button></section><section class="panel"><div class="panel-head"><h2>Message Delivery</h2><button class="btn small" onclick="renderMessages()">Refresh</button></div><div id="messageHistory" class="stack"></div></section></div></section>
 
       <section id="page-notifications" class="page"><div class="two-col"><section class="panel"><div class="panel-head"><h2>Notification Settings</h2><button class="btn small" onclick="testNotification()">Send Test</button></div><label class="label">Google Chat Webhook</label><input id="webhook" class="full" placeholder="https://chat.googleapis.com/..." /><label class="label">Offline timeout minutes (0.25 = about 15 sec)</label><input id="offlineTimeout" class="full" type="number" min="0.1" step="0.05" /><button class="btn primary" onclick="saveSettings()">Save Settings</button></section><section class="panel"><div class="panel-head"><h2>Add / Edit Rule</h2></div><div class="form-grid"><input id="ruleId" placeholder="rule id optional"><input id="ruleName" placeholder="Rule name"><select id="ruleMetric"></select><select id="ruleOp"><option>>=</option><option>></option><option>&lt;=</option><option>&lt;</option><option>==</option><option>event</option></select><input id="ruleThreshold" type="number" step="0.1" placeholder="Threshold"><select id="ruleSeverity"><option>info</option><option>warning</option><option>critical</option></select><input id="ruleCooldown" type="number" value="15" placeholder="Cooldown minutes"><label class="check"><input id="ruleEnabled" type="checkbox" checked> Enabled</label></div><button class="btn primary" onclick="saveRule()">Save Rule</button></section></div><div class="panel"><div class="panel-head"><h2>Rules</h2></div><div class="table-wrap"><table id="rulesTable"><thead><tr><th>Enabled</th><th>Name</th><th>Metric</th><th>Condition</th><th>Severity</th><th>Cooldown</th><th>Action</th></tr></thead><tbody></tbody></table></div></div><div class="panel"><div class="panel-head"><h2>Alert History</h2><button class="btn small danger" onclick="clearAlerts()">Clear</button></div><div id="alertHistory" class="stack"></div></div></section>
-
-            <section id="page-deploy" class="page"><div class="panel docs"><div class="panel-head"><h2>Deploy Commands</h2><span>V8.4 single-port 2278. These commands always install/update the latest Windows and Ubuntu client from this same server port. Run after every client-code change.</span></div><div class="deploy-grid"><article><h3>Windows client install / update</h3><p class="muted">Run on each Windows client as Administrator. Sends one test heartbeat immediately, then runs every 5 seconds by default. For very live monitoring use -IntervalSeconds 5. Use this after every Windows client-code change.</p><div class="code">mkdir C:\Temp -Force<br>iwr http://156.156.40.51:2278/scripts/BOOTSTRAP_WINDOWS_CLIENT_2278.ps1 -OutFile C:\Temp\BOOTSTRAP_WINDOWS_CLIENT_2278.ps1<br>powershell -ExecutionPolicy Bypass -File C:\Temp\BOOTSTRAP_WINDOWS_CLIENT_2278.ps1 -ServerUrl http://156.156.40.51:2278 -IntervalSeconds 5<br><br><b>High live mode 5 sec:</b><br>powershell -ExecutionPolicy Bypass -File C:\Temp\BOOTSTRAP_WINDOWS_CLIENT_2278.ps1 -ServerUrl http://156.156.40.51:2278 -IntervalSeconds 5</div></article><article><h3>Windows client test</h3><div class="code">type C:\ProgramData\SagarSystemMonitor\client_status.json<br>type C:\ProgramData\SagarSystemMonitor\server_messages.log<br>powershell -ExecutionPolicy Bypass -File C:\Temp\SagarSystemMonitor\CHECK_WINDOWS_USB_MESSAGES.ps1 -ServerUrl http://156.156.40.51:2278<br>powershell -ExecutionPolicy Bypass -File C:\Temp\SagarSystemMonitor\DIAGNOSE_WINDOWS_CLIENT_2278.ps1 -ServerUrl http://156.156.40.51:2278</div></article><article><h3>Ubuntu client install / update</h3><p class="muted">Run on Ubuntu client. It installs/updates systemd service and sends one immediate heartbeat.</p><div class="code">curl -fsSL http://156.156.40.51:2278/scripts/BOOTSTRAP_UBUNTU_CLIENT_2278.sh -o /tmp/bootstrap.sh<br>sudo SERVER_URL=http://156.156.40.51:2278 INTERVAL_SECONDS=5 bash /tmp/bootstrap.sh<br><br><b>High live mode 5 sec:</b><br>sudo SERVER_URL=http://156.156.40.51:2278 INTERVAL_SECONDS=5 bash /tmp/bootstrap.sh</div></article><article><h3>Ubuntu client test</h3><div class="code">sudo cat /var/lib/commercial-monitor-pro/client_status.json<br>sudo cat /var/lib/commercial-monitor-pro/server_messages.log<br>sudo systemctl status sagar-system-monitor-client.service<br>sudo journalctl -u sagar-system-monitor-client.service -n 80 --no-pager<br>curl http://156.156.40.51:2278/api/health</div></article><article><h3>Server autostart</h3><div class="code">powershell -ExecutionPolicy Bypass -File .\INSTALL_SERVER_AUTOSTART_TASK.ps1</div></article><article><h3>Build Windows EXE</h3><div class="code">powershell -ExecutionPolicy Bypass -File .\BUILD_WINDOWS_CLIENT_EXE.ps1 -ServerUrl http://156.156.40.51:2278</div></article></div></div></section>
-
+            <section id="page-deploy" class="page">
+        <div class="panel docs deploy-admin-panel">
+          <div class="panel-head deploy-admin-head">
+            <div>
+              <h2>Deploy Commands</h2>
+              <p class="muted">Copy-ready install/update and test commands for Windows and Ubuntu clients. Admin can edit and save commands for future DNS, port, or restore changes.</p>
+            </div>
+            <div class="deploy-actions admin-only">
+              <button class="btn small" onclick="renderDeployCommands(true)">Edit Commands</button>
+              <button class="btn small danger" onclick="resetDeployCommands()">Reset Defaults</button>
+            </div>
+          </div>
+          <div class="deploy-help">
+            <strong>Safe rule:</strong> This page only stores command text. It does not change client collector logic, heartbeat, hardware/software/GPU/USB data, database, or notification rules.
+          </div>
+          <div id="deployCommandsMount" class="deploy-command-grid"></div>
+        </div>
+      </section>
 <section id="page-settings" class="page"><div class="two-col"><section class="panel admin-only"><div class="panel-head"><h2>User Access</h2><span>Create viewer/admin accounts</span></div><p class="muted">Viewer users can see live data only. Admin users can download, change settings and deploy.</p><div class="form-grid"><input id="newUserName" placeholder="username"><input id="newUserPass" type="password" placeholder="password min 8 chars"><select id="newUserRole"><option value="viewer">viewer - see only</option><option value="admin">admin - full access</option></select><button class="btn primary" onclick="saveUser()">Add / Update User</button></div><div class="table-wrap"><table id="usersTable"><thead><tr><th>User</th><th>Role</th><th>Enabled</th><th>Updated</th><th>Action</th></tr></thead><tbody></tbody></table></div></section><section class="panel admin-only"><div class="panel-head"><h2>Change Admin Password</h2></div><label class="label">Old Password</label><input id="oldPassword" type="password" class="full"><label class="label">New Password</label><input id="newPassword" type="password" class="full"><label class="label">Confirm New Password</label><input id="confirmPassword" type="password" class="full"><button class="btn primary" onclick="changePassword()">Change Password</button><p class="muted">Use at least 8 characters. After change, keep the new password safely.</p></section></div><section class="panel"><div class="panel-head"><h2>Refresh Control</h2></div><p class="muted">To make reading easy, USB, Change Log, Day History, Deploy, Settings, Messages and Notifications will not redraw automatically. You will see a banner when new data arrives.</p><button class="btn" onclick="toggleAutoRefresh()" id="settingsAutoBtn">Live Refresh: On</button></section><section class="panel viewer-note"><h2>View-only account</h2><p class="muted">You can see live machine data, ISP status, USB, history and changes. Downloads, password changes, notification edits and deploy changes are admin-only.</p></section></section>
     </main>
   </div>
   <script src="/app.js"></script>
 </body>
 </html>
+
+
+

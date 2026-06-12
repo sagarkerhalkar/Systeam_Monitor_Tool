@@ -1,5 +1,5 @@
-param(
-  [string]$ServerUrl = 'http://156.156.40.51:2278'
+﻿param(
+  [string]$ServerUrl = 'https://monitor.sagarkerhalkar.com'
 )
 $Root='C:\ProgramData\SagarSystemMonitor'
 $Client=Join-Path $Root 'client_windows.ps1'
@@ -26,3 +26,4 @@ Write-Host "USB/Peripheral Count: $(@($p.usb.devices).Count)"
 @($p.usb.devices) | Select-Object -First 20 type,name,class,vid,pid,status | Format-Table -AutoSize
 Write-Host "`nIf ISP is blank, that client cannot reach ipinfo/ip-api/ipify from internet, but server fallback can still show server ISP." -ForegroundColor Yellow
 Write-Host "If current Mbps is 0, generate traffic on client, wait 30 seconds, then run again." -ForegroundColor Yellow
+

@@ -10,10 +10,11 @@ $FileServerUrl = $FileServerUrl.TrimEnd('/')
 $Temp='C:\Temp\SagarSystemMonitor'
 New-Item -ItemType Directory -Force -Path $Temp | Out-Null
 Write-Host "Downloading latest Windows client files from $FileServerUrl" -ForegroundColor Cyan
-Invoke-WebRequest "$FileServerUrl/scripts/client_windows.ps1" -OutFile "$Temp\client_windows.ps1"
-Invoke-WebRequest "$FileServerUrl/scripts/install_windows_client_2278.ps1" -OutFile "$Temp\install_windows_client_2278.ps1"
-Invoke-WebRequest "$FileServerUrl/scripts/DIAGNOSE_WINDOWS_CLIENT_2278.ps1" -OutFile "$Temp\DIAGNOSE_WINDOWS_CLIENT_2278.ps1" -ErrorAction Stop
-Invoke-WebRequest "$FileServerUrl/scripts/CHECK_WINDOWS_CLIENT_VISIBLE_DATA.ps1" -OutFile "$Temp\CHECK_WINDOWS_CLIENT_VISIBLE_DATA.ps1" -ErrorAction Stop
-Invoke-WebRequest "$FileServerUrl/scripts/CHECK_WINDOWS_USB_MESSAGES.ps1" -OutFile "$Temp\CHECK_WINDOWS_USB_MESSAGES.ps1" -ErrorAction Stop
+$CacheTag = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+Invoke-WebRequest "$FileServerUrl/scripts/client_windows.ps1?v=$CacheTag" -OutFile "$Temp\client_windows.ps1" -Headers @{"Cache-Control"="no-cache"}
+Invoke-WebRequest "$FileServerUrl/scripts/install_windows_client_2278.ps1?v=$CacheTag" -OutFile "$Temp\install_windows_client_2278.ps1" -Headers @{"Cache-Control"="no-cache"}
+Invoke-WebRequest "$FileServerUrl/scripts/DIAGNOSE_WINDOWS_CLIENT_2278.ps1?v=$CacheTag" -OutFile "$Temp\DIAGNOSE_WINDOWS_CLIENT_2278.ps1" -Headers @{"Cache-Control"="no-cache"} -ErrorAction Stop
+Invoke-WebRequest "$FileServerUrl/scripts/CHECK_WINDOWS_CLIENT_VISIBLE_DATA.ps1?v=$CacheTag" -OutFile "$Temp\CHECK_WINDOWS_CLIENT_VISIBLE_DATA.ps1" -Headers @{"Cache-Control"="no-cache"} -ErrorAction Stop
+Invoke-WebRequest "$FileServerUrl/scripts/CHECK_WINDOWS_USB_MESSAGES.ps1?v=$CacheTag" -OutFile "$Temp\CHECK_WINDOWS_USB_MESSAGES.ps1" -Headers @{"Cache-Control"="no-cache"} -ErrorAction Stop
 Write-Host "Downloaded client, installer and diagnostic checker to $Temp" -ForegroundColor Green
 powershell -ExecutionPolicy Bypass -File "$Temp\install_windows_client_2278.ps1" -ServerUrl $ServerUrl -IntervalSeconds $IntervalSeconds

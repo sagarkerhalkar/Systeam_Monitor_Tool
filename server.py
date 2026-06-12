@@ -786,6 +786,7 @@ def summarize_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
     gpu_max_usage = None
     gpu_max_temp = None
     gpu_total_mem = 0.0
+    gpu_memory_values = []
     if isinstance(gpus, dict):
         gpus = [gpus]
     if isinstance(gpus, list):
@@ -797,11 +798,16 @@ def summarize_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
                 u = to_float(g.get("usage_percent") or g.get("utilization_gpu") or g.get("load_percent"))
                 t = to_float(g.get("temperature_c") or g.get("temp_c"))
                 m = to_float(g.get("memory_total_mb") or g.get("adapter_ram_mb"), 0) or 0
+                dedicated_m = to_float(g.get("dedicated_memory_mb"), 0) or 0
+                shared_m = to_float(g.get("shared_memory_mb"), 0) or 0
+                effective_m = max(m, dedicated_m, shared_m)
+                if effective_m:
+                    gpu_memory_values.append(effective_m)
                 if u is not None:
                     gpu_max_usage = u if gpu_max_usage is None else max(gpu_max_usage, u)
                 if t is not None:
                     gpu_max_temp = t if gpu_max_temp is None else max(gpu_max_temp, t)
-                gpu_total_mem += m
+                gpu_total_mem += effective_m
 
     usb = listify(get_nested(payload, ["usb.devices", "usb", "peripherals"], []))
     software = listify(get_nested(payload, ["software.installed", "software", "apps"], []))
@@ -853,7 +859,7 @@ def summarize_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
         "gpu_count": len(gpu_names),
         "gpu_max_usage": gpu_max_usage,
         "gpu_max_temp_c": gpu_max_temp,
-        "gpu_total_memory_mb": round(gpu_total_mem, 2),
+        "gpu_total_memory_mb": round((max(gpu_memory_values) if gpu_memory_values else gpu_total_mem), 2),
         "vpn_active": vpn_active,
         "isp_name": isp_name,
         "public_ip": public_ip,
@@ -991,7 +997,7 @@ def get_settings() -> Dict[str, str]:
 def set_settings(values: Dict[str, Any]) -> None:
     with DB_LOCK, db_connect() as con:
         for k, v in values.items():
-            if k in {"google_chat_webhook", "offline_timeout_minutes", "company_name", "auto_speed_probe", "admin_password_hash"}:
+            if k in {"google_chat_webhook", "offline_timeout_minutes", "company_name", "auto_speed_probe", "admin_password_hash", "deploy_commands_json"}:
                 con.execute("INSERT OR REPLACE INTO settings(key,value) VALUES(?,?)", (k, str(v)))
         con.commit()
 
@@ -1985,3 +1991,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

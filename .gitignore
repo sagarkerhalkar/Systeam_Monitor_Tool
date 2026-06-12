@@ -1,0 +1,15 @@
+﻿
+# Runtime database and logs - DO NOT COMMIT
+data/*.db
+data/*.db-wal
+data/*.db-shm
+data/*.sqlite
+data/*.sqlite3
+data/*.log
+# Backups / generated files
+BACKUP_*/
+*_BACKUP_*/
+*.7z
+*.rar
+*.pyc
+__pycache__/

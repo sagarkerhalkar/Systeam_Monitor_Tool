@@ -1,0 +1,194 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sagar Kerhalkar System Monitor Tool</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div id="loginScreen" class="login-screen login-premium">
+    <div class="login-bg-orb orb-a"></div>
+    <div class="login-bg-orb orb-b"></div>
+    <div class="login-bg-grid"></div>
+
+    <section class="login-stage">
+      <div class="login-product-title premium-title">
+        <span>Sagar Kerhalkar</span>
+        System Health Monitor Tool
+      </div>
+      <p class="login-tagline">Enterprise fleet observability for live classes, labs, Windows and Ubuntu systems.</p>
+
+      <div class="system-visual" aria-label="Animated system health visualization">
+        <div class="radar-ring r1"></div>
+        <div class="radar-ring r2"></div>
+        <div class="radar-ring r3"></div>
+        <div class="center-core"><b>SK</b><span>LIVE</span></div>
+        <div class="pulse-node cpu"><b>CPU</b><small>Healthy</small></div>
+        <div class="pulse-node net"><b>ISP</b><small>Latency</small></div>
+        <div class="pulse-node ram"><b>RAM</b><small>Capacity</small></div>
+        <div class="pulse-node usb"><b>USB</b><small>Watch</small></div>
+        <svg class="wave-graph" viewBox="0 0 640 280" preserveAspectRatio="none">
+          <defs><linearGradient id="waveGrad" x1="0" x2="1"><stop offset="0" stop-color="#27e1a8"/><stop offset="1" stop-color="#4f7cff"/></linearGradient></defs>
+          <path class="wave-line" d="M0 190 C 70 130, 120 230, 200 165 S 340 105, 420 155 S 540 235, 640 120" />
+          <path class="wave-fill" d="M0 190 C 70 130, 120 230, 200 165 S 340 105, 420 155 S 540 235, 640 120 L640 280 L0 280 Z" />
+        </svg>
+      </div>
+
+      <div class="login-metrics-strip">
+        <div><strong>99.98%</strong><span>Visibility target</span></div>
+        <div><strong>5 sec</strong><span>Dashboard poll</span></div>
+        <div><strong>5â€“10 sec</strong><span>Client heartbeat</span></div>
+      </div>
+    </section>
+
+    <aside class="login-card premium-login-card">
+      <div class="login-logo">SK</div>
+      <p class="eyebrow">Secure Admin Portal</p>
+      <h1>Sagar Kerhalkar<br/>System Health Monitor Tool</h1>
+      <p class="login-copy">Real-time ISP health, fleet status, USB/peripherals, software inventory, alerts, history exports and admin messages.</p>
+      <label class="login-label">Username</label>
+      <input id="adminUsername" type="text" placeholder="admin or viewer" value="admin" autocomplete="username" />
+      <label class="login-label">Password</label>
+      <input id="adminPassword" type="password" placeholder="Enter password" autocomplete="current-password" />
+      <button id="loginBtn" class="btn primary wide">Enter Operations Dashboard</button>
+      <div class="login-footnote">Viewer accounts can see data only. Admin accounts can download, deploy and change settings.</div>
+      <div id="loginError" class="login-error"></div>
+    </aside>
+  </div>
+
+  <div id="appShell" class="shell locked">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">SK</div>
+        <div><strong>Sagar Kerhalkar</strong><span>System Health Monitor</span></div>
+      </div>
+      <button class="nav active" data-page="dashboard">Command Center</button>
+      <button class="nav" data-page="fleet">Machine Fleet</button>
+      <button class="nav" data-page="machine360">Machine 360</button>
+      <button class="nav" data-page="network">Network + VPN</button>
+      <button class="nav" data-page="hardware">Hardware</button>
+      <button class="nav" data-page="software">Software</button>
+      <button class="nav" data-page="usb">USB + Peripherals</button>
+      <button class="nav" data-page="changes">Human Change Log</button>
+      <button class="nav" data-page="history">Day History</button>
+      <button class="nav" data-page="messages">Client Messages</button>
+      <button class="nav" data-page="notifications">Notifications</button>
+      <button class="nav" data-page="deploy">Deploy</button>
+      <button class="nav" data-page="settings">Settings</button>
+      <div class="sidebar-foot"><span id="apiStatus" class="dot"></span><span id="statusText">Connecting...</span></div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow" id="pageEyebrow">Live Fleet Observability</p>
+          <h1 id="pageTitle">Command Center</h1>
+          <p id="pageSubtitle">Colorful system-wise command analysis, ISP health, downloads, alerts and history.</p>
+        </div>
+        <div class="top-actions">
+          <input id="globalSearch" placeholder="Search machine, IP, GPU, OS..." />
+          <button id="autoRefreshBtn" class="btn ghost">Live: On</button>
+          <button id="refreshBtn" class="btn primary">Refresh</button>
+          <span id="roleBadge" class="role-badge">admin</span><a class="btn" href="https://sagarkerhalkar.com" target="_blank">Profile Website</a><button id="logoutBtn" class="btn ghost">Logout</button>
+        </div>
+      </header>
+      <div id="newDataBanner" class="banner hidden">New data arrived. <button class="linkbtn" onclick="refresh(true)">Update view</button></div>
+
+      <section id="page-dashboard" class="page active">
+        <div class="command-grid">
+          <article class="hero-panel compact premium-hero">
+            <div>
+              <p class="eyebrow">ISP Health For Live Classes</p>
+              <h2 id="kHealthTitle">Checking internet health...</h2>
+              <p id="kHealthNote">Latency, jitter, loss and speed probe from server.</p>
+            </div>
+            <div class="health-metrics">
+              <div><span>Provider</span><strong id="kIspNameHero">N/A</strong></div>
+              <div><span>Latency</span><strong id="kLatency">N/A</strong></div>
+              <div><span>Jitter</span><strong id="kJitter">N/A</strong></div>
+              <div><span>Loss</span><strong id="kLoss">N/A</strong></div>
+              <div><span>Down Probe</span><strong id="kProbeDown">N/A</strong></div>
+              <div><span>Up Probe</span><strong id="kProbeUp">N/A</strong></div>
+            </div>
+            <div class="hero-actions">
+              <button class="btn small" onclick="runServerSpeedTest(false)">Quick Probe</button>
+              <button class="btn small primary" onclick="runServerSpeedTest(true)">Full ISP Capacity Test</button>
+            </div>
+            <div class="hero-live-graph" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+          </article>
+          <article class="panel status-panel">
+            <div class="panel-head"><h2>Fleet Status</h2><span id="lastRefreshText">Never</span></div>
+            <div class="mini-grid">
+              <div><span>Total</span><strong id="kTotal">0</strong></div>
+              <div><span>Online</span><strong id="kOnline" class="good-text">0</strong></div>
+              <div><span>Offline</span><strong id="kOffline" class="bad-text">0</strong></div>
+              <div><span>Attention</span><strong id="kCritical" class="warn-text">0</strong></div>
+            </div>
+          </article>
+        </div>
+        <div class="kpi-row">
+          <article class="kpi"><span>Today Download</span><strong id="kDownToday">0 GB</strong><small>All clients</small></article>
+          <article class="kpi"><span>Today Upload</span><strong id="kUpToday">0 GB</strong><small>All clients</small></article>
+          <article class="kpi"><span>Current Download</span><strong id="kDownNow">0 Mbps</strong><small>Live client traffic</small></article>
+          <article class="kpi"><span>Current Upload</span><strong id="kUpNow">0 Mbps</strong><small>Live client traffic</small></article>
+          <article class="kpi"><span>USB Devices</span><strong id="kUsbTotal">0</strong><small>All machines</small></article>
+          <article class="kpi"><span>Installed Apps</span><strong id="kSoftwareTotal">0</strong><small>All machines</small></article>
+        </div>
+        <section class="panel command-system-panel">
+          <div class="panel-head"><h2>System-wise Command Analysis</h2><div class="history-actions"><select id="dashboardMachine"></select><button class="btn small" onclick="switchPage('machine360')">Open Full 360</button><button class="btn small download-only" onclick="downloadCurrentMachine()">Download Selected System CSV</button></div></div>
+          <div id="commandSystemSpotlight" class="system-spotlight"></div>
+        </section>
+        <section class="command-summary-grid" id="commandPageSummary"></section>
+        <div class="three-analytics">
+          <section class="panel analytics-panel"><div class="panel-head"><h2>Top Live Usage</h2><button class="btn small" onclick="switchPage('fleet')">Open Fleet</button></div><div id="topUsage" class="stack"></div></section>
+          <section class="panel analytics-panel"><div class="panel-head"><h2>Latest Human Changes</h2><button class="btn small" onclick="switchPage('changes')">Open Log</button></div><div id="latestChanges" class="stack"></div></section>
+          <section class="panel analytics-panel notification-health"><div class="panel-head"><h2>Notification Health</h2><button class="btn small" onclick="switchPage('notifications')">Test</button></div><div id="notificationHealthBox" class="notification-health-box"><strong>Ready</strong><small>Open Notifications and press Send Test to verify Google Chat / alert history.</small></div></section>
+        </div>
+        <div class="panel"><div class="panel-head"><h2>Latest Alerts</h2><button class="btn small" onclick="switchPage('notifications')">Manage</button></div><div id="latestAlerts" class="stack"></div></div>
+      </section>
+
+      <section id="page-fleet" class="page">
+        <div class="panel"><div class="panel-head"><h2>Machine Fleet</h2><button class="btn small download-only" onclick="exportCsv()">Download Fleet CSV</button><span class="viewer-note muted">View-only login: downloads hidden</span></div><div class="filters"><select id="fleetStatus"><option value="all">All machines</option><option value="online">Online</option><option value="offline">Offline</option><option value="attention">Needs attention</option></select><select id="fleetOs"><option value="all">All OS</option><option value="windows">Windows</option><option value="linux">Linux/Ubuntu</option></select></div><div class="table-wrap"><table id="fleetTable"><thead><tr><th>Status</th><th>Machine</th><th>IP</th><th>OS</th><th>CPU</th><th>RAM</th><th>Disk</th><th>Net Now</th><th>GPU</th><th>USB</th><th>Last Seen</th></tr></thead><tbody></tbody></table></div></div>
+      </section>
+
+      <section id="page-machine360" class="page"><div class="panel"><div class="panel-head"><h2>Machine 360</h2><div class="history-actions"><select id="machineSelect"></select><button class="btn small download-only" onclick="downloadCurrentMachine()">Download Selected System CSV</button><span class="viewer-note muted">View only: download disabled</span></div></div><div id="machineDetails" class="machine-details"></div></div></section>
+      <section id="page-network" class="page"><div class="panel"><div class="panel-head"><h2>Network + VPN</h2><span>Multiple Ethernet, VLAN, virtual adapter and VPN visibility.</span></div><div id="networkCards" class="card-grid"></div></div></section>
+      <section id="page-hardware" class="page"><div class="panel"><div class="panel-head"><h2>Hardware</h2><span>CPU, RAM, disk, GPU, temperature.</span></div><div id="hardwareCards" class="card-grid"></div></div></section>
+      <section id="page-software" class="page"><div class="panel"><div class="panel-head"><h2>Installed Software</h2><div class="history-actions"><select id="softwareMachine"></select><button class="btn small download-only" onclick="downloadSoftwareSelected()">Download Selected Software CSV</button><button class="btn small download-only" onclick="downloadSoftwareAll()">Download All Software CSV</button><span class="viewer-note muted">View-only: download disabled</span></div></div><div class="table-wrap"><table id="softwareTable"><thead><tr><th>Name</th><th>Version</th><th>Publisher</th><th>Install Date</th></tr></thead><tbody></tbody></table></div></div></section>
+      <section id="page-usb" class="page"><div class="panel"><div class="panel-head"><h2>USB + Peripherals</h2><div class="history-actions"><select id="usbMachine"></select><button class="btn small download-only" onclick="downloadUsbSelected()">Download Selected USB CSV</button><button class="btn small download-only" onclick="downloadUsbAll()">Download All USB CSV</button><span class="viewer-note muted">View-only: download disabled</span></div></div><p class="muted">Clean human-readable peripherals. Windows raw HID/system drivers are hidden; technical VID/PID is available inside each device card only when needed.</p><div id="usbCards" class="usb-list"></div></div></section>
+
+      <section id="page-changes" class="page"><div class="panel"><div class="panel-head"><h2>Human Readable Change Log</h2><div class="history-actions"><select id="changeMachine"><option value="">All machines</option></select><button class="btn small" onclick="renderChanges(true)">Refresh Log</button><button class="btn small download-only" onclick="downloadChangesSelected()">Download Selected Change CSV</button><button class="btn small download-only" onclick="downloadChangesAll()">Download All Change CSV</button></div></div><p class="muted">Auto refresh does not rewrite this page while you are reading. Select a machine to read or export system-wise changes.</p><div id="changeHistory" class="timeline"></div></div></section>
+
+      <section id="page-history" class="page"><div class="panel"><div class="panel-head"><h2>Day History + System-wise Download</h2><div class="history-actions"><button class="btn small" onclick="renderHistory()">Load</button><button class="btn small download-only" onclick="downloadDailyHistory()">Download Day Summary</button><button class="btn small download-only" onclick="downloadMachineHistory()">Download System-wise Date Range</button><button class="btn small download-only" onclick="downloadSelectedSystemDateRange()">Download Selected System Date Range</button><button class="btn small download-only" onclick="downloadHistorySamples()">Download All Heartbeats</button><span class="viewer-note muted">View-only users can see history but cannot download.</span></div></div><p class="muted">Select one date or date range. Downloads are allowed from server/localhost only.</p><div class="filters history-filters"><select id="historyDays"><option value="1">Last 1 day</option><option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option><option value="90">Last 90 days</option><option value="365">Last 365 days</option><option value="3650">All stored data</option></select><input id="historyDateFrom" type="date" /><input id="historyDateTo" type="date" /><select id="historyMachine"><option value="">All machines</option></select></div><div class="table-wrap"><table id="historyDailyTable"><thead><tr><th>Date</th><th>Machines</th><th>Heartbeats</th><th>Day Download</th><th>Day Upload</th><th>Max Down</th><th>Max Up</th><th>Avg CPU</th><th>Avg RAM</th><th>USB Max</th><th>Apps Max</th></tr></thead><tbody></tbody></table></div></div><div class="panel"><div class="panel-head"><h2>System-wise Day Records</h2><span>Per machine, per date</span></div><div class="table-wrap"><table id="historyMachineTable"><thead><tr><th>Date</th><th>Machine</th><th>Heartbeats</th><th>Public IP</th><th>ISP</th><th>Download</th><th>Upload</th><th>Max Down</th><th>Max Up</th><th>CPU Max</th><th>RAM Max</th><th>RAM Total</th><th>USB</th><th>Apps</th><th>Last Seen</th></tr></thead><tbody></tbody></table></div></div><div class="panel"><div class="panel-head"><h2>Heartbeat Samples</h2><span>Latest 1000 shown</span></div><div class="table-wrap"><table id="historySampleTable"><thead><tr><th>Time</th><th>Machine</th><th>LAN IP</th><th>Public IP</th><th>ISP</th><th>CPU</th><th>RAM</th><th>RAM Total</th><th>Down Now</th><th>Up Now</th><th>Day Down</th><th>Day Up</th><th>USB</th><th>Apps</th></tr></thead><tbody></tbody></table></div></div></section>
+
+      <section id="page-messages" class="page"><div class="two-col"><section class="panel"><div class="panel-head"><h2>Send Message to Client</h2></div><label class="label">Target machine</label><select id="messageMachine" class="full"></select><label class="label">Title</label><input id="msgTitle" class="full" placeholder="Admin message"><label class="label">Message</label><textarea id="msgBody" class="full" rows="5" placeholder="Type message for client machine"></textarea><label class="label">Priority</label><select id="msgPriority" class="full"><option>normal</option><option>high</option><option>critical</option></select><button class="btn primary" onclick="sendClientMessage()">Send Message</button></section><section class="panel"><div class="panel-head"><h2>Message Delivery</h2><button class="btn small" onclick="renderMessages()">Refresh</button></div><div id="messageHistory" class="stack"></div></section></div></section>
+
+      <section id="page-notifications" class="page"><div class="two-col"><section class="panel"><div class="panel-head"><h2>Notification Settings</h2><button class="btn small" onclick="testNotification()">Send Test</button></div><label class="label">Google Chat Webhook</label><input id="webhook" class="full" placeholder="https://chat.googleapis.com/..." /><label class="label">Offline timeout minutes (0.25 = about 15 sec)</label><input id="offlineTimeout" class="full" type="number" min="0.1" step="0.05" /><button class="btn primary" onclick="saveSettings()">Save Settings</button></section><section class="panel"><div class="panel-head"><h2>Add / Edit Rule</h2></div><div class="form-grid"><input id="ruleId" placeholder="rule id optional"><input id="ruleName" placeholder="Rule name"><select id="ruleMetric"></select><select id="ruleOp"><option>>=</option><option>></option><option>&lt;=</option><option>&lt;</option><option>==</option><option>event</option></select><input id="ruleThreshold" type="number" step="0.1" placeholder="Threshold"><select id="ruleSeverity"><option>info</option><option>warning</option><option>critical</option></select><input id="ruleCooldown" type="number" value="15" placeholder="Cooldown minutes"><label class="check"><input id="ruleEnabled" type="checkbox" checked> Enabled</label></div><button class="btn primary" onclick="saveRule()">Save Rule</button></section></div><div class="panel"><div class="panel-head"><h2>Rules</h2></div><div class="table-wrap"><table id="rulesTable"><thead><tr><th>Enabled</th><th>Name</th><th>Metric</th><th>Condition</th><th>Severity</th><th>Cooldown</th><th>Action</th></tr></thead><tbody></tbody></table></div></div><div class="panel"><div class="panel-head"><h2>Alert History</h2><button class="btn small danger" onclick="clearAlerts()">Clear</button></div><div id="alertHistory" class="stack"></div></div></section>
+            <section id="page-deploy" class="page">
+        <div class="panel docs deploy-admin-panel">
+          <div class="panel-head deploy-admin-head">
+            <div>
+              <h2>Deploy Commands</h2>
+              <p class="muted">Copy-ready install/update and test commands for Windows and Ubuntu clients. Admin can edit and save commands for future DNS, port, or restore changes.</p>
+            </div>
+            <div class="deploy-actions admin-only">
+              <button class="btn small" onclick="renderDeployCommands(true)">Edit Commands</button>
+              <button class="btn small danger" onclick="resetDeployCommands()">Reset Defaults</button>
+            </div>
+          </div>
+          <div class="deploy-help">
+            <strong>Safe rule:</strong> This page only stores command text. It does not change client collector logic, heartbeat, hardware/software/GPU/USB data, database, or notification rules.
+          </div>
+          <div id="deployCommandsMount" class="deploy-command-grid"></div>
+        </div>
+      </section>
+<section id="page-settings" class="page"><div class="two-col"><section class="panel admin-only"><div class="panel-head"><h2>User Access</h2><span>Create viewer/admin accounts</span></div><p class="muted">Viewer users can see live data only. Admin users can download, change settings and deploy.</p><div class="form-grid"><input id="newUserName" placeholder="username"><input id="newUserPass" type="password" placeholder="password min 8 chars"><select id="newUserRole"><option value="viewer">viewer - see only</option><option value="admin">admin - full access</option></select><button class="btn primary" onclick="saveUser()">Add / Update User</button></div><div class="table-wrap"><table id="usersTable"><thead><tr><th>User</th><th>Role</th><th>Enabled</th><th>Updated</th><th>Action</th></tr></thead><tbody></tbody></table></div></section><section class="panel admin-only"><div class="panel-head"><h2>Change Admin Password</h2></div><label class="label">Old Password</label><input id="oldPassword" type="password" class="full"><label class="label">New Password</label><input id="newPassword" type="password" class="full"><label class="label">Confirm New Password</label><input id="confirmPassword" type="password" class="full"><button class="btn primary" onclick="changePassword()">Change Password</button><p class="muted">Use at least 8 characters. After change, keep the new password safely.</p></section></div><section class="panel"><div class="panel-head"><h2>Refresh Control</h2></div><p class="muted">To make reading easy, USB, Change Log, Day History, Deploy, Settings, Messages and Notifications will not redraw automatically. You will see a banner when new data arrives.</p><button class="btn" onclick="toggleAutoRefresh()" id="settingsAutoBtn">Live Refresh: On</button></section><section class="panel viewer-note"><h2>View-only account</h2><p class="muted">You can see live machine data, ISP status, USB, history and changes. Downloads, password changes, notification edits and deploy changes are admin-only.</p></section></section>
+    </main>
+  </div>
+  <script src="/app.js"></script>
+</body>
+</html>
+
+
+

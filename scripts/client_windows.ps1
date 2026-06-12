@@ -107,9 +107,92 @@ function Get-Disks {
   }
   return $out
 }
+function Get-TotalRamMb {
+  try {
+    $cs = Get-CimInstance Win32_ComputerSystem
+    return Round2(([double]$cs.TotalPhysicalMemory / 1MB))
+  } catch { return $null }
+}
+function Get-GpuOverallUsagePercent {
+  try {
+    $samples = (Get-Counter '\GPU Engine(*)\Utilization Percentage' -ErrorAction Stop).CounterSamples
+    $vals = @()
+    foreach($s in $samples){
+      $p = $s.Path.ToLower()
+      if($p -match 'engtype_3d|engtype_compute|engtype_copy|engtype_video'){
+        $vals += [double]$s.CookedValue
+      }
+    }
+    if($vals.Count -gt 0){
+      $m = ($vals | Measure-Object -Maximum).Maximum
+      if($m -lt 0){ $m = 0 }
+      if($m -gt 100){ $m = 100 }
+      return Round2($m)
+    }
+  } catch {}
+  return $null
+}
+function Get-TotalRamMb {
+  try {
+    $cs = Get-CimInstance Win32_ComputerSystem
+    return Round2(([double]$cs.TotalPhysicalMemory / 1MB))
+  } catch { return $null }
+}
+function Get-DxdiagGpuInfo {
+  $cache = Join-Path $Root "dxdiag_gpu_cache.json"
+  $txt = Join-Path $Root "dxdiag_gpu.txt"
+  try {
+    if((Test-Path $cache) -and ((Get-Date) - (Get-Item $cache).LastWriteTime).TotalHours -lt 12){
+      $cached = Get-Content $cache -Raw | ConvertFrom-Json
+      return @($cached)
+    }
+  } catch {}
+  $out = @()
+  try {
+    $dx = Join-Path $env:windir "System32\dxdiag.exe"
+    if(Test-Path $dx){
+      Remove-Item $txt -Force -ErrorAction SilentlyContinue
+      $p = Start-Process -FilePath $dx -ArgumentList "/whql:off /t `"$txt`"" -WindowStyle Hidden -PassThru
+      try { Wait-Process -Id $p.Id -Timeout 25 -ErrorAction Stop } catch { try { Stop-Process -Id $p.Id -Force } catch {} }
+    }
+    if(Test-Path $txt){
+      $cur = $null
+      foreach($line in (Get-Content $txt -ErrorAction SilentlyContinue)){
+        if($line -match '^\s*Card name:\s*(.+)$'){
+          if($cur -and $cur.name){ $out += $cur }
+          $cur = [ordered]@{ name=GoodText $matches[1]; display_memory_mb=$null; dedicated_memory_mb=$null; shared_memory_mb=$null }
+        } elseif($cur -and $line -match '^\s*Display Memory:\s*([0-9]+)\s*MB'){
+          $cur.display_memory_mb = Round2($matches[1])
+        } elseif($cur -and $line -match '^\s*Dedicated Memory:\s*([0-9]+)\s*MB'){
+          $cur.dedicated_memory_mb = Round2($matches[1])
+        } elseif($cur -and $line -match '^\s*Shared Memory:\s*([0-9]+)\s*MB'){
+          $cur.shared_memory_mb = Round2($matches[1])
+        }
+      }
+      if($cur -and $cur.name){ $out += $cur }
+    }
+    if($out.Count -gt 0){ $out | ConvertTo-Json -Depth 6 | Set-Content $cache -Encoding UTF8 }
+  } catch {}
+  return @($out)
+}
+function Find-DxGpu($name, $dxList){
+  if(-not $name -or -not $dxList){ return $null }
+  $n = ($name -replace '[^A-Za-z0-9]','').ToLower()
+  foreach($d in $dxList){
+    $dn = ((GoodText $d.name) -replace '[^A-Za-z0-9]','').ToLower()
+    if($dn -and ($dn.Contains($n) -or $n.Contains($dn))){ return $d }
+    if($name -match 'Intel' -and (GoodText $d.name) -match 'Intel'){ return $d }
+    if($name -match 'UHD' -and (GoodText $d.name) -match 'UHD'){ return $d }
+    if($name -match 'NVIDIA' -and (GoodText $d.name) -match 'NVIDIA'){ return $d }
+    if($name -match 'AMD|Radeon' -and (GoodText $d.name) -match 'AMD|Radeon'){ return $d }
+  }
+  return $null
+}
 function Get-Gpus {
   $out = @()
   $nvidiaDone = $false
+  $dxList = @(Get-DxdiagGpuInfo)
+
   $nvsmi = (Get-Command nvidia-smi.exe -ErrorAction SilentlyContinue).Source
   if(-not $nvsmi){ $nvsmi = "C:\Program Files\NVIDIA Corporation\NVSMI\nvidia-smi.exe" }
   if(Test-Path $nvsmi){
@@ -117,19 +200,77 @@ function Get-Gpus {
       $lines = & $nvsmi --query-gpu=name,memory.total,memory.used,utilization.gpu,temperature.gpu --format=csv,noheader,nounits
       foreach($line in $lines){
         $p = $line.Split(',') | ForEach-Object { $_.Trim() }
-        if($p.Count -ge 5){ $out += [ordered]@{ name=$p[0]; memory_total_mb=Round2($p[1]); memory_used_mb=Round2($p[2]); usage_percent=Round2($p[3]); temperature_c=Round2($p[4]); source="nvidia-smi" }; $nvidiaDone=$true }
+        if($p.Count -ge 5){
+          $name = GoodText $p[0]
+          $dx = Find-DxGpu $name $dxList
+          $shared = $null; try { if($dx -and $dx.shared_memory_mb){ $shared = Round2($dx.shared_memory_mb) } } catch {}
+          $memTotal = Round2($p[1])
+          $out += [ordered]@{
+            name=$name
+            memory_total_mb=$memTotal
+            dedicated_memory_mb=$memTotal
+            shared_memory_mb=$shared
+            memory_used_mb=Round2($p[2])
+            usage_percent=Round2($p[3])
+            temperature_c=Round2($p[4])
+            source="nvidia-smi"
+          }
+          $nvidiaDone=$true
+        }
       }
     } catch {}
   }
+
   Get-CimInstance Win32_VideoController | ForEach-Object {
     $name=GoodText $_.Name
     if(-not $name){ return }
     if($nvidiaDone -and $name -match "NVIDIA"){ return }
-    $mem = 0; try { $mem = [double]$_.AdapterRAM / 1MB } catch {}
-    $out += [ordered]@{ name=$name; memory_total_mb=Round2($mem); memory_used_mb=$null; usage_percent=$null; temperature_c=$null; driver_version=GoodText $_.DriverVersion; source="wmi" }
+
+    $dx = Find-DxGpu $name $dxList
+    $adapterMb = $null
+    try {
+      $raw = [double]$_.AdapterRAM
+      if($raw -gt 0){ $adapterMb = Round2($raw / 1MB) }
+    } catch {}
+
+    $isIntegrated = $false
+    if($name -match "Intel|UHD|Iris|Radeon\(TM\) Graphics|Radeon Graphics|Vega|Integrated"){ $isIntegrated = $true }
+
+    $dedicatedMb = $adapterMb
+    $sharedMb = $null
+    $displayMb = $null
+    try { if($dx -and $dx.dedicated_memory_mb){ $dedicatedMb = Round2($dx.dedicated_memory_mb) } } catch {}
+    try { if($dx -and $dx.shared_memory_mb){ $sharedMb = Round2($dx.shared_memory_mb) } } catch {}
+    try { if($dx -and $dx.display_memory_mb){ $displayMb = Round2($dx.display_memory_mb) } } catch {}
+
+    # Strict actual-data rule:
+    # Do NOT calculate shared GPU memory from RAM.
+    # Use dxdiag shared memory when available; otherwise leave memory_total null for integrated GPUs.
+    $memoryTotal = $dedicatedMb
+    $source = "wmi"
+    if($dx){ $source = "dxdiag+wmi" }
+    if($isIntegrated){
+      if($sharedMb){ $memoryTotal = $sharedMb } else { $memoryTotal = $null }
+    }
+
+    $out += [ordered]@{
+      name=$name
+      memory_total_mb=$memoryTotal
+      dedicated_memory_mb=$dedicatedMb
+      shared_memory_mb=$sharedMb
+      display_memory_mb=$displayMb
+      memory_used_mb=$null
+      usage_percent=$null
+      temperature_c=$null
+      driver_version=GoodText $_.DriverVersion
+      source=$source
+    }
   }
   return $out
 }
+
+
+
 function Get-Software {
   $paths = @("HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*", "HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*", "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*")
   $apps = @{}
@@ -260,7 +401,13 @@ function Get-Network {
   if([string]$state['traffic_day'] -ne [string]$today){
     $state = [ordered]@{ traffic_day=$today; rx=[double]$rxTotal; tx=[double]$txTotal; today_rx=0.0; today_tx=0.0; last_ts=$nowUtc.ToString('o') }
   }
-  $drx=[math]::Max(0,$rxTotal-[double]$state['rx']); $dtx=[math]::Max(0,$txTotal-[double]$state['tx'])
+  # Safe Int64/Double delta. Do NOT use [math]::Max(0, bigCounter) because PowerShell can choose Int32 overload and crash on high traffic counters.
+  $prevRx = 0.0; try { $prevRx = [double]$state['rx'] } catch { $prevRx = 0.0 }
+  $prevTx = 0.0; try { $prevTx = [double]$state['tx'] } catch { $prevTx = 0.0 }
+  $drx = ([double]$rxTotal) - $prevRx
+  $dtx = ([double]$txTotal) - $prevTx
+  if($drx -lt 0){ $drx = 0.0 }
+  if($dtx -lt 0){ $dtx = 0.0 }
   # Better current speed: average traffic since last heartbeat. This works even if Windows performance counters return zero.
   if($elapsed -lt 1){ $elapsed = [math]::Max(1, $IntervalSeconds) }
   $curDown = Round2((($drx * 8) / 1MB) / $elapsed)

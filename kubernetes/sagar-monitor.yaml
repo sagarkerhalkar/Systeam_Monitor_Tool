@@ -1,0 +1,121 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sagar-monitor
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: sagar-monitor-secret
+  namespace: sagar-monitor
+type: Opaque
+stringData:
+  CMP_ADMIN_PASSWORD: "CHANGE-ME-BEFORE-APPLY"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sagar-monitor-data
+  namespace: sagar-monitor
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sagar-monitor
+  namespace: sagar-monitor
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: sagar-monitor
+  template:
+    metadata:
+      labels:
+        app: sagar-monitor
+    spec:
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+      containers:
+        - name: monitor
+          image: ghcr.io/YOUR_GITHUB_USERNAME/sagar-system-monitor:8.5.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 2278
+          env:
+            - name: CMP_HOST
+              value: "0.0.0.0"
+            - name: CMP_PORT
+              value: "2278"
+            - name: CMP_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sagar-monitor-secret
+                  key: CMP_ADMIN_PASSWORD
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+          startupProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            periodSeconds: 5
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: sagar-monitor-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sagar-monitor
+  namespace: sagar-monitor
+spec:
+  selector:
+    app: sagar-monitor
+  ports:
+    - name: http
+      port: 80
+      targetPort: 2278
+  type: ClusterIP

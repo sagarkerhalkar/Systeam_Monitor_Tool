@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Sagar Kerhalkar System Monitor Tool - zero dependency receiver + premium dashboard.
-Runs with Python standard library only.
+Runs with Python standard library only on Windows, Linux, macOS, and containers.
 Default: http://0.0.0.0:2278
 """
 from __future__ import annotations
@@ -44,6 +44,7 @@ SERVER_ISP_REFRESHING = False
 SERVER_ISP_MEMORY: Dict[str, Any] = {"public_ip":"", "isp":"", "org":"", "as":"", "country":"", "city":"", "checked_at":"", "source":"not_checked", "ok":False}
 
 APP_NAME = "Sagar Kerhalkar System Health Monitor Tool"
+APP_VERSION = "8.5.0"
 DEFAULT_ADMIN_PASSWORD = os.environ.get("CMP_ADMIN_PASSWORD", "Admin@12345")
 SESSIONS: Dict[str, float] = {}
 SESSION_TTL_SECONDS = 12 * 60 * 60
@@ -1675,7 +1676,7 @@ class Handler(BaseHTTPRequestHandler):
                 from urllib.parse import parse_qs
                 qs = parse_qs(self.path.split("?",1)[1])
             if path == "/api/health":
-                return self.send_json({"ok": True, "time": now_iso(), "db": str(DB_PATH), "app_name": APP_NAME, "version":"8.4"})
+                return self.send_json({"ok": True, "time": now_iso(), "db": str(DB_PATH), "app_name": APP_NAME, "version":APP_VERSION})
             if path == "/api/auth/status":
                 return self.send_json({"ok": True, "authenticated": self.is_authenticated(), "app_name": APP_NAME, "local": is_local_request(self.client_address[0]), "username": self.current_username(), "role": self.current_role()})
             if not self.require_auth(path, "GET"):
@@ -1874,14 +1875,14 @@ class Handler(BaseHTTPRequestHandler):
                 row = get_user_row(username)
                 if row and verify_password(password, row["password_hash"]):
                     token = new_session(row["username"], row["role"])
-                    data = json.dumps({"ok": True, "app_name": APP_NAME, "version":"8.4", "username": row["username"], "role": row["role"]}).encode("utf-8")
+                    data = json.dumps({"ok": True, "app_name": APP_NAME, "version":APP_VERSION, "username": row["username"], "role": row["role"]}).encode("utf-8")
                     self._send(200, data, "application/json; charset=utf-8", {"Set-Cookie": f"cmp_session={token}; HttpOnly; SameSite=Lax; Path=/; Max-Age={SESSION_TTL_SECONDS}"})
                     return
                 settings = get_settings()
                 stored = settings.get("admin_password_hash", "")
                 if username.lower() == "admin" and verify_password(password, stored):
                     token = new_session("admin", "admin")
-                    data = json.dumps({"ok": True, "app_name": APP_NAME, "version":"8.4", "username":"admin", "role":"admin"}).encode("utf-8")
+                    data = json.dumps({"ok": True, "app_name": APP_NAME, "version":APP_VERSION, "username":"admin", "role":"admin"}).encode("utf-8")
                     self._send(200, data, "application/json; charset=utf-8", {"Set-Cookie": f"cmp_session={token}; HttpOnly; SameSite=Lax; Path=/; Max-Age={SESSION_TTL_SECONDS}"})
                     return
                 return self.send_json({"ok": False, "error":"bad_password"}, 403)
@@ -1974,20 +1975,73 @@ class Handler(BaseHTTPRequestHandler):
             return self.send_json({"error": str(e)}, 500)
 
 
+class UniversalThreadingHTTPServer(ThreadingHTTPServer):
+    allow_reuse_address = True
+    daemon_threads = True
+    request_queue_size = 128
+
+
 def main() -> None:
+    import platform
+    import signal
+    import socket
+
     parser = argparse.ArgumentParser()
-    parser.add_argument("--host", default="0.0.0.0")
-    parser.add_argument("--port", type=int, default=2278)
+    parser.add_argument("--host", default=os.environ.get("CMP_HOST", "0.0.0.0"))
+    parser.add_argument("--port", type=int, default=int(os.environ.get("CMP_PORT", "2278")))
     args = parser.parse_args()
     init_db()
-    httpd = ThreadingHTTPServer((args.host, args.port), Handler)
-    print(f"{APP_NAME} running: http://{args.host}:{args.port}")
-    print("Default admin password: " + DEFAULT_ADMIN_PASSWORD + "  (change it from UI after login)")
-    print(f"Open dashboard from server: http://localhost:{args.port}")
+
     try:
-        httpd.serve_forever()
-    except KeyboardInterrupt:
-        print("Stopped")
+        httpd = UniversalThreadingHTTPServer((args.host, args.port), Handler)
+    except OSError as exc:
+        log(f"STARTUP ERROR host={args.host} port={args.port}: {exc}")
+        print(f"STARTUP ERROR: cannot bind {args.host}:{args.port}: {exc}", flush=True)
+        print("Another process may already own the port. Stop duplicate server/watchdog tasks and retry.", flush=True)
+        raise
+
+    runtime = {
+        "version": APP_VERSION,
+        "platform": platform.system(),
+        "platform_release": platform.release(),
+        "python": platform.python_version(),
+        "hostname": socket.gethostname(),
+        "pid": os.getpid(),
+        "host": args.host,
+        "port": args.port,
+    }
+    try:
+        (DATA_DIR / "server_runtime.json").write_text(json.dumps(runtime, indent=2), encoding="utf-8")
+    except Exception:
+        pass
+    log("SERVER START " + json.dumps(runtime, ensure_ascii=False))
+
+    stopping = threading.Event()
+
+    def request_shutdown(signum=None, frame=None):
+        if stopping.is_set():
+            return
+        stopping.set()
+        log(f"SERVER STOP requested signal={signum}")
+        threading.Thread(target=httpd.shutdown, daemon=True).start()
+
+    for sig_name in ("SIGTERM", "SIGINT"):
+        sig = getattr(signal, sig_name, None)
+        if sig is not None:
+            try:
+                signal.signal(sig, request_shutdown)
+            except Exception:
+                pass
+
+    print(f"{APP_NAME} V{APP_VERSION} running: http://{args.host}:{args.port}", flush=True)
+    print("Default admin password: " + DEFAULT_ADMIN_PASSWORD + "  (change it from UI after login)", flush=True)
+    print(f"Open dashboard from server: http://localhost:{args.port}", flush=True)
+    try:
+        httpd.serve_forever(poll_interval=0.5)
+    finally:
+        httpd.server_close()
+        log("SERVER STOPPED cleanly")
+        print("Stopped", flush=True)
 
 if __name__ == "__main__":
     main()

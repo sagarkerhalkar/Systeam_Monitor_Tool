@@ -1,0 +1,15 @@
+services:
+  monitor:
+    build: .
+    container_name: sagar-system-monitor
+    restart: unless-stopped
+    ports:
+      - "2278:2278"
+    environment:
+      CMP_HOST: 0.0.0.0
+      CMP_PORT: 2278
+      CMP_ADMIN_PASSWORD: ${CMP_ADMIN_PASSWORD:?Set CMP_ADMIN_PASSWORD in .env}
+    volumes:
+      - ./data:/app/data
+      - ./public:/app/public:ro
+      - ./scripts:/app/scripts:ro

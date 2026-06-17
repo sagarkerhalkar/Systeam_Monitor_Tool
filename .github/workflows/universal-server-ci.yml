@@ -1,0 +1,29 @@
+name: Universal Server CI
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python: ['3.10', '3.12']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Compile
+        run: python -m py_compile server.py universal_server.py
+      - name: Start and health-test
+        shell: pwsh
+        run: |
+          $p = Start-Process python -ArgumentList '-u','universal_server.py','--host','127.0.0.1','--port','2278' -PassThru
+          try {
+            Start-Sleep 5
+            $r = Invoke-RestMethod 'http://127.0.0.1:2278/api/health'
+            if (-not $r.ok) { throw 'Health check failed' }
+          } finally {
+            Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
+          }

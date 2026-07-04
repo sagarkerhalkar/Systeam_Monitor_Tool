@@ -1,4 +1,4 @@
-﻿const $ = (q) => document.querySelector(q);
+const $ = (q) => document.querySelector(q);
 const $$ = (q) => Array.from(document.querySelectorAll(q));
 
 const state = {
@@ -83,33 +83,6 @@ function nested(o,path,def){try{return path.split('.').reduce((a,k)=>a&&a[k]!==u
 function isAdmin(){return state.role === 'admin';}
 function statusPill(m){return `<span class="pill ${m?.online?'online':'offline'}">${m?.online?'Online':'Offline'}</span>`;}
 function attention(m){return Number(m?.cpu_percent||0)>=90 || Number(m?.ram_percent||0)>=90 || Number(m?.disk_max_percent||0)>=90;}
-function attentionReason(m){
-  const r=[];
-  if(Number(m?.cpu_percent||0)>=90) r.push(`CPU ${fmt(m.cpu_percent,'%')}`);
-  if(Number(m?.ram_percent||0)>=90) r.push(`RAM ${fmt(m.ram_percent,'%')}`);
-  if(Number(m?.disk_max_percent||0)>=90) r.push(`Disk ${fmt(m.disk_max_percent,'%')}`);
-  return r.join(' | ') || 'Needs attention';
-}
-function openAttentionMachines(){
-  switchPage('fleet');
-  setTimeout(()=>{
-    const fs=$('#fleetStatus');
-    if(fs) fs.value='attention';
-    renderFleet();
-    const table=$('#fleetTable');
-    if(table) table.scrollIntoView({behavior:'smooth', block:'start'});
-  },80);
-}
-function bindAttentionClick(){
-  const k=$('#kCritical');
-  if(!k) return;
-  const box=k.closest('div');
-  if(!box || box.dataset.attentionClick==='1') return;
-  box.dataset.attentionClick='1';
-  box.title='Click to open PCs needing attention';
-  box.style.cursor='pointer';
-  box.addEventListener('click', openAttentionMachines);
-}
 function queryString(obj){return Object.entries(obj).filter(([k,v])=>v!==undefined&&v!==null&&v!=='').map(([k,v])=>encodeURIComponent(k)+'='+encodeURIComponent(v)).join('&');}
 function cleanText(v){return String(v??'').trim().replace(/\s+/g,' ');}
 function shortId(id){id=String(id||''); if(!id)return''; return id.length>80?id.slice(0,80)+'â€¦':id;}
@@ -294,7 +267,7 @@ function renderCommandPageSummary(){
   ];
   el.innerHTML=cards.map(([t,b,s,p])=>`<button class="summary-tile" onclick="switchPage('${p}')"><span>${esc(t)}</span><strong>${esc(b)}</strong><small>${esc(s)}</small></button>`).join('');
 }
-function renderFleet(){ const tb=$('#fleetTable tbody'); if(!tb)return; tb.innerHTML=filteredMachines().map(m=>`<tr><td>${statusPill(m)}</td><td><strong>${esc(host(m))}</strong><small>${esc(m.machine_id||'')}</small>${attention(m)?`<small class="warn-text">${esc(attentionReason(m))}</small>`:''}</td><td>${esc(m.primary_ip||'')}</td><td>${esc(m.os||'')}</td><td>${fmt(m.cpu_percent,'%')}</td><td>${ramFleetCell(m)}</td><td>${fmt(m.disk_max_percent,'%')}</td><td>${netNowCell(m)}</td><td>${esc(gpuBrief(m))}</td><td>${esc(m.usb_count||0)}</td><td>${ago(m.updated_at)}</td></tr>`).join('') || '<tr><td colspan="11" class="empty">No matching machines.</td></tr>'; }
+function renderFleet(){ const tb=$('#fleetTable tbody'); if(!tb)return; tb.innerHTML=filteredMachines().map(m=>`<tr><td>${statusPill(m)}</td><td><strong>${esc(host(m))}</strong><small>${esc(m.machine_id||'')}</small></td><td>${esc(m.primary_ip||'')}</td><td>${esc(m.os||'')}</td><td>${fmt(m.cpu_percent,'%')}</td><td>${ramFleetCell(m)}</td><td>${fmt(m.disk_max_percent,'%')}</td><td>${netNowCell(m)}</td><td>${esc(gpuBrief(m))}</td><td>${esc(m.usb_count||0)}</td><td>${ago(m.updated_at)}</td></tr>`).join('') || '<tr><td colspan="11" class="empty">No matching machines.</td></tr>'; }
 function detail(title, rows){return `<article class="detail-card"><h3>${esc(title)}</h3>${rows.map(([k,v])=>`<div><span>${esc(k)}</span><strong>${v}</strong></div>`).join('')}</article>`;}
 function renderMachine360(){ const m=selectedMachine('machineSelect'); const el=$('#machineDetails'); if(!el)return; if(!m){el.innerHTML='<div class="empty">Select one machine.</div>';return;} const p=payload(m); el.innerHTML=[detail('Identity',[['Status',statusPill(m)],['Machine',esc(host(m))],['Machine ID',`<code>${esc(m.machine_id)}</code>`],['OS',esc(m.os||'')],['Last Seen',ago(m.updated_at)]]),detail('Live Usage',[['CPU',fmt(m.cpu_percent,'%')],['CPU Temp',fmt(m.cpu_temp_c,' C')],['RAM Usage',fmt(m.ram_percent,'%')],['RAM Capacity',fmt(m.ram_total_gb,' GB')],['RAM Used',fmt(m.ram_used_gb,' GB')],['Disk Max',fmt(m.disk_max_percent,'%')],['Network Now',`Down ${fmt(m.wan_download_mbps,' Mbps',2)} / Up ${fmt(m.wan_upload_mbps,' Mbps',2)}`]]),detail('Network',[['Primary IP',esc(m.primary_ip||'')],['Public IP',esc(m.public_ip||'')],['ISP',esc(m.isp_name||'')],['VPN',m.vpn_active?'Active':'Not detected'],['All IPs',esc((m.all_ips||[]).join(', '))]]),detail('Inventory',[['USB / Peripherals',esc(m.usb_count||0)],['Installed Apps',esc(m.software_count||0)],['GPU Count',esc(m.gpu_count||0)],['GPU Max Usage',fmt(m.gpu_max_usage,'%')],['GPU Temp',fmt(m.gpu_max_temp_c,' C')],['GPU Memory Total',fmtMemMb(m.gpu_total_memory_mb)],['Agent',esc(nested(p,'agent.version',''))]]),`<article class="detail-card machine-gpu-detail"><h3>GPU Details</h3>${gpuDetailsHtml(m)}</article>`].join(''); }
 function renderNetwork(){ const el=$('#networkCards'); if(!el)return; el.innerHTML=state.machines.map(m=>{const p=payload(m); const adapters=arr(nested(p,'network.adapters',[])).slice(0,20); return `<article class="net-card"><h3>${statusPill(m)} ${esc(host(m))}</h3><div class="kv"><span>Primary IP</span><strong>${esc(m.primary_ip||'')}</strong></div><div class="kv"><span>VPN</span><strong>${m.vpn_active?'Active':'Not detected'}</strong></div><div class="kv"><span>ISP</span><strong>${esc(m.isp_name||'')}</strong></div><hr>${adapters.map(a=>`<p><strong>${esc(a.name||'Adapter')}</strong><br><span>${esc(a.description||'')}</span><br><span>MAC ${esc(a.mac||'')}  /  IP ${esc((a.ips||[]).join(', '))}</span></p>`).join('')}</article>`}).join('') || '<div class="empty">No network data.</div>'; }
@@ -700,9 +673,3 @@ function renderHardware(){
     return `<article class="hw-card"><h3>${esc(host(m))}</h3><div class="kv"><span>CPU</span><strong>${esc(cpu.name||'')}</strong></div><div class="kv"><span>Cores / Threads</span><strong>${esc(cpu.cores||'')} / ${esc(cpu.threads||'')}</strong></div><div class="kv"><span>RAM</span><strong>${fmt(mem.used_gb,' GB')} / ${fmt(mem.total_gb,' GB')}</strong></div><div class="kv"><span>CPU Temp</span><strong>${fmt(cpu.temperature_c,' C')}</strong></div><h4>Disks</h4>${disks.map(d=>`<p>${esc(d.mount||d.name)}: ${fmt(d.used_percent,'%')} of ${fmt(d.total_gb,' GB')}</p>`).join('')||'<p>No disk data</p>'}<h4>GPU</h4>${strictGpuDetailsHtml(m)}</article>`;
   }).join('') || '<div class="empty">No hardware data.</div>';
 }
-
-/* attention-click-navigation-fix: click Attention count -> Fleet filtered to Needs attention */
-document.addEventListener('DOMContentLoaded', bindAttentionClick);
-setInterval(bindAttentionClick, 1000);
-
-

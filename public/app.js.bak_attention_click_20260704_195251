@@ -705,4 +705,3 @@ function renderHardware(){
 document.addEventListener('DOMContentLoaded', bindAttentionClick);
 setInterval(bindAttentionClick, 1000);
 
-

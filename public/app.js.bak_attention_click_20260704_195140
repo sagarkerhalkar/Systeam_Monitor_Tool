@@ -704,5 +704,3 @@ function renderHardware(){
 /* attention-click-navigation-fix: click Attention count -> Fleet filtered to Needs attention */
 document.addEventListener('DOMContentLoaded', bindAttentionClick);
 setInterval(bindAttentionClick, 1000);
-
-

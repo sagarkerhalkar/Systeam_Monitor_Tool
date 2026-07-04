@@ -1,0 +1,41 @@
+back up commend 
+$App = "D:\SagarSystemHealthMonitor"
+
+cd $App
+
+Get-ChildItem $App -Directory -Filter "BACKUP_*" |
+  Sort-Object LastWriteTime -Descending |
+  Select-Object -First 10 Name, LastWriteTime
+
+
+
+restore back up 
+
+$App = "D:\SagarSystemHealthMonitor"
+$Backup = "D:\SagarSystemHealthMonitor\BACKUP_LOGIN_EXPERIENCE_YYYYMMDD_HHMMSS"
+
+Copy-Item "$Backup\index.html" "$App\public\index.html" -Force
+Copy-Item "$Backup\styles.css" "$App\public\styles.css" -Force
+Copy-Item "$Backup\app.js" "$App\public\app.js" -Force
+
+Write-Host "Frontend restored. Restart server now."
+
+
+
+
+
+If you already downloaded files, run only installer as Admin
+
+After opening PowerShell as Administrator:
+
+powershell -ExecutionPolicy Bypass -File C:\Temp\SagarSystemMonitor\install_windows_client_2278.ps1 -ServerUrl "https://monitor.sagarkerhalkar.com" -FileServerUrl "https://monitor.sagarkerhalkar.com" -IntervalSeconds 5
+Verify scheduled task created
+Get-ScheduledTask -TaskName "SagarSystemMonitor_Client_2278"
+
+Then start it:
+
+Start-ScheduledTask -TaskName "SagarSystemMonitor_Client_2278"
+
+Then check status:
+
+Get-ScheduledTaskInfo -TaskName "SagarSystemMonitor_Client_2278"

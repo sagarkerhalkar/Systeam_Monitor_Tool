@@ -705,4 +705,554 @@ function renderHardware(){
 document.addEventListener('DOMContentLoaded', bindAttentionClick);
 setInterval(bindAttentionClick, 1000);
 
+/* MACHINE_360_FULL_PAGE_ONLY_START */
+/*
+  Machine 360 premium UI override.
+  Scope: only #page-machine360 and renderMachine360().
+  Other pages, server.py, dashboard, fleet, hardware, USB, software are untouched.
+*/
+function m360InstallScopedStyle(){
+  const old=document.getElementById('m360ScopedStyle');
+  if(old) old.remove();
+  const css = `
+    #page-machine360{
+      --m360-blue:#2563eb;
+      --m360-cyan:#06b6d4;
+      --m360-indigo:#4f46e5;
+      --m360-ink:#0f172a;
+      --m360-muted:#64748b;
+      --m360-line:rgba(148,163,184,.26);
+      --m360-soft:#f8fbff;
+      --m360-glass:rgba(255,255,255,.82);
+      --m360-shadow:0 24px 80px rgba(30,64,175,.16);
+      --m360-shadow2:0 14px 34px rgba(15,23,42,.10);
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    }
+    #page-machine360 .panel{overflow:visible}
+    #page-machine360 #machineDetails,
+    #page-machine360 .machine-details{
+      display:block!important;
+      width:100%!important;
+      max-width:none!important;
+      min-width:0!important;
+    }
+    #page-machine360 .m360-shell{
+      position:relative;
+      width:100%;
+      color:var(--m360-ink);
+      animation:m360FadeUp .45s ease both;
+    }
+    #page-machine360 .m360-hero{
+      position:relative;
+      overflow:hidden;
+      border-radius:30px;
+      padding:24px;
+      background:
+        radial-gradient(circle at 12% 15%, rgba(59,130,246,.34), transparent 30%),
+        radial-gradient(circle at 88% 16%, rgba(6,182,212,.28), transparent 31%),
+        linear-gradient(135deg, rgba(255,255,255,.96), rgba(239,246,255,.90));
+      border:1px solid rgba(255,255,255,.85);
+      box-shadow:var(--m360-shadow);
+      isolation:isolate;
+    }
+    #page-machine360 .m360-hero:before{
+      content:"";
+      position:absolute;
+      inset:-80px;
+      background:conic-gradient(from 130deg, rgba(37,99,235,.12), rgba(6,182,212,.22), rgba(79,70,229,.12), rgba(37,99,235,.12));
+      filter:blur(18px);
+      animation:m360Aurora 9s linear infinite;
+      z-index:-1;
+    }
+    #page-machine360 .m360-hero-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:18px;
+      flex-wrap:wrap;
+    }
+    #page-machine360 .m360-eyebrow{
+      letter-spacing:.24em;
+      text-transform:uppercase;
+      font-size:11px;
+      font-weight:900;
+      color:var(--m360-blue);
+      margin:0 0 8px;
+    }
+    #page-machine360 .m360-hero h2{
+      margin:0;
+      font-size:clamp(26px,3vw,44px);
+      line-height:1.03;
+      letter-spacing:-.04em;
+      color:#08111f;
+    }
+    #page-machine360 .m360-sub{
+      margin:10px 0 0;
+      color:var(--m360-muted);
+      font-weight:650;
+      font-size:14px;
+    }
+    #page-machine360 .m360-status{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    #page-machine360 .m360-status .pill{
+      transform:scale(1.05);
+      box-shadow:0 10px 24px rgba(34,197,94,.18);
+    }
+    #page-machine360 .m360-chips{
+      margin-top:22px;
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+      gap:12px;
+    }
+    #page-machine360 .m360-chip{
+      position:relative;
+      overflow:hidden;
+      border-radius:20px;
+      padding:14px 15px;
+      background:rgba(255,255,255,.78);
+      border:1px solid rgba(255,255,255,.86);
+      box-shadow:0 12px 30px rgba(30,64,175,.10);
+      backdrop-filter:blur(16px);
+      transition:transform .22s ease, box-shadow .22s ease;
+    }
+    #page-machine360 .m360-chip:hover,
+    #page-machine360 .m360-card:hover{
+      transform:translateY(-3px);
+      box-shadow:0 24px 55px rgba(30,64,175,.16);
+    }
+    #page-machine360 .m360-chip span{
+      display:block;
+      color:var(--m360-muted);
+      font-size:11px;
+      font-weight:850;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+    #page-machine360 .m360-chip strong{
+      display:block;
+      margin-top:6px;
+      font-size:20px;
+      color:#0f172a;
+      letter-spacing:-.02em;
+    }
+    #page-machine360 .m360-layout{
+      margin-top:18px;
+      display:grid;
+      grid-template-columns:repeat(12,1fr);
+      gap:16px;
+      align-items:start;
+    }
+    #page-machine360 .m360-card{
+      grid-column:span 4;
+      border-radius:24px;
+      background:var(--m360-glass);
+      border:1px solid rgba(255,255,255,.82);
+      box-shadow:var(--m360-shadow2);
+      padding:18px;
+      backdrop-filter:blur(18px);
+      min-width:0;
+      animation:m360FadeUp .45s ease both;
+    }
+    #page-machine360 .m360-card.m360-wide{grid-column:1/-1}
+    #page-machine360 .m360-card.m360-half{grid-column:span 6}
+    #page-machine360 .m360-card h3{
+      margin:0 0 14px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      font-size:17px;
+      letter-spacing:-.02em;
+      color:#0f172a;
+    }
+    #page-machine360 .m360-badge{
+      display:inline-flex;
+      align-items:center;
+      border-radius:999px;
+      padding:5px 10px;
+      font-size:11px;
+      font-weight:900;
+      color:#1d4ed8;
+      background:rgba(37,99,235,.10);
+      border:1px solid rgba(37,99,235,.18);
+    }
+    #page-machine360 .m360-kv{
+      display:grid;
+      grid-template-columns:minmax(120px,170px) 1fr;
+      gap:9px 12px;
+      padding:9px 0;
+      border-bottom:1px dashed var(--m360-line);
+      align-items:start;
+    }
+    #page-machine360 .m360-kv:last-child{border-bottom:0}
+    #page-machine360 .m360-kv span{
+      color:var(--m360-muted);
+      font-size:12px;
+      font-weight:800;
+    }
+    #page-machine360 .m360-kv strong{
+      color:#0f172a;
+      font-size:13px;
+      word-break:break-word;
+      font-weight:850;
+    }
+    #page-machine360 code{
+      color:#1e3a8a;
+      background:rgba(37,99,235,.07);
+      border:1px solid rgba(37,99,235,.13);
+      border-radius:8px;
+      padding:2px 5px;
+      font-family:"Cascadia Code","Consolas",monospace;
+      font-size:11px;
+    }
+    #page-machine360 .m360-scroll{
+      width:100%;
+      max-height:520px;
+      overflow:auto;
+      border-radius:18px;
+      border:1px solid rgba(148,163,184,.24);
+      background:rgba(255,255,255,.66);
+    }
+    #page-machine360 .m360-table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+      min-width:780px;
+      font-size:13px;
+    }
+    #page-machine360 .m360-table th{
+      position:sticky;
+      top:0;
+      z-index:2;
+      text-align:left;
+      padding:12px;
+      color:#334155;
+      background:linear-gradient(180deg,#f8fbff,#eef6ff);
+      border-bottom:1px solid rgba(148,163,184,.28);
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+    #page-machine360 .m360-table td{
+      padding:12px;
+      border-bottom:1px solid rgba(148,163,184,.16);
+      color:#0f172a;
+      vertical-align:top;
+      font-weight:650;
+    }
+    #page-machine360 .m360-table tr:hover td{
+      background:rgba(37,99,235,.045);
+    }
+    #page-machine360 .m360-table small{
+      display:block;
+      color:var(--m360-muted);
+      margin-top:4px;
+      font-weight:650;
+    }
+    #page-machine360 .m360-empty{
+      border-radius:18px;
+      padding:18px;
+      background:rgba(248,250,252,.8);
+      color:var(--m360-muted);
+      border:1px dashed rgba(100,116,139,.30);
+      font-weight:750;
+    }
+    #page-machine360 .m360-actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    #page-machine360 .m360-soft-btn{
+      border:1px solid rgba(37,99,235,.18);
+      background:linear-gradient(180deg,#fff,#eff6ff);
+      color:#1d4ed8;
+      border-radius:999px;
+      padding:7px 12px;
+      font-size:12px;
+      font-weight:900;
+      cursor:pointer;
+    }
+    #page-machine360 details.m360-details summary{cursor:pointer;font-weight:900;color:#1d4ed8}
+    #page-machine360 details.m360-details pre{
+      white-space:pre-wrap;
+      max-height:360px;
+      overflow:auto;
+      background:#0b1220;
+      color:#dbeafe;
+      border-radius:16px;
+      padding:14px;
+      font-size:12px;
+      line-height:1.55;
+    }
+    #page-machine360 .m360-ring-row{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:12px;
+    }
+    #page-machine360 .m360-meter{
+      border-radius:18px;
+      padding:14px;
+      background:linear-gradient(180deg,rgba(255,255,255,.86),rgba(239,246,255,.76));
+      border:1px solid rgba(255,255,255,.9);
+      box-shadow:0 12px 24px rgba(30,64,175,.08);
+    }
+    #page-machine360 .m360-meter span{
+      display:flex;
+      justify-content:space-between;
+      color:#334155;
+      font-weight:900;
+      font-size:12px;
+      margin-bottom:8px;
+    }
+    #page-machine360 .m360-bar{
+      height:10px;
+      background:#e2e8f0;
+      border-radius:999px;
+      overflow:hidden;
+    }
+    #page-machine360 .m360-fill{
+      height:100%;
+      border-radius:999px;
+      background:linear-gradient(90deg,var(--m360-blue),var(--m360-cyan));
+      width:0;
+      animation:m360Grow .8s ease forwards;
+    }
+    @keyframes m360FadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes m360Aurora{to{transform:rotate(360deg)}}
+    @keyframes m360Grow{from{width:0}to{width:var(--w)}}
+    @media(max-width:1100px){
+      #page-machine360 .m360-card,#page-machine360 .m360-card.m360-half{grid-column:1/-1}
+    }
+    @media(max-width:720px){
+      #page-machine360 .m360-hero{padding:18px;border-radius:22px}
+      #page-machine360 .m360-kv{grid-template-columns:1fr}
+      #page-machine360 .m360-ring-row{grid-template-columns:1fr}
+    }
+  `;
+  const style=document.createElement('style');
+  style.id='m360ScopedStyle';
+  style.textContent=css;
+  document.head.appendChild(style);
+}
+function m360List(v){
+  try{ if(typeof arr === 'function') return arr(v); }catch(e){}
+  if(v===null||v===undefined||v==='') return [];
+  if(Array.isArray(v)) return v.flatMap(m360List);
+  if(typeof v === 'object'){
+    const direct=['name','display_name','class','type','device_id','vid','pid','version','publisher','mount','total_gb'];
+    if(direct.some(k=>Object.prototype.hasOwnProperty.call(v,k))) return [v];
+    return Object.values(v).flatMap(m360List);
+  }
+  return [v];
+}
+function m360Obj(v){return (v && typeof v === 'object' && !Array.isArray(v)) ? v : {};}
+function m360Text(v){return esc(v===undefined||v===null||v==='' ? 'N/A' : v);}
+function m360Number(v){const n=Number(v||0); return Number.isFinite(n)?n:0;}
+function m360Pct(v){return Math.max(0,Math.min(100,m360Number(v)));}
+function m360Json(v){try{return esc(JSON.stringify(v,null,2));}catch(e){return esc(String(v||''));}}
+function m360Meter(label,value){
+  const p=m360Pct(value);
+  return `<div class="m360-meter"><span><b>${esc(label)}</b><b>${fmt(p,'%')}</b></span><div class="m360-bar"><div class="m360-fill" style="--w:${p}%"></div></div></div>`;
+}
+function m360Table(headers, rows, emptyText){
+  if(!rows || !rows.length) return `<div class="m360-empty">${esc(emptyText||'No data available.')}</div>`;
+  return `<div class="m360-scroll"><table class="m360-table"><thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div>`;
+}
+function m360DeviceName(u){return u.display_name || u.friendly_name || u.name || u.device_name || u.description || 'Unknown device';}
+function m360SoftwareName(a){return a.name || a.display_name || a.DisplayName || a.package || 'Unknown software';}
+function m360DiskName(d){return d.mount || d.name || d.device || d.drive || d.DriveLetter || 'Disk';}
+function m360FmtMem(mb){try{return typeof fmtMemMb==='function'?fmtMemMb(mb):fmt(Number(mb||0)/1024,' GB');}catch(e){return 'N/A';}}
+
+function renderMachine360(){
+  m360InstallScopedStyle();
+  const m=selectedMachine('machineSelect');
+  const el=$('#machineDetails');
+  if(!el) return;
+  if(!m){el.innerHTML='<div class="m360-empty">Select one machine.</div>';return;}
+
+  const p=payload(m);
+  const identity=m360Obj(nested(p,'identity',{}));
+  const osObj=m360Obj(nested(p,'os',{}));
+  const cpu=m360Obj(nested(p,'hardware.cpu',{}));
+  const mem=m360Obj(nested(p,'hardware.memory',{}));
+  const network=m360Obj(nested(p,'network',{}));
+  const traffic=m360Obj(nested(p,'network.traffic',{}));
+  const vpn=m360Obj(nested(p,'network.vpn',{}));
+
+  const disks=m360List(nested(p,'storage.disks',[])).filter(x=>x && typeof x==='object');
+  const gpus=m360List(nested(p,'hardware.gpus',[])).filter(x=>x && typeof x==='object');
+  const adapters=m360List(nested(p,'network.adapters',[])).filter(x=>x && typeof x==='object');
+  const usbRaw=nested(p,'usb.devices',nested(p,'usb',[]));
+  const usbDevices=(typeof cleanUsbItems==='function' ? cleanUsbItems(usbRaw) : m360List(usbRaw)).filter(x=>x && typeof x==='object');
+  const apps=m360List(nested(p,'software.installed',nested(p,'software',[]))).filter(x=>x && typeof x==='object');
+  const changes=m360List(p.changes||[]).filter(x=>x && typeof x==='object');
+
+  const diskRows=disks.map(d=>`<tr>
+    <td><strong>${m360Text(m360DiskName(d))}</strong><small>${m360Text(d.type||d.media_type||d.filesystem||'')}</small></td>
+    <td>${fmt(d.used_percent ?? d.usage_percent,'%')}</td>
+    <td>${fmt(d.total_gb ?? d.size_gb,' GB')}</td>
+    <td>${fmt(d.used_gb,' GB')}</td>
+    <td>${fmt(d.free_gb,' GB')}</td>
+    <td><code>${m360Text(d.serial||d.model||d.device||'')}</code></td>
+  </tr>`);
+
+  const gpuRows=gpus.map(g=>`<tr>
+    <td><strong>${m360Text(g.name||g.gpu_name||'GPU')}</strong><small>${m360Text(g.source||'client')}</small></td>
+    <td>${fmt(g.usage_percent ?? g.utilization_gpu ?? g.load_percent,'%')}</td>
+    <td>${fmt(g.temperature_c ?? g.temp_c,' C')}</td>
+    <td>${m360FmtMem(g.memory_total_mb || g.adapter_ram_mb || g.dedicated_memory_mb || 0)}</td>
+    <td>${m360FmtMem(g.memory_used_mb || 0)}</td>
+    <td>${m360Text(g.driver_version||g.driver||'')}</td>
+  </tr>`);
+
+  const adapterRows=adapters.map(a=>{
+    const ips=Array.isArray(a.ips||a.ip_addresses) ? (a.ips||a.ip_addresses).join(', ') : (a.ips||a.ip_addresses||'');
+    return `<tr>
+      <td><strong>${m360Text(a.name||'Adapter')}</strong><small>${m360Text(a.description||'')}</small></td>
+      <td>${m360Text(ips)}</td>
+      <td><code>${m360Text(a.mac||a.mac_address||a.MACAddress||'')}</code></td>
+      <td>${a.is_vpn||a.vpn?'VPN':(a.is_virtual?'Virtual':'Physical')}</td>
+      <td>${m360Text(a.status||a.oper_status||'')}</td>
+    </tr>`;
+  });
+
+  const usbRows=usbDevices.map(u=>`<tr>
+    <td><strong>${m360Text(m360DeviceName(u))}</strong><small>${m360Text(u.manufacturer||u.class||'Peripheral')}</small></td>
+    <td>${m360Text(u.type||u.class||'Peripheral')}</td>
+    <td>${m360Text(u.status||'')}</td>
+    <td>${m360Text(u.vid||'')}</td>
+    <td>${m360Text(u.pid||'')}</td>
+    <td><details><summary>View ID</summary><code>${m360Text(u.device_id||u.instance_id||u.id||'')}</code></details></td>
+  </tr>`);
+
+  const appRows=apps.map(a=>`<tr>
+    <td><strong>${m360Text(m360SoftwareName(a))}</strong></td>
+    <td>${m360Text(a.version||'')}</td>
+    <td>${m360Text(a.publisher||a.vendor||'')}</td>
+    <td>${m360Text(typeof fmtInstallDate==='function' ? fmtInstallDate(a.install_date||a.installDate||'') : (a.install_date||a.installDate||''))}</td>
+  </tr>`);
+
+  const changeRows=changes.slice(0,80).map(c=>`<tr>
+    <td>${m360Text(c.type||'change')}</td>
+    <td>${m360Text(c.title||c.message||'')}</td>
+    <td>${m360Text(c.created_at||c.time||'')}</td>
+  </tr>`);
+
+  const gpuTotal = gpus.length || m.gpu_count || 0;
+  const allIps = Array.isArray(m.all_ips) ? m.all_ips.join(', ') : (m.all_ips||'');
+
+  el.innerHTML=`
+    <div class="m360-shell">
+      <section class="m360-hero">
+        <div class="m360-hero-top">
+          <div>
+            <p class="m360-eyebrow">Machine 360 Universal Inventory</p>
+            <h2>${esc(host(m))}</h2>
+            <p class="m360-sub">${m360Text(m.primary_ip||'No LAN IP')} Â· ${m360Text(m.os||osObj.name||'Unknown OS')} Â· Last seen ${ago(m.updated_at)}</p>
+          </div>
+          <div class="m360-status">${statusPill(m)}<button class="m360-soft-btn download-only" onclick="downloadCurrentMachine()">Download CSV</button></div>
+        </div>
+        <div class="m360-chips">
+          <div class="m360-chip"><span>CPU</span><strong>${fmt(m.cpu_percent,'%')}</strong></div>
+          <div class="m360-chip"><span>RAM</span><strong>${fmt(m.ram_used_gb,' GB')} / ${fmt(m.ram_total_gb,' GB')}</strong></div>
+          <div class="m360-chip"><span>Disk Max</span><strong>${fmt(m.disk_max_percent,'%')}</strong></div>
+          <div class="m360-chip"><span>Network Now</span><strong>Down ${fmt(m.wan_download_mbps,' Mbps',2)}</strong></div>
+          <div class="m360-chip"><span>USB</span><strong>${usbDevices.length}</strong></div>
+          <div class="m360-chip"><span>Software</span><strong>${apps.length}</strong></div>
+          <div class="m360-chip"><span>GPU</span><strong>${gpuTotal}</strong></div>
+        </div>
+      </section>
+
+      <section class="m360-layout">
+        <article class="m360-card m360-wide">
+          <h3>Live Health <span class="m360-badge">Animated</span></h3>
+          <div class="m360-ring-row">
+            ${m360Meter('CPU Usage',cpu.usage_percent ?? m.cpu_percent)}
+            ${m360Meter('RAM Usage',mem.used_percent ?? m.ram_percent)}
+            ${m360Meter('Disk Usage',m.disk_max_percent)}
+          </div>
+        </article>
+
+        <article class="m360-card">
+          <h3>Identity + OS <span class="m360-badge">Core</span></h3>
+          <div class="m360-kv"><span>Machine ID</span><strong><code>${m360Text(m.machine_id)}</code></strong></div>
+          <div class="m360-kv"><span>ID Source</span><strong>${m360Text(m.id_source)}</strong></div>
+          <div class="m360-kv"><span>ID Value</span><strong>${m360Text(m.id_value)}</strong></div>
+          <div class="m360-kv"><span>Hostname</span><strong>${m360Text(identity.hostname||m.hostname||host(m))}</strong></div>
+          <div class="m360-kv"><span>OS</span><strong>${m360Text(osObj.name||m.os)}</strong></div>
+          <div class="m360-kv"><span>Version</span><strong>${m360Text(osObj.version||osObj.build||'')}</strong></div>
+          <div class="m360-kv"><span>System UUID</span><strong><code>${m360Text(identity.system_uuid||'')}</code></strong></div>
+          <div class="m360-kv"><span>BIOS Serial</span><strong><code>${m360Text(identity.bios_serial||'')}</code></strong></div>
+          <div class="m360-kv"><span>Board Serial</span><strong><code>${m360Text(identity.motherboard_serial||identity.baseboard_serial||'')}</code></strong></div>
+        </article>
+
+        <article class="m360-card">
+          <h3>CPU + Memory <span class="m360-badge">Live</span></h3>
+          <div class="m360-kv"><span>CPU Name</span><strong>${m360Text(cpu.name||cpu.model||'')}</strong></div>
+          <div class="m360-kv"><span>Cores / Threads</span><strong>${m360Text(cpu.cores||'')} / ${m360Text(cpu.threads||'')}</strong></div>
+          <div class="m360-kv"><span>CPU Usage</span><strong>${fmt(cpu.usage_percent ?? m.cpu_percent,'%')}</strong></div>
+          <div class="m360-kv"><span>CPU Temp</span><strong>${fmt(cpu.temperature_c ?? m.cpu_temp_c,' C')}</strong></div>
+          <div class="m360-kv"><span>RAM Total</span><strong>${fmt(mem.total_gb ?? m.ram_total_gb,' GB')}</strong></div>
+          <div class="m360-kv"><span>RAM Used</span><strong>${fmt(mem.used_gb ?? m.ram_used_gb,' GB')}</strong></div>
+          <div class="m360-kv"><span>RAM Free</span><strong>${fmt(mem.free_gb ?? m.ram_free_gb,' GB')}</strong></div>
+          <div class="m360-kv"><span>RAM Usage</span><strong>${fmt(mem.used_percent ?? m.ram_percent,'%')}</strong></div>
+        </article>
+
+        <article class="m360-card">
+          <h3>Network + Traffic <span class="m360-badge">WAN/LAN</span></h3>
+          <div class="m360-kv"><span>Primary IP</span><strong>${m360Text(m.primary_ip||network.primary_ip||'')}</strong></div>
+          <div class="m360-kv"><span>All IPs</span><strong>${m360Text(allIps)}</strong></div>
+          <div class="m360-kv"><span>Public IP</span><strong>${m360Text(m.public_ip||'')}</strong></div>
+          <div class="m360-kv"><span>ISP</span><strong>${m360Text(m.isp_name||'')}</strong></div>
+          <div class="m360-kv"><span>VPN</span><strong>${m.vpn_active || vpn.active || vpn.is_active ? 'Active' : 'Not detected'}</strong></div>
+          <div class="m360-kv"><span>Download Now</span><strong>${fmt(traffic.current_download_mbps ?? m.wan_download_mbps,' Mbps',2)}</strong></div>
+          <div class="m360-kv"><span>Upload Now</span><strong>${fmt(traffic.current_upload_mbps ?? m.wan_upload_mbps,' Mbps',2)}</strong></div>
+          <div class="m360-kv"><span>Today Data</span><strong>Down ${fmt(traffic.today_download_gb ?? m.today_download_gb,' GB',2)} / Up ${fmt(traffic.today_upload_gb ?? m.today_upload_gb,' GB',2)}</strong></div>
+        </article>
+
+        <article class="m360-card m360-wide">
+          <h3>Disk / Storage - All Drives <span class="m360-badge">${disks.length} found</span></h3>
+          ${m360Table(['Drive','Used %','Total','Used','Free','Serial / Model'],diskRows,'No disk/storage data from this client.')}
+        </article>
+
+        <article class="m360-card m360-wide">
+          <h3>GPU - All Graphics Hardware <span class="m360-badge">${gpus.length} found</span></h3>
+          ${m360Table(['GPU','Usage','Temp','Total Memory','Used Memory','Driver'],gpuRows,'No GPU data from this client.')}
+        </article>
+
+        <article class="m360-card m360-wide">
+          <h3>Network Adapters - All NIC / Wi-Fi / VPN <span class="m360-badge">${adapters.length} found</span></h3>
+          ${m360Table(['Adapter','IP Addresses','MAC','Type','Status'],adapterRows,'No adapter data from this client.')}
+        </article>
+
+        <article class="m360-card m360-wide">
+          <h3>USB + Peripherals - All Devices <span class="m360-badge">${usbDevices.length} found</span></h3>
+          ${m360Table(['Device','Type','Status','VID','PID','Technical ID'],usbRows,'No USB/peripheral data from this client.')}
+        </article>
+
+        <article class="m360-card m360-wide">
+          <h3>Installed Software - All Applications <span class="m360-badge">${apps.length} found</span></h3>
+          ${m360Table(['Name','Version','Publisher','Install Date'],appRows,'No installed software data from this client.')}
+        </article>
+
+        <article class="m360-card m360-half">
+          <h3>Recent Client Changes <span class="m360-badge">${changes.length} event</span></h3>
+          ${m360Table(['Type','Change','Time'],changeRows,'No recent change event sent by this client.')}
+        </article>
+
+        <article class="m360-card m360-half">
+          <h3>Raw Payload For Debug <span class="m360-badge">Advanced</span></h3>
+          <details class="m360-details"><summary>Open full raw JSON received from selected client</summary><pre>${m360Json(p)}</pre></details>
+        </article>
+      </section>
+    </div>
+  `;
+}
+/* MACHINE_360_FULL_PAGE_ONLY_END */
+
 

@@ -1,0 +1,16 @@
+{
+  "ok": false,
+  "db": "D:\\SagarSystemHealthMonitor\\data\\monitor.db",
+  "keep_days": 5,
+  "cutoff_utc": "2026-06-26T10:05:11.582247+00:00",
+  "deleted": {},
+  "errors": [],
+  "notes": [
+    "wal_checkpoint_before_ok",
+    "emergency_journal_off"
+  ],
+  "db_size_before_bytes": 452676583424,
+  "wal_size_before_bytes": 0,
+  "shm_size_before_bytes": 0,
+  "free_before_bytes": 1013690368
+}

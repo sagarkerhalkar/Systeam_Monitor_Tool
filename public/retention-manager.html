@@ -1,0 +1,99 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Main 2278 Retention Manager</title>
+<style>
+body{margin:0;font-family:Segoe UI,Arial;background:#eef5fb;color:#0f172a}
+.wrap{max-width:1120px;margin:0 auto;padding:24px}
+.card{background:white;border:1px solid #dbeafe;border-radius:18px;box-shadow:0 16px 45px #1e3a8a17;padding:18px;margin:14px 0}
+h1{margin:0 0 8px;font-size:28px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.kpi{background:#f8fbff;border:1px solid #dbeafe;border-radius:14px;padding:14px}
+.k{font-size:12px;color:#64748b;font-weight:900;text-transform:uppercase}.v{font-size:24px;font-weight:900}
+button,a.btn{border:0;border-radius:12px;padding:11px 14px;background:#2563eb;color:white;font-weight:900;cursor:pointer;text-decoration:none;display:inline-block}
+button.alt,a.alt{background:#0f172a}
+button.warn{background:#b45309}
+input{border:1px solid #cbd5e1;border-radius:10px;padding:10px;width:120px}
+pre{white-space:pre-wrap;background:#0f172a;color:#dbeafe;border-radius:14px;padding:14px;overflow:auto}
+.note{color:#475569;line-height:1.5}.ok{color:#047857;font-weight:900}.bad{color:#b91c1c;font-weight:900}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>Main 2278 Retention Manager</h1>
+    <div class="note">Final DB stays on server: <b>D:\SagarSystemHealthMonitor\data\monitor.db</b>. External drive is only temporary workspace for compaction.</div>
+    <p><a class="btn alt" href="/">Back to Dashboard</a></p>
+  </div>
+
+  <div class="card">
+    <h2>Retention setting</h2>
+    <label>Keep history days:
+      <input id="days" type="number" min="1" max="365" value="5">
+    </label>
+    <button onclick="saveSettings()">Save</button>
+    <button class="alt" onclick="loadStatus()">Refresh Status</button>
+    <p class="note">Daily scheduled cleanup reads this setting. It deletes rows older than this many days from history/notifications/change logs/messages, but keeps current machines and settings.</p>
+  </div>
+
+  <div class="grid" id="kpis"></div>
+
+  <div class="card">
+    <h2>Actions</h2>
+    <p><button onclick="runBackup()">Run incremental source backup now</button></p>
+    <p><button class="warn" onclick="showCompactHelp()">Show compact DB command</button></p>
+    <p class="note">Compaction needs a real local/external drive with enough free space. Do not use Google Drive/OneDrive/sync drive for SQLite compaction.</p>
+  </div>
+
+  <div class="card">
+    <h2>Status / Output</h2>
+    <pre id="out">Loading...</pre>
+  </div>
+</div>
+
+<script>
+function esc(x){return String(x??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+async function api(url,opt){let r=await fetch(url,{cache:'no-store',...(opt||{})}); let t=await r.text(); try{return JSON.parse(t)}catch(e){throw new Error(t)}}
+function kpi(k,v){return `<div class="kpi"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div></div>`}
+async function loadStatus(){
+  try{
+    const s=await api('/api/retention/status');
+    days.value=s.settings.keep_days||5;
+    kpis.innerHTML=[
+      kpi('DB size GB',s.db_size_gb),
+      kpi('D free GB',s.db_drive_free_gb),
+      kpi('Internal free GB',s.sqlite_internal_free_gb),
+      kpi('Estimated compact GB',s.estimated_compact_db_gb),
+      kpi('Old heartbeat rows',s.old_rows?.heartbeats??'N/A'),
+      kpi('Newest heartbeat',s.newest_heartbeat||'N/A')
+    ].join('');
+    out.textContent=JSON.stringify(s,null,2);
+  }catch(e){out.textContent='ERROR: '+e.message}
+}
+async function saveSettings(){
+  try{
+    const d=parseInt(days.value||'5',10);
+    const s=await api('/api/retention/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({keep_days:d})});
+    out.textContent=JSON.stringify(s,null,2);
+    await loadStatus();
+  }catch(e){out.textContent='ERROR: '+e.message}
+}
+async function runBackup(){
+  try{
+    const s=await api('/api/retention/run-incremental-backup',{method:'POST'});
+    out.textContent=JSON.stringify(s,null,2);
+  }catch(e){out.textContent='ERROR: '+e.message}
+}
+function showCompactHelp(){
+  out.textContent=`Use a real external/local drive only. Replace E:\\SagarCompactWork with your external drive folder.
+
+powershell -ExecutionPolicy Bypass -File "D:\\SagarSystemHealthMonitor\\scripts\\COMPACT_MONITOR_DB_WITH_EXTERNAL_WORKSPACE.ps1" -App "D:\\SagarSystemHealthMonitor" -Workspace "E:\\SagarCompactWork"
+
+The script creates compact DB on external workspace, integrity-checks it, moves old DB to the workspace backup folder if space allows, then copies compact DB back to D:\\SagarSystemHealthMonitor\\data\\monitor.db. Final DB remains on server.`;
+}
+loadStatus();
+</script>
+</body>
+</html>

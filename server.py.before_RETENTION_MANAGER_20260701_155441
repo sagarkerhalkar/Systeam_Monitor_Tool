@@ -454,11 +454,9 @@ def _safe_id(prefix: str, value: str) -> str:
 
 def machine_fingerprint_value(payload: Dict[str, Any]) -> Tuple[str, str, str]:
     """Return stable, collision-safe machine identity.
-
-    Client count fix:
-    - Do NOT include hostname in the stable machine hash when MAC/UUID/BIOS/board exists.
-      If the hostname changes, the same physical client must stay one dashboard machine.
-    - Use hostname only as display text and as a last fallback when no stable anchor exists.
+    In real labs many budget/OEM Windows PCs report the same fake motherboard serial.
+    To stop one PC replacing another, the dashboard identity is an asset fingerprint made from
+    hostname + physical MAC + valid hardware IDs.  Hardware IDs are still stored/displayed.
     """
     identity = payload.get("identity") if isinstance(payload.get("identity"), dict) else {}
     hostname = valid_machine_id_part(payload.get("hostname") or identity.get("hostname") or payload.get("computer_name")) or "UNKNOWN-HOST"
@@ -466,92 +464,34 @@ def machine_fingerprint_value(payload: Dict[str, Any]) -> Tuple[str, str, str]:
     board = valid_machine_id_part(identity.get("motherboard_serial") or payload.get("motherboard_serial") or payload.get("baseboard_serial"))
     uuid = valid_machine_id_part(identity.get("system_uuid") or payload.get("system_uuid") or payload.get("uuid"))
     bios = valid_machine_id_part(identity.get("bios_serial") or payload.get("bios_serial"))
-
-    if mac:
-        raw = "|".join(["MAC", mac.upper(), uuid.upper(), bios.upper(), board.upper()])
+    # Best identity for your multi-LAN setup: hostname + physical MAC + any valid serial/UUID.
+    # This keeps cloned/fake serial machines separate and stable.
+    if hostname != "UNKNOWN-HOST" and mac:
+        raw = "|".join([hostname.upper(), mac.upper(), uuid.upper(), bios.upper(), board.upper()])
         short = hashlib.sha1(raw.encode("utf-8", errors="ignore")).hexdigest()[:16].upper()
-        shown = f"{hostname} / {mac}" if hostname != "UNKNOWN-HOST" else mac
+        shown = f"{hostname} / {mac}"
         return f"ASSET:{short}", "asset_fingerprint", shown
-    if uuid:
-        raw = "|".join(["UUID", uuid.upper(), bios.upper(), board.upper()])
+    if uuid and hostname != "UNKNOWN-HOST":
+        raw = "|".join([hostname.upper(), uuid.upper(), bios.upper(), board.upper()])
         short = hashlib.sha1(raw.encode("utf-8", errors="ignore")).hexdigest()[:16].upper()
-        shown = f"{hostname} / {uuid}" if hostname != "UNKNOWN-HOST" else uuid
-        return f"ASSET:{short}", "uuid_fingerprint", shown
-    if bios:
-        raw = "|".join(["BIOS", bios.upper(), board.upper()])
+        return f"ASSET:{short}", "hostname_uuid_fingerprint", f"{hostname} / {uuid}"
+    if bios and hostname != "UNKNOWN-HOST":
+        raw = "|".join([hostname.upper(), bios.upper(), board.upper()])
         short = hashlib.sha1(raw.encode("utf-8", errors="ignore")).hexdigest()[:16].upper()
-        shown = f"{hostname} / {bios}" if hostname != "UNKNOWN-HOST" else bios
-        return f"ASSET:{short}", "bios_fingerprint", shown
+        return f"ASSET:{short}", "hostname_bios_fingerprint", f"{hostname} / {bios}"
     if board:
         return _safe_id("MOTHERBOARD_SERIAL", board), "motherboard_serial", board
-    if hostname != "UNKNOWN-HOST":
-        return _safe_id("HOSTNAME", hostname), "hostname_fallback", hostname
-    return _safe_id("UNKNOWN", "UNKNOWN-HOST"), "unknown_fallback", "UNKNOWN-HOST"
+    if uuid:
+        return _safe_id("SYSTEM_UUID", uuid), "system_uuid", uuid
+    if bios:
+        return _safe_id("BIOS_SERIAL", bios), "bios_serial", bios
+    if mac:
+        return _safe_id("MAC", mac), "mac_fallback", mac
+    return _safe_id("HOSTNAME", hostname), "hostname_fallback", hostname
 
 
 def make_machine_identity(payload: Dict[str, Any]) -> Tuple[str, str, str]:
     return machine_fingerprint_value(payload)
-
-
-def stable_machine_merge_key(payload: Dict[str, Any], summary: Optional[Dict[str, Any]] = None) -> str:
-    """Stable duplicate-detection key for client count.
-
-    This key ignores hostname whenever hardware/network identity exists. That lets the
-    dashboard merge old-hostname and new-hostname rows as one physical client.
-    """
-    summary = summary or {}
-    if not isinstance(payload, dict):
-        payload = {}
-    identity = payload.get("identity") if isinstance(payload.get("identity"), dict) else {}
-
-    mac = first_physical_mac(payload)
-    uuid = valid_machine_id_part(identity.get("system_uuid") or payload.get("system_uuid") or payload.get("uuid"))
-    bios = valid_machine_id_part(identity.get("bios_serial") or payload.get("bios_serial"))
-    board = valid_machine_id_part(identity.get("motherboard_serial") or payload.get("motherboard_serial") or payload.get("baseboard_serial"))
-    hostname = valid_machine_id_part(payload.get("hostname") or identity.get("hostname") or summary.get("hostname") or payload.get("computer_name"))
-
-    if mac:
-        return "mac:" + mac.upper()
-    if uuid:
-        return "uuid:" + uuid.upper()
-    if bios:
-        return "bios:" + bios.upper()
-    if board:
-        return "board:" + board.upper()
-    if hostname:
-        return "host:" + hostname.lower()
-    return ""
-
-
-def cleanup_duplicate_latest_rows(con: sqlite3.Connection, summary: Dict[str, Any], payload: Dict[str, Any]) -> List[str]:
-    """Delete repeated/wrong current-state rows for the same client from `latest` only.
-
-    Historical `heartbeats` stay untouched, so day history and reports remain available.
-    """
-    target_mid = clean_str(summary.get("machine_id"))
-    target_key = stable_machine_merge_key(payload, summary)
-    if not target_mid or not target_key:
-        return []
-
-    removed: List[str] = []
-    rows = con.execute("SELECT machine_id,summary_json,payload_json FROM latest WHERE machine_id<>?", (target_mid,)).fetchall()
-    for row in rows:
-        try:
-            old_payload = safe_json_loads(row["payload_json"], {})
-            old_summary = safe_json_loads(row["summary_json"], {})
-            old_key = stable_machine_merge_key(old_payload if isinstance(old_payload, dict) else {}, old_summary if isinstance(old_summary, dict) else {})
-            if old_key and old_key == target_key:
-                old_mid = clean_str(row["machine_id"])
-                if old_mid and old_mid != target_mid:
-                    removed.append(old_mid)
-        except Exception:
-            continue
-
-    for old_mid in sorted(set(removed)):
-        con.execute("DELETE FROM latest WHERE machine_id=?", (old_mid,))
-    if removed:
-        log(f"client_count_fix: removed duplicate latest rows for {target_mid}: {sorted(set(removed))}")
-    return sorted(set(removed))
 
 def get_nested(d: Dict[str, Any], paths: List[str], default: Any=None) -> Any:
     for p in paths:
@@ -1444,7 +1384,6 @@ def upsert_heartbeat(payload: Dict[str, Any], client_ip: str) -> Dict[str, Any]:
     summary = summarize_payload(payload)
     received_at = now_iso()
     with DB_LOCK, db_connect() as con:
-        cleanup_duplicate_latest_rows(con, summary, payload)
         con.execute("INSERT INTO heartbeats(machine_id,received_at,hostname,payload_json) VALUES(?,?,?,?)",
                     (summary["machine_id"], received_at, summary.get("hostname", ""), json.dumps(payload, ensure_ascii=False)))
         con.execute("""INSERT OR REPLACE INTO latest(machine_id,hostname,id_source,id_value,updated_at,summary_json,payload_json)
@@ -1500,43 +1439,14 @@ def load_latest() -> List[Dict[str, Any]]:
             host = (summary.get("hostname") or "").strip().lower()
             if host and summary.get("id_source") not in {"motherboard_serial", "hostname_fallback"}:
                 seen_hosts_with_good_id.add(host)
-
-    seen_merge_keys: Dict[str, str] = {}
-    duplicate_latest_ids: List[str] = []
-
     for summary in prepared:
         host = (summary.get("hostname") or "").strip().lower()
-
-        merge_key = stable_machine_merge_key(summary.get("payload") or {}, summary)
-        if merge_key:
-            previous_mid = seen_merge_keys.get(merge_key)
-            if previous_mid and previous_mid != summary.get("machine_id"):
-                # Same physical/client machine already kept from newer row.
-                # Hide this stale duplicate from count and delete from current latest table.
-                duplicate_latest_ids.append(summary.get("machine_id"))
-                continue
-            seen_merge_keys[merge_key] = summary.get("machine_id")
-
         # Hide stale legacy rows that used fake motherboard serial once a stable ASSET row exists for same host.
         if host and host in seen_hosts_with_good_id and summary.get("id_source") in {"motherboard_serial", "hostname_fallback"}:
             if not valid_machine_id_part(summary.get("id_value")) or str(summary.get("machine_id", "")).startswith("MOTHERBOARD_SERIAL:BSS"):
-                duplicate_latest_ids.append(summary.get("machine_id"))
                 continue
-
         out.append(summary)
-
-    if duplicate_latest_ids:
-        try:
-            with DB_LOCK, db_connect() as con:
-                for mid in sorted(set(x for x in duplicate_latest_ids if x)):
-                    con.execute("DELETE FROM latest WHERE machine_id=?", (mid,))
-                con.commit()
-            log(f"client_count_fix: cleaned duplicate latest machine rows: {sorted(set(duplicate_latest_ids))}")
-        except Exception as e:
-            log(f"client_count_fix cleanup failed: {e}")
-
     return out
-
 
 def overview() -> Dict[str, Any]:
     machines = load_latest()
@@ -2063,129 +1973,6 @@ class Handler(BaseHTTPRequestHandler):
         except Exception as e:
             return self.send_json({"error": str(e)}, 500)
 
-
-# === MAIN_2278_RETENTION_MANAGER_START ===
-try:
-    import os as _ret_os, json as _ret_json, sqlite3 as _ret_sqlite3, subprocess as _ret_subprocess, datetime as _ret_dt
-    from pathlib import Path as _ret_Path
-    import urllib.parse as _ret_urlparse
-
-    _RET_BASE = BASE_DIR if "BASE_DIR" in globals() else _ret_Path(__file__).resolve().parent
-    _RET_DATA = _RET_BASE / "data"
-    _RET_SETTINGS = _RET_DATA / "retention_settings.json"
-    _RET_DB = _RET_DATA / "monitor.db"
-
-    def _ret_s(v):
-        return "" if v is None else str(v).strip()
-
-    def _ret_load_settings():
-        try:
-            if _RET_SETTINGS.exists():
-                obj = _ret_json.loads(_RET_SETTINGS.read_text(encoding="utf-8-sig"))
-                if isinstance(obj, dict):
-                    obj["keep_days"] = int(obj.get("keep_days") or 5)
-                    return obj
-        except Exception:
-            pass
-        return {"keep_days": 5}
-
-    def _ret_save_settings(obj):
-        keep = int(obj.get("keep_days") or 5)
-        if keep < 1: keep = 1
-        if keep > 365: keep = 365
-        out = {"keep_days": keep, "updated_at": _ret_dt.datetime.now(_ret_dt.timezone.utc).isoformat()}
-        _RET_SETTINGS.write_text(_ret_json.dumps(out, indent=2), encoding="utf-8")
-        return out
-
-    def _ret_drive_free_bytes(path):
-        try:
-            import shutil as _ret_shutil
-            return _ret_shutil.disk_usage(str(path)).free
-        except Exception:
-            return 0
-
-    def _ret_table_count(cur, table, col, cutoff):
-        try:
-            total = cur.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
-            old = cur.execute(f"SELECT COUNT(*) FROM {table} WHERE {col} < ?", (cutoff,)).fetchone()[0]
-            newest = cur.execute(f"SELECT MAX({col}) FROM {table}").fetchone()[0]
-            return {"total": total, "older_than_keep_days": old, "newest": newest}
-        except Exception as e:
-            return {"error": str(e)}
-
-    def _ret_status():
-        settings = _ret_load_settings()
-        keep = int(settings.get("keep_days") or 5)
-        cutoff = (_ret_dt.datetime.now(_ret_dt.timezone.utc) - _ret_dt.timedelta(days=keep)).isoformat()
-        out = {"ok": True, "settings": settings, "db": str(_RET_DB), "cutoff_utc": cutoff}
-        try:
-            out["db_size_gb"] = round(_RET_DB.stat().st_size / 1024 / 1024 / 1024, 2)
-        except Exception:
-            out["db_size_gb"] = 0
-        out["db_drive_free_gb"] = round(_ret_drive_free_bytes(_RET_DB.parent) / 1024 / 1024 / 1024, 2)
-        out["old_rows"] = {}
-        try:
-            con = _ret_sqlite3.connect("file:" + str(_RET_DB) + "?mode=ro", uri=True, timeout=20)
-            cur = con.cursor()
-            page_size = cur.execute("PRAGMA page_size").fetchone()[0]
-            freelist = cur.execute("PRAGMA freelist_count").fetchone()[0]
-            internal_free = page_size * freelist
-            physical = _RET_DB.stat().st_size
-            out["sqlite_internal_free_gb"] = round(internal_free / 1024 / 1024 / 1024, 2)
-            out["estimated_compact_db_gb"] = round((physical - internal_free) / 1024 / 1024 / 1024, 2)
-            out["old_rows"]["heartbeats"] = _ret_table_count(cur, "heartbeats", "received_at", cutoff).get("older_than_keep_days", 0)
-            out["tables"] = {
-                "heartbeats": _ret_table_count(cur, "heartbeats", "received_at", cutoff),
-                "notifications": _ret_table_count(cur, "notifications", "created_at", cutoff),
-                "change_events": _ret_table_count(cur, "change_events", "created_at", cutoff),
-                "client_messages": _ret_table_count(cur, "client_messages", "created_at", cutoff),
-                "client_message_receipts": _ret_table_count(cur, "client_message_receipts", "delivered_at", cutoff),
-            }
-            out["newest_heartbeat"] = out["tables"]["heartbeats"].get("newest")
-            con.close()
-        except Exception as e:
-            out["status_error"] = str(e)
-        return out
-
-    _RET_OLD_GET = Handler.do_GET
-    _RET_OLD_POST = Handler.do_POST
-
-    def _ret_read_body(self):
-        n = int(self.headers.get("Content-Length") or 0)
-        raw = self.rfile.read(n) if n else b"{}"
-        return _ret_json.loads(raw.decode("utf-8-sig") or "{}")
-
-    def _ret_get(self):
-        try:
-            path = self.path.split("?", 1)[0]
-            if path == "/api/retention/status":
-                return self.send_json(_ret_status())
-            if path == "/api/retention/settings":
-                return self.send_json({"ok": True, "settings": _ret_load_settings()})
-            return _RET_OLD_GET(self)
-        except Exception as e:
-            return self.send_json({"ok": False, "error": str(e)}, 500)
-
-    def _ret_post(self):
-        try:
-            path = self.path.split("?", 1)[0]
-            if path == "/api/retention/settings":
-                body = _ret_read_body(self)
-                return self.send_json({"ok": True, "settings": _ret_save_settings(body)})
-            if path == "/api/retention/run-incremental-backup":
-                ps1 = str(_RET_BASE / "scripts" / "INCREMENTAL_SOURCE_BACKUP_MAIN_2278.ps1")
-                cp = _ret_subprocess.run(["powershell.exe","-ExecutionPolicy","Bypass","-File",ps1,"-App",str(_RET_BASE)], capture_output=True, text=True, timeout=300)
-                return self.send_json({"ok": cp.returncode == 0, "returncode": cp.returncode, "stdout": cp.stdout[-4000:], "stderr": cp.stderr[-4000:]})
-            return _RET_OLD_POST(self)
-        except Exception as e:
-            return self.send_json({"ok": False, "error": str(e)}, 500)
-
-    Handler.do_GET = _ret_get
-    Handler.do_POST = _ret_post
-    print("MAIN_2278_RETENTION_MANAGER_LOADED")
-except Exception as _ret_e:
-    print("MAIN_2278_RETENTION_MANAGER_FAILED", _ret_e)
-# === MAIN_2278_RETENTION_MANAGER_END ===
 
 def main() -> None:
     parser = argparse.ArgumentParser()

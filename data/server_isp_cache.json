@@ -1,11 +1,11 @@
 {
-  "public_ip": "182.70.245.115",
-  "isp": "AS24560 Bharti Airtel Ltd., Telemedia Services",
-  "org": "AS24560 Bharti Airtel Ltd., Telemedia Services",
-  "as": "AS24560 Bharti Airtel Ltd., Telemedia Services",
+  "public_ip": "103.82.99.226",
+  "isp": "AS135782 Nyak Technologies And Teleservices Pvt Ltd",
+  "org": "AS135782 Nyak Technologies And Teleservices Pvt Ltd",
+  "as": "AS135782 Nyak Technologies And Teleservices Pvt Ltd",
   "country": "IN",
-  "city": "Indore",
-  "checked_at": "2026-06-12T09:40:41.017019+00:00",
+  "city": "Chhatarpur",
+  "checked_at": "2026-07-04T14:08:35.540149+00:00",
   "source": "ipinfo",
   "ok": true
 }

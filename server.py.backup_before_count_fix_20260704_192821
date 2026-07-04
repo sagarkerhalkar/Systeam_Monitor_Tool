@@ -454,11 +454,9 @@ def _safe_id(prefix: str, value: str) -> str:
 
 def machine_fingerprint_value(payload: Dict[str, Any]) -> Tuple[str, str, str]:
     """Return stable, collision-safe machine identity.
-
-    Client count fix:
-    - Do NOT include hostname in the stable machine hash when MAC/UUID/BIOS/board exists.
-      If the hostname changes, the same physical client must stay one dashboard machine.
-    - Use hostname only as display text and as a last fallback when no stable anchor exists.
+    In real labs many budget/OEM Windows PCs report the same fake motherboard serial.
+    To stop one PC replacing another, the dashboard identity is an asset fingerprint made from
+    hostname + physical MAC + valid hardware IDs.  Hardware IDs are still stored/displayed.
     """
     identity = payload.get("identity") if isinstance(payload.get("identity"), dict) else {}
     hostname = valid_machine_id_part(payload.get("hostname") or identity.get("hostname") or payload.get("computer_name")) or "UNKNOWN-HOST"
@@ -466,92 +464,34 @@ def machine_fingerprint_value(payload: Dict[str, Any]) -> Tuple[str, str, str]:
     board = valid_machine_id_part(identity.get("motherboard_serial") or payload.get("motherboard_serial") or payload.get("baseboard_serial"))
     uuid = valid_machine_id_part(identity.get("system_uuid") or payload.get("system_uuid") or payload.get("uuid"))
     bios = valid_machine_id_part(identity.get("bios_serial") or payload.get("bios_serial"))
-
-    if mac:
-        raw = "|".join(["MAC", mac.upper(), uuid.upper(), bios.upper(), board.upper()])
+    # Best identity for your multi-LAN setup: hostname + physical MAC + any valid serial/UUID.
+    # This keeps cloned/fake serial machines separate and stable.
+    if hostname != "UNKNOWN-HOST" and mac:
+        raw = "|".join([hostname.upper(), mac.upper(), uuid.upper(), bios.upper(), board.upper()])
         short = hashlib.sha1(raw.encode("utf-8", errors="ignore")).hexdigest()[:16].upper()
-        shown = f"{hostname} / {mac}" if hostname != "UNKNOWN-HOST" else mac
+        shown = f"{hostname} / {mac}"
         return f"ASSET:{short}", "asset_fingerprint", shown
-    if uuid:
-        raw = "|".join(["UUID", uuid.upper(), bios.upper(), board.upper()])
+    if uuid and hostname != "UNKNOWN-HOST":
+        raw = "|".join([hostname.upper(), uuid.upper(), bios.upper(), board.upper()])
         short = hashlib.sha1(raw.encode("utf-8", errors="ignore")).hexdigest()[:16].upper()
-        shown = f"{hostname} / {uuid}" if hostname != "UNKNOWN-HOST" else uuid
-        return f"ASSET:{short}", "uuid_fingerprint", shown
-    if bios:
-        raw = "|".join(["BIOS", bios.upper(), board.upper()])
+        return f"ASSET:{short}", "hostname_uuid_fingerprint", f"{hostname} / {uuid}"
+    if bios and hostname != "UNKNOWN-HOST":
+        raw = "|".join([hostname.upper(), bios.upper(), board.upper()])
         short = hashlib.sha1(raw.encode("utf-8", errors="ignore")).hexdigest()[:16].upper()
-        shown = f"{hostname} / {bios}" if hostname != "UNKNOWN-HOST" else bios
-        return f"ASSET:{short}", "bios_fingerprint", shown
+        return f"ASSET:{short}", "hostname_bios_fingerprint", f"{hostname} / {bios}"
     if board:
         return _safe_id("MOTHERBOARD_SERIAL", board), "motherboard_serial", board
-    if hostname != "UNKNOWN-HOST":
-        return _safe_id("HOSTNAME", hostname), "hostname_fallback", hostname
-    return _safe_id("UNKNOWN", "UNKNOWN-HOST"), "unknown_fallback", "UNKNOWN-HOST"
+    if uuid:
+        return _safe_id("SYSTEM_UUID", uuid), "system_uuid", uuid
+    if bios:
+        return _safe_id("BIOS_SERIAL", bios), "bios_serial", bios
+    if mac:
+        return _safe_id("MAC", mac), "mac_fallback", mac
+    return _safe_id("HOSTNAME", hostname), "hostname_fallback", hostname
 
 
 def make_machine_identity(payload: Dict[str, Any]) -> Tuple[str, str, str]:
     return machine_fingerprint_value(payload)
-
-
-def stable_machine_merge_key(payload: Dict[str, Any], summary: Optional[Dict[str, Any]] = None) -> str:
-    """Stable duplicate-detection key for client count.
-
-    This key ignores hostname whenever hardware/network identity exists. That lets the
-    dashboard merge old-hostname and new-hostname rows as one physical client.
-    """
-    summary = summary or {}
-    if not isinstance(payload, dict):
-        payload = {}
-    identity = payload.get("identity") if isinstance(payload.get("identity"), dict) else {}
-
-    mac = first_physical_mac(payload)
-    uuid = valid_machine_id_part(identity.get("system_uuid") or payload.get("system_uuid") or payload.get("uuid"))
-    bios = valid_machine_id_part(identity.get("bios_serial") or payload.get("bios_serial"))
-    board = valid_machine_id_part(identity.get("motherboard_serial") or payload.get("motherboard_serial") or payload.get("baseboard_serial"))
-    hostname = valid_machine_id_part(payload.get("hostname") or identity.get("hostname") or summary.get("hostname") or payload.get("computer_name"))
-
-    if mac:
-        return "mac:" + mac.upper()
-    if uuid:
-        return "uuid:" + uuid.upper()
-    if bios:
-        return "bios:" + bios.upper()
-    if board:
-        return "board:" + board.upper()
-    if hostname:
-        return "host:" + hostname.lower()
-    return ""
-
-
-def cleanup_duplicate_latest_rows(con: sqlite3.Connection, summary: Dict[str, Any], payload: Dict[str, Any]) -> List[str]:
-    """Delete repeated/wrong current-state rows for the same client from `latest` only.
-
-    Historical `heartbeats` stay untouched, so day history and reports remain available.
-    """
-    target_mid = clean_str(summary.get("machine_id"))
-    target_key = stable_machine_merge_key(payload, summary)
-    if not target_mid or not target_key:
-        return []
-
-    removed: List[str] = []
-    rows = con.execute("SELECT machine_id,summary_json,payload_json FROM latest WHERE machine_id<>?", (target_mid,)).fetchall()
-    for row in rows:
-        try:
-            old_payload = safe_json_loads(row["payload_json"], {})
-            old_summary = safe_json_loads(row["summary_json"], {})
-            old_key = stable_machine_merge_key(old_payload if isinstance(old_payload, dict) else {}, old_summary if isinstance(old_summary, dict) else {})
-            if old_key and old_key == target_key:
-                old_mid = clean_str(row["machine_id"])
-                if old_mid and old_mid != target_mid:
-                    removed.append(old_mid)
-        except Exception:
-            continue
-
-    for old_mid in sorted(set(removed)):
-        con.execute("DELETE FROM latest WHERE machine_id=?", (old_mid,))
-    if removed:
-        log(f"client_count_fix: removed duplicate latest rows for {target_mid}: {sorted(set(removed))}")
-    return sorted(set(removed))
 
 def get_nested(d: Dict[str, Any], paths: List[str], default: Any=None) -> Any:
     for p in paths:
@@ -1444,7 +1384,6 @@ def upsert_heartbeat(payload: Dict[str, Any], client_ip: str) -> Dict[str, Any]:
     summary = summarize_payload(payload)
     received_at = now_iso()
     with DB_LOCK, db_connect() as con:
-        cleanup_duplicate_latest_rows(con, summary, payload)
         con.execute("INSERT INTO heartbeats(machine_id,received_at,hostname,payload_json) VALUES(?,?,?,?)",
                     (summary["machine_id"], received_at, summary.get("hostname", ""), json.dumps(payload, ensure_ascii=False)))
         con.execute("""INSERT OR REPLACE INTO latest(machine_id,hostname,id_source,id_value,updated_at,summary_json,payload_json)
@@ -1500,43 +1439,14 @@ def load_latest() -> List[Dict[str, Any]]:
             host = (summary.get("hostname") or "").strip().lower()
             if host and summary.get("id_source") not in {"motherboard_serial", "hostname_fallback"}:
                 seen_hosts_with_good_id.add(host)
-
-    seen_merge_keys: Dict[str, str] = {}
-    duplicate_latest_ids: List[str] = []
-
     for summary in prepared:
         host = (summary.get("hostname") or "").strip().lower()
-
-        merge_key = stable_machine_merge_key(summary.get("payload") or {}, summary)
-        if merge_key:
-            previous_mid = seen_merge_keys.get(merge_key)
-            if previous_mid and previous_mid != summary.get("machine_id"):
-                # Same physical/client machine already kept from newer row.
-                # Hide this stale duplicate from count and delete from current latest table.
-                duplicate_latest_ids.append(summary.get("machine_id"))
-                continue
-            seen_merge_keys[merge_key] = summary.get("machine_id")
-
         # Hide stale legacy rows that used fake motherboard serial once a stable ASSET row exists for same host.
         if host and host in seen_hosts_with_good_id and summary.get("id_source") in {"motherboard_serial", "hostname_fallback"}:
             if not valid_machine_id_part(summary.get("id_value")) or str(summary.get("machine_id", "")).startswith("MOTHERBOARD_SERIAL:BSS"):
-                duplicate_latest_ids.append(summary.get("machine_id"))
                 continue
-
         out.append(summary)
-
-    if duplicate_latest_ids:
-        try:
-            with DB_LOCK, db_connect() as con:
-                for mid in sorted(set(x for x in duplicate_latest_ids if x)):
-                    con.execute("DELETE FROM latest WHERE machine_id=?", (mid,))
-                con.commit()
-            log(f"client_count_fix: cleaned duplicate latest machine rows: {sorted(set(duplicate_latest_ids))}")
-        except Exception as e:
-            log(f"client_count_fix cleanup failed: {e}")
-
     return out
-
 
 def overview() -> Dict[str, Any]:
     machines = load_latest()

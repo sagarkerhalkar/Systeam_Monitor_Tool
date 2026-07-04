@@ -1,0 +1,19 @@
+{
+  "ok": false,
+  "db": "D:\\SagarSystemHealthMonitor\\data\\monitor.db",
+  "keep_days": 10,
+  "cutoff_utc": "2026-06-21T21:00:44.562485+00:00",
+  "deleted": {},
+  "errors": [
+    "heartbeats: retrying with chunk=1 after: database is locked"
+  ],
+  "notes": [
+    "wal_checkpoint_before_ok",
+    "emergency_journal_off"
+  ],
+  "db_size_before_bytes": 452676583424,
+  "wal_size_before_bytes": 0,
+  "shm_size_before_bytes": 0,
+  "free_before_bytes": 999321600,
+  "fatal_error": "database is locked"
+}

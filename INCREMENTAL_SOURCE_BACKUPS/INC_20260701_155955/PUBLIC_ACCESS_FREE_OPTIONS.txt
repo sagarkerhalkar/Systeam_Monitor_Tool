@@ -1,0 +1,26 @@
+Sagar Kerhalkar System Monitor Tool - View Dashboard From Anywhere
+
+SAFE RULES IN THIS BUILD
+1) Dashboard API needs admin login.
+2) Client heartbeat is open so clients can report.
+3) CSV/download endpoints work only from server/localhost, not from public URL.
+
+OPTION A - EASIEST TEMPORARY FREE URL
+Use Cloudflare Quick Tunnel / TryCloudflare.
+- Install cloudflared on the Windows server.
+- Start Sagar Monitor server on port 2278.
+- Run: powershell -ExecutionPolicy Bypass -File .\RUN_TRYCLOUDFLARE_TUNNEL_2278.ps1
+- It prints a public https://....trycloudflare.com URL.
+- Use that URL anywhere, login as admin.
+- The URL changes when tunnel restarts.
+
+OPTION B - MORE PERMANENT FREE SUBDOMAIN
+Use DuckDNS + router port forward if your ISP gives a usable public IP.
+- Create a free DuckDNS subdomain.
+- Forward router TCP 2278 to your Windows server IP 156.156.40.51.
+- Open Windows firewall for TCP 2278.
+- Visit http://yourname.duckdns.org:2278
+- Login as admin.
+
+BEST COMMERCIAL LATER
+Buy a proper domain and put it behind Cloudflare Tunnel + Access.

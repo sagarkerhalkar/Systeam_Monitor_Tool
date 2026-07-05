@@ -1833,3 +1833,445 @@ function renderSoftware(){
 }
 /* SOFTWARE_KEEP_PUBLISHERS_PAGE_ONLY_END */
 
+/* USB_SIMPLE_HUMAN_PAGE_ONLY_START */
+/*
+  USB page only.
+  Simple human-readable USB page for 10 to 90 year users.
+  Other pages and backend are untouched.
+*/
+function usbSimpleStyle(){
+  const old=document.getElementById('usbSimpleStyle'); if(old) old.remove();
+  const s=document.createElement('style'); s.id='usbSimpleStyle';
+  s.textContent=`
+  #page-usb{
+    --u-ink:#07111f;--u-muted:#64748b;--u-blue:#2563eb;--u-cyan:#06b6d4;--u-green:#10b981;--u-red:#ef4444;--u-line:rgba(148,163,184,.24);
+    font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  }
+  #page-usb #usbCards,#page-usb #usbTable,#page-usb .usb-list{display:block!important;width:100%!important;max-width:none!important}
+  #page-usb .usb-simple-shell{width:100%;color:var(--u-ink);animation:usbSimpleIn .45s ease both}
+  #page-usb .usb-simple-hero{
+    position:relative;overflow:hidden;border-radius:34px;padding:26px;
+    background:
+      linear-gradient(135deg,rgba(255,255,255,.96),rgba(240,247,255,.92)),
+      radial-gradient(circle at 10% 20%,rgba(37,99,235,.28),transparent 30%),
+      radial-gradient(circle at 90% 12%,rgba(6,182,212,.24),transparent 30%);
+    border:1px solid rgba(255,255,255,.92);box-shadow:0 28px 90px rgba(30,64,175,.17);isolation:isolate;
+  }
+  #page-usb .usb-simple-hero:before{
+    content:"";position:absolute;inset:-150px;background:conic-gradient(from 90deg,rgba(37,99,235,.12),rgba(6,182,212,.20),rgba(124,58,237,.12),rgba(37,99,235,.12));
+    filter:blur(26px);animation:usbSimpleAura 12s linear infinite;z-index:-2;
+  }
+  #page-usb .usb-simple-top{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap;position:relative;z-index:2}
+  #page-usb .usb-simple-eye{margin:0 0 10px;color:var(--u-blue);font-size:11px;font-weight:950;letter-spacing:.25em;text-transform:uppercase}
+  #page-usb .usb-simple-title{margin:0;font-size:clamp(30px,3.5vw,54px);line-height:.98;letter-spacing:-.06em;color:#06111f}
+  #page-usb .usb-simple-sub{margin:12px 0 0;color:var(--u-muted);font-size:15px;font-weight:750;line-height:1.45}
+  #page-usb .usb-simple-control{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+  #page-usb .usb-simple-select,#page-usb .usb-simple-search{
+    border:1px solid rgba(37,99,235,.18);background:rgba(255,255,255,.94);color:#0f172a;border-radius:18px;padding:12px 15px;font-weight:850;outline:none;box-shadow:0 12px 30px rgba(30,64,175,.10)
+  }
+  #page-usb .usb-simple-select{min-width:330px;max-width:580px}
+  #page-usb .usb-simple-search{min-width:310px}
+  #page-usb .usb-simple-btn{
+    border:1px solid rgba(37,99,235,.20);background:linear-gradient(135deg,#2563eb,#06b6d4);color:white;border-radius:18px;padding:12px 15px;font-weight:950;cursor:pointer;box-shadow:0 14px 30px rgba(37,99,235,.22);transition:.22s;
+  }
+  #page-usb .usb-simple-btn:hover{transform:translateY(-3px);box-shadow:0 24px 52px rgba(37,99,235,.28)}
+  #page-usb .usb-simple-help{
+    margin-top:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;position:relative;z-index:2;
+  }
+  #page-usb .usb-simple-help-card{
+    border-radius:22px;padding:16px;background:rgba(255,255,255,.82);border:1px solid rgba(255,255,255,.92);box-shadow:0 16px 34px rgba(30,64,175,.12);transition:.22s;
+  }
+  #page-usb .usb-simple-help-card:hover{transform:translateY(-4px);box-shadow:0 28px 68px rgba(30,64,175,.18)}
+  #page-usb .usb-simple-help-card span{display:block;color:var(--u-muted);font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.08em}
+  #page-usb .usb-simple-help-card strong{display:block;margin-top:7px;font-size:22px;letter-spacing:-.03em;color:#0f172a}
+  #page-usb .usb-simple-help-card p{margin:7px 0 0;color:var(--u-muted);font-size:13px;font-weight:700;line-height:1.45}
+  #page-usb .usb-simple-section{
+    margin-top:18px;border-radius:28px;background:rgba(255,255,255,.88);border:1px solid rgba(255,255,255,.90);box-shadow:0 16px 38px rgba(15,23,42,.10);padding:18px;backdrop-filter:blur(18px);animation:usbSimpleIn .45s ease both;
+  }
+  #page-usb .usb-simple-section h3{margin:0 0 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:19px;letter-spacing:-.025em;color:#0f172a}
+  #page-usb .usb-simple-badge{display:inline-flex;align-items:center;border-radius:999px;padding:6px 11px;font-size:11px;font-weight:950;color:#1d4ed8;background:rgba(37,99,235,.10);border:1px solid rgba(37,99,235,.18)}
+  #page-usb .usb-simple-add{color:#047857;background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.22)}
+  #page-usb .usb-simple-rem{color:#b91c1c;background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.22)}
+  #page-usb .usb-simple-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;max-height:610px;overflow:auto;padding:4px}
+  #page-usb .usb-simple-device{
+    position:relative;overflow:hidden;min-height:178px;border-radius:24px;padding:16px;background:linear-gradient(180deg,rgba(255,255,255,.94),rgba(248,251,255,.86));
+    border:1px solid rgba(148,163,184,.22);box-shadow:0 14px 30px rgba(15,23,42,.08);transition:.22s;transform-style:preserve-3d;
+  }
+  #page-usb .usb-simple-device:hover{transform:translateY(-6px) scale(1.01) rotateX(2deg);box-shadow:0 26px 58px rgba(30,64,175,.16);border-color:rgba(37,99,235,.28)}
+  #page-usb .usb-simple-device:before{content:"";position:absolute;right:-30px;bottom:-36px;width:116px;height:116px;border-radius:36px;background:linear-gradient(135deg,rgba(37,99,235,.12),rgba(6,182,212,.08));transform:rotate(18deg)}
+  #page-usb .usb-simple-head{display:flex;gap:12px;align-items:flex-start;position:relative;z-index:2}
+  #page-usb .usb-simple-icon{
+    flex:0 0 54px;width:54px;height:54px;border-radius:18px;display:grid;place-items:center;color:white;font-weight:950;font-size:20px;background:linear-gradient(135deg,var(--u-blue),var(--u-cyan));box-shadow:0 14px 24px rgba(37,99,235,.22);
+  }
+  #page-usb .usb-simple-name{min-width:0}
+  #page-usb .usb-simple-name strong{display:block;font-size:16px;line-height:1.25;color:#0f172a;word-break:break-word}
+  #page-usb .usb-simple-name small{display:block;margin-top:5px;color:var(--u-muted);font-weight:750;line-height:1.4}
+  #page-usb .usb-simple-meaning{position:relative;z-index:2;margin-top:12px;padding:10px;border-radius:14px;background:rgba(37,99,235,.06);color:#1e3a8a;font-size:13px;font-weight:800;line-height:1.45}
+  #page-usb .usb-simple-tags{position:relative;z-index:2;margin-top:12px;display:flex;flex-wrap:wrap;gap:6px}
+  #page-usb .usb-simple-tag{border-radius:999px;padding:6px 9px;background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.12);color:#1d4ed8;font-size:11px;font-weight:850}
+  #page-usb .usb-simple-table-wrap{width:100%;max-height:430px;overflow:auto;border-radius:20px;border:1px solid rgba(148,163,184,.22);background:rgba(255,255,255,.70)}
+  #page-usb .usb-simple-table{width:100%;border-collapse:separate;border-spacing:0;min-width:900px;font-size:13px}
+  #page-usb .usb-simple-table th{position:sticky;top:0;z-index:2;text-align:left;padding:12px;color:#334155;background:linear-gradient(180deg,#f8fbff,#eef6ff);border-bottom:1px solid rgba(148,163,184,.28);font-size:12px;text-transform:uppercase;letter-spacing:.08em}
+  #page-usb .usb-simple-table td{padding:12px;border-bottom:1px solid rgba(148,163,184,.16);color:#0f172a;vertical-align:top;font-weight:650}
+  #page-usb .usb-simple-table tr:hover td{background:rgba(37,99,235,.045)}
+  #page-usb code{color:#1e3a8a;background:rgba(37,99,235,.07);border:1px solid rgba(37,99,235,.13);border-radius:8px;padding:2px 5px;font-family:"Cascadia Code","Consolas",monospace;font-size:11px}
+  #page-usb .usb-simple-change-list{display:grid;gap:10px;max-height:390px;overflow:auto}
+  #page-usb .usb-simple-change{display:grid;grid-template-columns:120px 1fr 1fr;gap:12px;border:1px solid rgba(148,163,184,.22);background:rgba(255,255,255,.78);border-radius:20px;padding:13px;transition:.2s}
+  #page-usb .usb-simple-change:hover{transform:translateY(-3px);box-shadow:0 18px 38px rgba(30,64,175,.12)}
+  #page-usb .usb-simple-time{color:var(--u-muted);font-size:12px;font-weight:900}
+  #page-usb .usb-simple-change strong{display:block;color:#0f172a;font-size:13px}
+  #page-usb .usb-simple-change small{display:block;color:var(--u-muted);margin-top:5px;font-weight:750;line-height:1.45}
+  #page-usb .usb-simple-empty{border-radius:20px;padding:18px;background:rgba(248,250,252,.82);color:var(--u-muted);border:1px dashed rgba(100,116,139,.30);font-weight:800}
+  @keyframes usbSimpleIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}@keyframes usbSimpleAura{to{transform:rotate(360deg)}}
+  @media(max-width:1050px){#page-usb .usb-simple-select,#page-usb .usb-simple-search{min-width:240px;width:100%}}
+  @media(max-width:760px){#page-usb .usb-simple-hero{padding:18px;border-radius:24px}#page-usb .usb-simple-change{grid-template-columns:1fr}}
+  `;
+  document.head.appendChild(s);
+}
+function usbSimpleList(v){try{if(typeof arr==='function')return arr(v)}catch(e){} if(v==null||v==='')return[]; if(Array.isArray(v))return v.flatMap(usbSimpleList); if(typeof v==='object'){const d=['name','display_name','friendly_name','device_name','description','device_id','vid','pid','class','type']; if(d.some(k=>Object.prototype.hasOwnProperty.call(v,k)))return[v]; return Object.values(v).flatMap(usbSimpleList)} return[v]}
+function usbSimpleText(v){return esc(v===undefined||v===null||v===''?'N/A':v)}
+function usbSimpleName(u){return u.display_name||u.friendly_name||u.name||u.device_name||u.description||'Unknown USB device'}
+function usbSimpleType(u){return u.type||u.class||u.device_class||u.category||'Peripheral'}
+function usbSimpleStatus(u){return u.status||u.state||u.present||u.connected||''}
+function usbSimpleId(u){return u.device_id||u.instance_id||u.id||u.pnp_device_id||''}
+function usbSimpleMachineLabel(m){return`${host(m)} - ${m.primary_ip||((m.all_ips||[])[0]||'No IP')}`}
+function usbSimpleSelected(){
+  const stored=localStorage.getItem('sagar_selected_machine') || localStorage.getItem('sagar_usb_machine') || state.selected || '';
+  let m=state.machines.find(x=>x.machine_id===stored)||state.machines[0]||null;
+  if(m){
+    state.selected=m.machine_id;
+    localStorage.setItem('sagar_selected_machine',m.machine_id);
+    localStorage.setItem('sagar_usb_machine',m.machine_id);
+  }
+  return m;
+}
+function usbSimpleSelectMachine(v){
+  if(v){
+    state.selected=v;
+    localStorage.setItem('sagar_selected_machine',v);
+    localStorage.setItem('sagar_usb_machine',v);
+  }
+  renderUsb();
+}
+function usbSimpleSearch(v){localStorage.setItem('sagar_usb_search',v||'');renderUsb()}
+function usbSimpleCleanDevices(raw){
+  let list=[];
+  try{ if(typeof cleanUsbItems==='function') list=cleanUsbItems(raw); else list=usbSimpleList(raw); }catch(e){ list=usbSimpleList(raw); }
+  return list.filter(x=>x&&typeof x==='object');
+}
+function usbSimpleCategory(u){
+  const t=String(usbSimpleName(u)+' '+usbSimpleType(u)+' '+(u.manufacturer||'')).toLowerCase();
+  if(t.includes('keyboard')) return {icon:'âŒ¨ï¸', simple:'Keyboard', meaning:'This is used for typing.'};
+  if(t.includes('mouse')) return {icon:'ðŸ–±ï¸', simple:'Mouse', meaning:'This is used for clicking and moving the pointer.'};
+  if(t.includes('audio')||t.includes('headphone')||t.includes('speaker')||t.includes('microphone')) return {icon:'ðŸŽ§', simple:'Audio device', meaning:'This is used for sound, headphone, speaker, or microphone.'};
+  if(t.includes('camera')||t.includes('webcam')) return {icon:'ðŸ“·', simple:'Camera', meaning:'This is used for video class, meeting, or recording.'};
+  if(t.includes('storage')||t.includes('disk')||t.includes('drive')||t.includes('mass')) return {icon:'ðŸ’¾', simple:'Storage / Pen Drive', meaning:'This can store or transfer files.'};
+  if(t.includes('printer')) return {icon:'ðŸ–¨ï¸', simple:'Printer', meaning:'This is used for printing.'};
+  if(t.includes('bluetooth')) return {icon:'ðŸ”µ', simple:'Bluetooth device', meaning:'This connects wireless accessories.'};
+  if(t.includes('hub')) return {icon:'ðŸ”Œ', simple:'USB Hub', meaning:'This adds more USB ports.'};
+  return {icon:'ðŸ”Œ', simple:'USB / Peripheral', meaning:'This is an external device connected to the computer.'};
+}
+function usbSimpleDeviceCard(u,i){
+  const c=usbSimpleCategory(u);
+  return `<article class="usb-simple-device">
+    <div class="usb-simple-head">
+      <div class="usb-simple-icon">${esc(c.icon)}</div>
+      <div class="usb-simple-name"><strong>${usbSimpleText(c.simple)}</strong><small>${usbSimpleText(usbSimpleName(u))}</small></div>
+    </div>
+    <div class="usb-simple-meaning">${esc(c.meaning)}</div>
+    <div class="usb-simple-tags">
+      <span class="usb-simple-tag">#${i+1}</span>
+      <span class="usb-simple-tag">Type: ${usbSimpleText(usbSimpleType(u))}</span>
+      <span class="usb-simple-tag">Status: ${usbSimpleText(usbSimpleStatus(u)||'N/A')}</span>
+      <span class="usb-simple-tag">VID: ${usbSimpleText(u.vid||'N/A')}</span>
+      <span class="usb-simple-tag">PID: ${usbSimpleText(u.pid||'N/A')}</span>
+    </div>
+  </article>`;
+}
+function usbSimpleCsvCell(v){
+  const s=String(v===undefined||v===null?'':v);
+  return `"${s.replace(/"/g,'""')}"`;
+}
+function usbSimpleDownloadUsb(){
+  const m=usbSimpleSelected(); if(!m) return;
+  const p=payload(m);
+  const devices=usbSimpleCleanDevices(nested(p,'usb.devices',nested(p,'usb',[])));
+  const search=(localStorage.getItem('sagar_usb_search')||'').toLowerCase().trim();
+  const filtered=search ? devices.filter(u=>`${usbSimpleName(u)} ${usbSimpleType(u)} ${u.manufacturer||''} ${usbSimpleId(u)}`.toLowerCase().includes(search)) : devices;
+  const header=['Machine','Primary IP','Simple Type','Device Name','Type','Manufacturer','Status','VID','PID','Device ID'];
+  const rows=filtered.map(u=>[host(m),m.primary_ip||'',usbSimpleCategory(u).simple,usbSimpleName(u),usbSimpleType(u),u.manufacturer||'',usbSimpleStatus(u),u.vid||'',u.pid||'',usbSimpleId(u)]);
+  const csv=[header,...rows].map(r=>r.map(usbSimpleCsvCell).join(',')).join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const safeHost=String(host(m)||'machine').replace(/[^a-z0-9_-]+/gi,'_');
+  a.href=url;
+  a.download=`usb_simple_${safeHost}_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+function usbSimpleIsToday(ts){
+  const d=new Date(ts||Date.now());
+  if(isNaN(d.getTime())) return false;
+  return d.toDateString()===new Date().toDateString();
+}
+function usbSimpleChangeItems(v){
+  if(!v) return [];
+  if(Array.isArray(v)) return v.map(x=>String(x||'').trim()).filter(Boolean);
+  if(typeof v==='string') return v.split(/\s*\|\|\s*|\n/).map(x=>x.trim()).filter(Boolean);
+  return [String(v)].filter(Boolean);
+}
+async function usbSimpleLoadTodayChanges(machineId){
+  const box=document.getElementById('usbSimpleTodayChangesBox');
+  if(!box) return;
+  try{
+    const d=await api('/api/changes');
+    const rows=(d.changes||[]).filter(c=>{
+      const ctype=String(c.change_type||c.type||'').toLowerCase();
+      const msg=String(c.human_message||c.message||c.title||'').toLowerCase();
+      return c.machine_id===machineId && usbSimpleIsToday(c.created_at||c.time) && (ctype==='usb' || ctype.includes('usb') || msg.includes('usb') || msg.includes('peripheral'));
+    }).slice(0,100);
+
+    if(!rows.length){
+      box.innerHTML='<div class="usb-simple-empty">No USB connected or removed today for selected machine.</div>';
+      return;
+    }
+
+    box.innerHTML=`<div class="usb-simple-change-list">${rows.map(c=>{
+      const added=usbSimpleChangeItems((c.added_items&&c.added_items.length)?c.added_items:(c.added_text||c.added||''));
+      const removed=usbSimpleChangeItems((c.removed_items&&c.removed_items.length)?c.removed_items:(c.removed_text||c.removed||''));
+      const msg=esc(c.human_message||c.message||c.title||'USB/peripheral changed');
+      let action='Changed', cls='usb-simple-badge';
+      if(added.length && !removed.length){action='Connected'; cls='usb-simple-badge usb-simple-add';}
+      if(removed.length && !added.length){action='Removed'; cls='usb-simple-badge usb-simple-rem';}
+      if(added.length && removed.length){action='Connected + Removed';}
+      const addedHtml=added.length?added.map(esc).join('<br>'):'N/A';
+      const removedHtml=removed.length?removed.map(esc).join('<br>'):'N/A';
+      return `<div class="usb-simple-change">
+        <div class="usb-simple-time">${esc(new Date(c.created_at||c.time).toLocaleTimeString())}<br><span class="${cls}">${action}</span></div>
+        <div><strong>${msg}</strong><small>Connected today:<br>${addedHtml}</small></div>
+        <div><strong>Removed today</strong><small>${removedHtml}</small></div>
+      </div>`;
+    }).join('')}</div>`;
+  }catch(e){
+    box.innerHTML='<div class="usb-simple-empty">Unable to load today USB changes from /api/changes.</div>';
+  }
+}
+function usbSimpleTable(devices){
+  if(!devices.length) return '<div class="usb-simple-empty">No USB/peripheral data from this client.</div>';
+  return `<div class="usb-simple-table-wrap"><table class="usb-simple-table"><thead><tr><th>Simple Name</th><th>Real Device Name</th><th>Type</th><th>Manufacturer</th><th>Status</th><th>VID/PID</th><th>Technical ID</th></tr></thead><tbody>${devices.map(u=>{
+    const c=usbSimpleCategory(u);
+    return `<tr>
+      <td><strong>${usbSimpleText(c.simple)}</strong></td>
+      <td>${usbSimpleText(usbSimpleName(u))}</td>
+      <td>${usbSimpleText(usbSimpleType(u))}</td>
+      <td>${usbSimpleText(u.manufacturer||'')}</td>
+      <td>${usbSimpleText(usbSimpleStatus(u)||'')}</td>
+      <td>${usbSimpleText((u.vid||'') + (u.pid ? ' / '+u.pid : ''))}</td>
+      <td><code>${usbSimpleText(usbSimpleId(u))}</code></td>
+    </tr>`;
+  }).join('')}</tbody></table></div>`;
+}
+function renderUsb(){
+  usbSimpleStyle();
+  let el=$('#usbCards') || $('#usbTable') || document.querySelector('#page-usb .usb-list') || document.querySelector('#page-usb .grid') || document.querySelector('#page-usb .panel');
+  if(!el) return;
+  if(!state.machines.length){el.innerHTML='<div class="usb-simple-empty">No USB data yet. Wait for client heartbeat.</div>';return;}
+  const m=usbSimpleSelected(); if(!m){el.innerHTML='<div class="usb-simple-empty">Select one machine.</div>';return;}
+
+  const p=payload(m);
+  const raw=nested(p,'usb.devices',nested(p,'usb',[]));
+  const devices=usbSimpleCleanDevices(raw);
+  const search=(localStorage.getItem('sagar_usb_search')||'').toLowerCase().trim();
+  const filtered=search ? devices.filter(u=>`${usbSimpleName(u)} ${usbSimpleType(u)} ${u.manufacturer||''} ${usbSimpleId(u)} ${usbSimpleCategory(u).simple}`.toLowerCase().includes(search)) : devices;
+  const categories=[...new Set(devices.map(u=>usbSimpleCategory(u).simple).filter(Boolean))];
+  const options=state.machines.map(x=>`<option value="${esc(x.machine_id)}" ${x.machine_id===m.machine_id?'selected':''}>${esc(usbSimpleMachineLabel(x))}</option>`).join('');
+
+  el.innerHTML=`<div class="usb-simple-shell">
+    <section class="usb-simple-hero">
+      <div class="usb-simple-top">
+        <div>
+          <p class="usb-simple-eye">USB + Peripheral Center</p>
+          <h2>${esc(host(m))}</h2>
+          <p class="usb-simple-sub">Simple view of keyboard, mouse, headphone, camera, pen drive, printer and other connected devices.<br>${usbSimpleText(m.primary_ip||'No LAN IP')} Â· ${usbSimpleText(m.os||'Unknown OS')} Â· Last seen ${ago(m.updated_at)}</p>
+        </div>
+        <div class="usb-simple-control">
+          <select class="usb-simple-select" onchange="usbSimpleSelectMachine(this.value)">${options}</select>
+          <button class="usb-simple-btn download-only" onclick="usbSimpleDownloadUsb()">Download USB CSV</button>
+          ${statusPill(m)}
+        </div>
+      </div>
+      <div class="usb-simple-help">
+        <div class="usb-simple-help-card"><span>Total Devices</span><strong>${devices.length}</strong><p>All USB/peripheral items detected on this machine.</p></div>
+        <div class="usb-simple-help-card"><span>Showing Now</span><strong>${filtered.length}</strong><p>Devices after search/filter.</p></div>
+        <div class="usb-simple-help-card"><span>Simple Categories</span><strong>${categories.length}</strong><p>Keyboard, mouse, audio, camera, storage, printer, etc.</p></div>
+        <div class="usb-simple-help-card"><span>Selected Machine</span><strong>${esc(host(m))}</strong><p>This page shows only this PC/device.</p></div>
+      </div>
+    </section>
+
+    <section class="usb-simple-section">
+      <h3>Easy USB Device List <span class="usb-simple-badge">${filtered.length} devices</span></h3>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+        <input class="usb-simple-search" value="${esc(localStorage.getItem('sagar_usb_search')||'')}" placeholder="Search keyboard / mouse / headphone / pendrive / device ID" oninput="usbSimpleSearch(this.value)">
+        <button class="usb-simple-btn download-only" onclick="usbSimpleDownloadUsb()">Download Current USB List</button>
+      </div>
+      <div class="usb-simple-grid">${filtered.map(usbSimpleDeviceCard).join('') || '<div class="usb-simple-empty">No USB/peripheral data from this client.</div>'}</div>
+    </section>
+
+    <section class="usb-simple-section">
+      <h3>Technical Details <span class="usb-simple-badge">For IT Team</span></h3>
+      ${usbSimpleTable(filtered)}
+    </section>
+
+    <section class="usb-simple-section">
+      <h3>Today USB Connected / Removed <span class="usb-simple-badge">Today</span></h3>
+      <div id="usbSimpleTodayChangesBox"><div class="usb-simple-empty">Loading today USB changes...</div></div>
+    </section>
+  </div>`;
+  setTimeout(()=>usbSimpleLoadTodayChanges(m.machine_id),120);
+}
+function renderUSB(){ return renderUsb(); }
+/* USB_SIMPLE_HUMAN_PAGE_ONLY_END */
+
+/* USB_CSS_PICTURE_ICONS_ONLY_START */
+/*
+  USB page icon fix only.
+  Removes emoji dependency and broken mojibake text like Ã¢Å’Â¨Ã¯Â¸Â.
+  Uses CSS-drawn picture icons instead.
+*/
+function usbSimpleIconPatchStyle(){
+  const old=document.getElementById('usbSimpleIconPatchStyle');
+  if(old) old.remove();
+  const s=document.createElement('style');
+  s.id='usbSimpleIconPatchStyle';
+  s.textContent=`
+    #page-usb .usb-simple-icon.usb-icon-host{
+      position:relative;
+      overflow:hidden;
+      background:linear-gradient(135deg,#2563eb,#06b6d4)!important;
+      box-shadow:0 16px 30px rgba(37,99,235,.26), inset 0 1px 0 rgba(255,255,255,.35)!important;
+    }
+    #page-usb .usb-simple-picture{
+      width:42px;
+      height:42px;
+      display:grid;
+      place-items:center;
+      position:relative;
+      animation:usbPicFloat 2.6s ease-in-out infinite;
+    }
+    #page-usb .usb-simple-picture span,
+    #page-usb .usb-simple-picture i,
+    #page-usb .usb-simple-picture b{
+      position:absolute;
+      display:block;
+      box-sizing:border-box;
+    }
+
+    #page-usb .usb-pic-keyboard span{
+      width:36px;height:22px;border-radius:7px;
+      border:2px solid rgba(255,255,255,.96);
+      background:
+        repeating-linear-gradient(90deg,rgba(255,255,255,.92) 0 2px,transparent 2px 7px),
+        repeating-linear-gradient(0deg,rgba(255,255,255,.72) 0 2px,transparent 2px 8px);
+      bottom:8px;
+    }
+    #page-usb .usb-pic-keyboard i{width:22px;height:3px;border-radius:99px;background:#fff;bottom:12px}
+
+    #page-usb .usb-pic-mouse span{
+      width:24px;height:36px;border-radius:18px;
+      border:2px solid #fff;top:3px;
+    }
+    #page-usb .usb-pic-mouse i{width:2px;height:12px;background:#fff;top:6px}
+    #page-usb .usb-pic-mouse b{width:11px;height:2px;background:#fff;top:15px}
+
+    #page-usb .usb-pic-audio span{
+      width:32px;height:28px;border:3px solid #fff;border-bottom:0;border-radius:22px 22px 0 0;top:5px;
+    }
+    #page-usb .usb-pic-audio i{width:8px;height:18px;background:#fff;border-radius:6px;left:4px;bottom:4px}
+    #page-usb .usb-pic-audio b{width:8px;height:18px;background:#fff;border-radius:6px;right:4px;bottom:4px}
+
+    #page-usb .usb-pic-camera span{
+      width:34px;height:24px;border-radius:8px;border:2px solid #fff;bottom:8px;
+    }
+    #page-usb .usb-pic-camera i{width:12px;height:12px;border-radius:50%;border:2px solid #fff;bottom:14px}
+    #page-usb .usb-pic-camera b{width:14px;height:6px;border-radius:5px 5px 0 0;background:#fff;top:7px;left:10px}
+
+    #page-usb .usb-pic-storage span{
+      width:24px;height:34px;border-radius:7px;border:2px solid #fff;bottom:4px;
+    }
+    #page-usb .usb-pic-storage i{width:14px;height:6px;border-radius:2px;background:#fff;top:9px}
+    #page-usb .usb-pic-storage b{width:10px;height:10px;border-radius:50%;border:2px solid #fff;bottom:9px}
+
+    #page-usb .usb-pic-printer span{
+      width:34px;height:22px;border-radius:8px;border:2px solid #fff;bottom:8px;
+    }
+    #page-usb .usb-pic-printer i{width:26px;height:13px;border-radius:4px;border:2px solid #fff;top:2px}
+    #page-usb .usb-pic-printer b{width:20px;height:3px;border-radius:99px;background:#fff;bottom:13px}
+
+    #page-usb .usb-pic-bluetooth span{
+      width:26px;height:32px;top:5px;
+    }
+    #page-usb .usb-pic-bluetooth span:before,
+    #page-usb .usb-pic-bluetooth span:after{
+      content:"";position:absolute;left:10px;width:16px;height:16px;border-right:3px solid #fff;border-top:3px solid #fff;transform:rotate(45deg);
+    }
+    #page-usb .usb-pic-bluetooth span:after{top:15px;transform:rotate(135deg)}
+    #page-usb .usb-pic-bluetooth i{width:3px;height:34px;background:#fff;left:19px;top:4px;transform:rotate(0deg)}
+
+    #page-usb .usb-pic-hub span{
+      width:34px;height:8px;border-radius:99px;background:#fff;bottom:10px;
+    }
+    #page-usb .usb-pic-hub i{width:8px;height:8px;border-radius:50%;background:#fff;top:7px}
+    #page-usb .usb-pic-hub b{width:3px;height:18px;background:#fff;top:14px}
+
+    #page-usb .usb-pic-usb span{
+      width:28px;height:14px;border-radius:5px;border:2px solid #fff;bottom:12px;
+    }
+    #page-usb .usb-pic-usb i{width:10px;height:8px;border-radius:2px;background:#fff;top:8px}
+    #page-usb .usb-pic-usb b{width:4px;height:18px;border-radius:4px;background:#fff;top:15px}
+
+    @keyframes usbPicFloat{
+      0%,100%{transform:translateY(0) rotateX(0)}
+      50%{transform:translateY(-3px) rotateX(8deg)}
+    }
+  `;
+  document.head.appendChild(s);
+}
+
+function usbSimpleCategory(u){
+  const t=String(usbSimpleName(u)+' '+usbSimpleType(u)+' '+(u.manufacturer||'')).toLowerCase();
+  if(t.includes('keyboard')) return {iconKey:'keyboard', simple:'Keyboard', meaning:'This is used for typing.'};
+  if(t.includes('mouse')) return {iconKey:'mouse', simple:'Mouse', meaning:'This is used for clicking and moving the pointer.'};
+  if(t.includes('audio')||t.includes('headphone')||t.includes('speaker')||t.includes('microphone')) return {iconKey:'audio', simple:'Audio device', meaning:'This is used for sound, headphone, speaker, or microphone.'};
+  if(t.includes('camera')||t.includes('webcam')) return {iconKey:'camera', simple:'Camera', meaning:'This is used for video class, meeting, or recording.'};
+  if(t.includes('storage')||t.includes('disk')||t.includes('drive')||t.includes('mass')) return {iconKey:'storage', simple:'Storage / Pen Drive', meaning:'This can store or transfer files.'};
+  if(t.includes('printer')) return {iconKey:'printer', simple:'Printer', meaning:'This is used for printing.'};
+  if(t.includes('bluetooth')) return {iconKey:'bluetooth', simple:'Bluetooth device', meaning:'This connects wireless accessories.'};
+  if(t.includes('hub')) return {iconKey:'hub', simple:'USB Hub', meaning:'This adds more USB ports.'};
+  return {iconKey:'usb', simple:'USB / Peripheral', meaning:'This is an external device connected to the computer.'};
+}
+
+function usbSimplePictureIcon(key,label){
+  const safe=['keyboard','mouse','audio','camera','storage','printer','bluetooth','hub','usb'].includes(key) ? key : 'usb';
+  return `<div class="usb-simple-picture usb-pic-${safe}" title="${esc(label)}"><span></span><i></i><b></b></div>`;
+}
+
+function usbSimpleDeviceCard(u,i){
+  usbSimpleIconPatchStyle();
+  const c=usbSimpleCategory(u);
+  return `<article class="usb-simple-device">
+    <div class="usb-simple-head">
+      <div class="usb-simple-icon usb-icon-host">${usbSimplePictureIcon(c.iconKey,c.simple)}</div>
+      <div class="usb-simple-name"><strong>${usbSimpleText(c.simple)}</strong><small>${usbSimpleText(usbSimpleName(u))}</small></div>
+    </div>
+    <div class="usb-simple-meaning">${esc(c.meaning)}</div>
+    <div class="usb-simple-tags">
+      <span class="usb-simple-tag">#${i+1}</span>
+      <span class="usb-simple-tag">Type: ${usbSimpleText(usbSimpleType(u))}</span>
+      <span class="usb-simple-tag">Status: ${usbSimpleText(usbSimpleStatus(u)||'N/A')}</span>
+      <span class="usb-simple-tag">VID: ${usbSimpleText(u.vid||'N/A')}</span>
+      <span class="usb-simple-tag">PID: ${usbSimpleText(u.pid||'N/A')}</span>
+    </div>
+  </article>`;
+}
+/* USB_CSS_PICTURE_ICONS_ONLY_END */
+

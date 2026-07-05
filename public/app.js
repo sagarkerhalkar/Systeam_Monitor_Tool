@@ -1161,7 +1161,7 @@ function renderMachine360(){
           <div class="m360-chip"><span>CPU</span><strong>${fmt(m.cpu_percent,'%')}</strong></div>
           <div class="m360-chip"><span>RAM</span><strong>${fmt(m.ram_used_gb,' GB')} / ${fmt(m.ram_total_gb,' GB')}</strong></div>
           <div class="m360-chip"><span>Disk Max</span><strong>${fmt(m.disk_max_percent,'%')}</strong></div>
-          <div class="m360-chip"><span>Network Now</span><strong>Down ${fmt(m.wan_download_mbps,' Mbps',2)}</strong></div>
+          <div class="m360-chip"><span>Network Now</span><strong>${fmt(m.wan_download_mbps,' Mbps',2)} â†“</strong></div>
           <div class="m360-chip"><span>USB</span><strong>${usbDevices.length}</strong></div>
           <div class="m360-chip"><span>Software</span><strong>${apps.length}</strong></div>
           <div class="m360-chip"><span>GPU</span><strong>${gpuTotal}</strong></div>
@@ -1255,4 +1255,156 @@ function renderMachine360(){
 }
 /* MACHINE_360_FULL_PAGE_ONLY_END */
 
+/* NETWORK_VPN_MACHINE_WISE_ONLY_START */
+/* Only Network + VPN page UI is changed. */
+function n360Style(){
+  const old=document.getElementById('n360Style'); if(old) old.remove();
+  const s=document.createElement('style'); s.id='n360Style';
+  s.textContent=`
+  #page-network{--b:#2563eb;--c:#06b6d4;--i:#0f172a;--m:#64748b;--line:rgba(148,163,184,.25);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+  #page-network #networkCards{display:block!important;width:100%!important;max-width:none!important}
+  #page-network .n360-shell{width:100%;animation:n360Up .45s ease both;color:var(--i)}
+  #page-network .n360-hero{position:relative;overflow:hidden;border-radius:30px;padding:24px;background:radial-gradient(circle at 10% 10%,rgba(37,99,235,.34),transparent 30%),radial-gradient(circle at 90% 18%,rgba(6,182,212,.28),transparent 30%),linear-gradient(135deg,rgba(255,255,255,.96),rgba(239,246,255,.90));border:1px solid rgba(255,255,255,.88);box-shadow:0 24px 80px rgba(30,64,175,.16);isolation:isolate}
+  #page-network .n360-hero:before{content:"";position:absolute;inset:-90px;background:conic-gradient(from 140deg,rgba(37,99,235,.12),rgba(6,182,212,.22),rgba(79,70,229,.12),rgba(37,99,235,.12));filter:blur(18px);animation:n360Aura 9s linear infinite;z-index:-1}
+  #page-network .n360-top{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap}
+  #page-network .n360-eye{letter-spacing:.24em;text-transform:uppercase;font-size:11px;font-weight:900;color:var(--b);margin:0 0 8px}
+  #page-network .n360-hero h2{margin:0;font-size:clamp(26px,3vw,44px);line-height:1.03;letter-spacing:-.04em;color:#08111f}
+  #page-network .n360-sub{margin:10px 0 0;color:var(--m);font-weight:650;font-size:14px}
+  #page-network .n360-select{min-width:320px;max-width:560px;border:1px solid rgba(37,99,235,.18);background:rgba(255,255,255,.92);color:#0f172a;border-radius:16px;padding:11px 14px;font-weight:800;outline:none;box-shadow:0 12px 26px rgba(30,64,175,.10)}
+  #page-network .n360-chips{margin-top:22px;display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:12px}
+  #page-network .n360-chip{border-radius:20px;padding:14px 15px;background:rgba(255,255,255,.80);border:1px solid rgba(255,255,255,.90);box-shadow:0 12px 30px rgba(30,64,175,.10);backdrop-filter:blur(16px);transition:.22s}
+  #page-network .n360-chip:hover,#page-network .n360-card:hover{transform:translateY(-3px);box-shadow:0 24px 55px rgba(30,64,175,.16)}
+  #page-network .n360-chip span{display:block;color:var(--m);font-size:11px;font-weight:850;text-transform:uppercase;letter-spacing:.08em}
+  #page-network .n360-chip strong{display:block;margin-top:6px;font-size:20px;color:#0f172a;letter-spacing:-.02em;word-break:break-word}
+  #page-network .n360-layout{margin-top:18px;display:grid;grid-template-columns:repeat(12,1fr);gap:16px;align-items:start}
+  #page-network .n360-card{grid-column:span 4;border-radius:24px;background:rgba(255,255,255,.84);border:1px solid rgba(255,255,255,.82);box-shadow:0 14px 34px rgba(15,23,42,.10);padding:18px;backdrop-filter:blur(18px);min-width:0;animation:n360Up .45s ease both}
+  #page-network .n360-wide{grid-column:1/-1}.n360-half{grid-column:span 6}
+  #page-network .n360-card h3{margin:0 0 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:17px;letter-spacing:-.02em;color:#0f172a}
+  #page-network .n360-badge{display:inline-flex;border-radius:999px;padding:5px 10px;font-size:11px;font-weight:900;color:#1d4ed8;background:rgba(37,99,235,.10);border:1px solid rgba(37,99,235,.18)}
+  #page-network .n360-vpn-on{color:#b45309;background:rgba(245,158,11,.13);border-color:rgba(245,158,11,.24)}
+  #page-network .n360-vpn-off{color:#047857;background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.22)}
+  #page-network .n360-kv{display:grid;grid-template-columns:minmax(120px,170px) 1fr;gap:9px 12px;padding:9px 0;border-bottom:1px dashed var(--line);align-items:start}
+  #page-network .n360-kv span{color:var(--m);font-size:12px;font-weight:800}
+  #page-network .n360-kv strong{color:#0f172a;font-size:13px;word-break:break-word;font-weight:850}
+  #page-network code{color:#1e3a8a;background:rgba(37,99,235,.07);border:1px solid rgba(37,99,235,.13);border-radius:8px;padding:2px 5px;font-family:"Cascadia Code","Consolas",monospace;font-size:11px}
+  #page-network .n360-scroll{width:100%;max-height:540px;overflow:auto;border-radius:18px;border:1px solid rgba(148,163,184,.24);background:rgba(255,255,255,.66)}
+  #page-network .n360-table{width:100%;border-collapse:separate;border-spacing:0;min-width:900px;font-size:13px}
+  #page-network .n360-table th{position:sticky;top:0;z-index:2;text-align:left;padding:12px;color:#334155;background:linear-gradient(180deg,#f8fbff,#eef6ff);border-bottom:1px solid rgba(148,163,184,.28);font-size:12px;text-transform:uppercase;letter-spacing:.08em}
+  #page-network .n360-table td{padding:12px;border-bottom:1px solid rgba(148,163,184,.16);color:#0f172a;vertical-align:top;font-weight:650}
+  #page-network .n360-table tr:hover td{background:rgba(37,99,235,.045)}
+  #page-network .n360-table small{display:block;color:var(--m);margin-top:4px;font-weight:650}
+  #page-network .n360-empty{border-radius:18px;padding:18px;background:rgba(248,250,252,.8);color:var(--m);border:1px dashed rgba(100,116,139,.30);font-weight:750}
+  #page-network .n360-meter{border-radius:18px;padding:14px;background:linear-gradient(180deg,rgba(255,255,255,.86),rgba(239,246,255,.76));border:1px solid rgba(255,255,255,.9);box-shadow:0 12px 24px rgba(30,64,175,.08)}
+  #page-network .n360-meter span{display:flex;justify-content:space-between;color:#334155;font-weight:900;font-size:12px;margin-bottom:8px}
+  #page-network .n360-bar{height:10px;background:#e2e8f0;border-radius:999px;overflow:hidden}
+  #page-network .n360-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--b),var(--c));width:0;animation:n360Grow .8s ease forwards}
+  #page-network details.n360-details summary{cursor:pointer;font-weight:900;color:#1d4ed8}
+  #page-network details.n360-details pre{white-space:pre-wrap;max-height:360px;overflow:auto;background:#0b1220;color:#dbeafe;border-radius:16px;padding:14px;font-size:12px;line-height:1.55}
+  @keyframes n360Up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}@keyframes n360Aura{to{transform:rotate(360deg)}}@keyframes n360Grow{from{width:0}to{width:var(--w)}}
+  @media(max-width:1100px){#page-network .n360-card,#page-network .n360-half{grid-column:1/-1}#page-network .n360-select{min-width:240px;width:100%}}@media(max-width:720px){#page-network .n360-hero{padding:18px;border-radius:22px}#page-network .n360-kv{grid-template-columns:1fr}}
+  `;
+  document.head.appendChild(s);
+}
+function n360List(v){try{if(typeof arr==='function')return arr(v)}catch(e){} if(v==null||v==='')return[]; if(Array.isArray(v))return v.flatMap(n360List); if(typeof v==='object'){const d=['name','description','mac','ips','ip_addresses','status','type']; if(d.some(k=>Object.prototype.hasOwnProperty.call(v,k)))return[v]; return Object.values(v).flatMap(n360List)} return[v]}
+function n360Obj(v){return(v&&typeof v==='object'&&!Array.isArray(v))?v:{}}
+function n360Text(v){return esc(v===undefined||v===null||v===''?'N/A':v)}
+function n360Json(v){try{return esc(JSON.stringify(v,null,2))}catch(e){return esc(String(v||''))}}
+function n360Num(v){const n=Number(v||0);return Number.isFinite(n)?n:0}
+function n360Meter(label,value,max,unit){const p=Math.max(0,Math.min(100,(n360Num(value)/Math.max(1,max))*100));return`<div class="n360-meter"><span><b>${esc(label)}</b><b>${fmt(value,unit||'',2)}</b></span><div class="n360-bar"><div class="n360-fill" style="--w:${p}%"></div></div></div>`}
+function n360Table(headers,rows,empty){if(!rows||!rows.length)return`<div class="n360-empty">${esc(empty||'No data available.')}</div>`;return`<div class="n360-scroll"><table class="n360-table"><thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div>`}
+function n360Label(m){return`${host(m)} - ${m.primary_ip||((m.all_ips||[])[0]||'No IP')}`}
+function n360Selected(){const stored=localStorage.getItem('sagar_network_machine')||state.selected||'';let m=state.machines.find(x=>x.machine_id===stored)||state.machines[0]||null;if(m){localStorage.setItem('sagar_network_machine',m.machine_id);state.selected=m.machine_id;localStorage.setItem('sagar_selected_machine',m.machine_id)}return m}
+function n360SelectMachine(v){localStorage.setItem('sagar_network_machine',v||'');if(v){state.selected=v;localStorage.setItem('sagar_selected_machine',v)}renderNetwork()}
+function n360Type(a){const t=`${a.name||''} ${a.description||''} ${a.type||''}`.toLowerCase();if(a.is_vpn||a.vpn||/vpn|wireguard|openvpn|tap|tun/.test(t))return'VPN';if(a.is_virtual||/virtual|hyper-v|vmware|virtualbox|docker|wsl|loopback/.test(t))return'Virtual';if(/wi-fi|wifi|wireless|802\.11/.test(t))return'Wi-Fi';if(/ethernet|lan|realtek|intel/.test(t))return'Ethernet';return'Physical'}
+function renderNetwork(){
+  n360Style();
+  const el=$('#networkCards'); if(!el)return;
+  if(!state.machines.length){el.innerHTML='<div class="n360-empty">No network data yet. Wait for client heartbeat.</div>';return}
+  const m=n360Selected(); if(!m){el.innerHTML='<div class="n360-empty">Select one machine.</div>';return}
+  const p=payload(m), network=n360Obj(nested(p,'network',{})), traffic=n360Obj(nested(p,'network.traffic',{})), vpn=n360Obj(nested(p,'network.vpn',{}));
+  const pub=n360Obj(nested(p,'network.public_internet',nested(p,'public_internet',{}))), speed=n360Obj(nested(p,'network.internet_speed',nested(p,'internet_speed',{})));
+  const adapters=n360List(nested(p,'network.adapters',nested(p,'adapters',[]))).filter(x=>x&&typeof x==='object');
+  const allIps=Array.isArray(m.all_ips)?m.all_ips.join(', '):(m.all_ips||'');
+  const vpnNames=[]; if(vpn.name)vpnNames.push(vpn.name); adapters.forEach(a=>{if(n360Type(a)==='VPN')vpnNames.push(a.name||a.description||'VPN Adapter')});
+  const vpnActive=!!(vpn.active||vpn.is_active||vpnNames.length||m.vpn_active);
+  const options=state.machines.map(x=>`<option value="${esc(x.machine_id)}" ${x.machine_id===m.machine_id?'selected':''}>${esc(n360Label(x))}</option>`).join('');
+  const adapterRows=adapters.map(a=>{const ips=Array.isArray(a.ips||a.ip_addresses)?(a.ips||a.ip_addresses).join(', '):(a.ips||a.ip_addresses||a.ip||'');const gateways=Array.isArray(a.gateways)?a.gateways.join(', '):(a.gateway||a.gateways||'');const dns=Array.isArray(a.dns_servers)?a.dns_servers.join(', '):(a.dns||a.dns_servers||'');const type=n360Type(a);return`<tr><td><strong>${n360Text(a.name||'Adapter')}</strong><small>${n360Text(a.description||'')}</small></td><td><span class="n360-badge ${type==='VPN'?'n360-vpn-on':''}">${esc(type)}</span></td><td>${n360Text(ips)}</td><td><code>${n360Text(a.mac||a.mac_address||a.MACAddress||'')}</code></td><td>${n360Text(gateways)}</td><td>${n360Text(dns)}</td><td>${n360Text(a.status||a.oper_status||a.state||'')}</td></tr>`});
+  const vpnRows=[...new Set(vpnNames.filter(Boolean))].map(name=>`<tr><td><strong>${n360Text(name)}</strong></td><td>Active / detected</td><td>${n360Text(vpn.public_ip||m.public_ip||'')}</td></tr>`);
+  const maxSpeed=Math.max(5,n360Num(m.wan_download_mbps),n360Num(m.wan_upload_mbps),n360Num(speed.download_mbps),n360Num(speed.upload_mbps));
+  el.innerHTML=`<div class="n360-shell">
+    <section class="n360-hero"><div class="n360-top"><div><p class="n360-eye">Network + VPN Machine View</p><h2>${esc(host(m))}</h2><p class="n360-sub">${n360Text(m.primary_ip||'No LAN IP')} Â· ${n360Text(m.os||'Unknown OS')} Â· Last seen ${ago(m.updated_at)}</p></div><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end"><select class="n360-select" onchange="n360SelectMachine(this.value)">${options}</select>${statusPill(m)}</div></div><div class="n360-chips"><div class="n360-chip"><span>Primary IP</span><strong>${n360Text(m.primary_ip||network.primary_ip||'')}</strong></div><div class="n360-chip"><span>Public IP</span><strong>${n360Text(m.public_ip||pub.public_ip||pub.ip||'')}</strong></div><div class="n360-chip"><span>ISP</span><strong>${n360Text(m.isp_name||pub.isp||pub.org||'')}</strong></div><div class="n360-chip"><span>VPN Status</span><strong>${vpnActive?'Active':'Not detected'}</strong></div><div class="n360-chip"><span>Download Now</span><strong>${fmt(traffic.current_download_mbps??m.wan_download_mbps,' Mbps',2)}</strong></div><div class="n360-chip"><span>Upload Now</span><strong>${fmt(traffic.current_upload_mbps??m.wan_upload_mbps,' Mbps',2)}</strong></div><div class="n360-chip"><span>Adapters</span><strong>${adapters.length}</strong></div></div></section>
+    <section class="n360-layout">
+      <article class="n360-card n360-wide"><h3>Live Network Speed <span class="n360-badge">Animated</span></h3><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px">${n360Meter('Current Download',traffic.current_download_mbps??m.wan_download_mbps,maxSpeed,' Mbps')}${n360Meter('Current Upload',traffic.current_upload_mbps??m.wan_upload_mbps,maxSpeed,' Mbps')}${n360Meter('ISP Download Probe',speed.download_mbps??m.isp_download_mbps,Math.max(maxSpeed,n360Num(speed.download_mbps)),' Mbps')}${n360Meter('ISP Upload Probe',speed.upload_mbps??m.isp_upload_mbps,Math.max(maxSpeed,n360Num(speed.upload_mbps)),' Mbps')}</div></article>
+      <article class="n360-card"><h3>IP Summary <span class="n360-badge">LAN/WAN</span></h3><div class="n360-kv"><span>Primary IP</span><strong>${n360Text(m.primary_ip||network.primary_ip||'')}</strong></div><div class="n360-kv"><span>All LAN IPs</span><strong>${n360Text(allIps)}</strong></div><div class="n360-kv"><span>Receiver Seen IP</span><strong>${n360Text(network.receiver_seen_ip||'')}</strong></div><div class="n360-kv"><span>Public IP</span><strong>${n360Text(m.public_ip||pub.public_ip||pub.ip||'')}</strong></div><div class="n360-kv"><span>Country / City</span><strong>${n360Text((pub.country||'')+(pub.city?' / '+pub.city:''))}</strong></div></article>
+      <article class="n360-card"><h3>ISP + Internet <span class="n360-badge">Provider</span></h3><div class="n360-kv"><span>ISP</span><strong>${n360Text(m.isp_name||pub.isp||'')}</strong></div><div class="n360-kv"><span>Org / AS</span><strong>${n360Text(pub.org||pub.as||'')}</strong></div><div class="n360-kv"><span>Speed Source</span><strong>${n360Text(speed.source||m.isp_speed_source||'')}</strong></div><div class="n360-kv"><span>Day Download</span><strong>${fmt(traffic.today_download_gb??m.today_download_gb,' GB',2)}</strong></div><div class="n360-kv"><span>Day Upload</span><strong>${fmt(traffic.today_upload_gb??m.today_upload_gb,' GB',2)}</strong></div></article>
+      <article class="n360-card"><h3>VPN Detection <span class="n360-badge ${vpnActive?'n360-vpn-on':'n360-vpn-off'}">${vpnActive?'VPN Active':'No VPN'}</span></h3><div class="n360-kv"><span>Status</span><strong>${vpnActive?'Active / detected':'Not detected'}</strong></div><div class="n360-kv"><span>Detected Names</span><strong>${n360Text([...new Set(vpnNames)].join(', '))}</strong></div><div class="n360-kv"><span>VPN Public IP</span><strong>${n360Text(vpn.public_ip||'')}</strong></div><div class="n360-kv"><span>VPN Detail</span><strong>${n360Text(vpn.detail||vpn.status||'')}</strong></div></article>
+      <article class="n360-card n360-wide"><h3>All Network Adapters <span class="n360-badge">${adapters.length} found</span></h3>${n360Table(['Adapter','Type','IP Addresses','MAC','Gateway','DNS','Status'],adapterRows,'No adapter data from this client.')}</article>
+      <article class="n360-card n360-half"><h3>VPN Adapters <span class="n360-badge">${vpnRows.length} found</span></h3>${n360Table(['VPN Adapter','Status','Public IP'],vpnRows,'No VPN adapter detected for this machine.')}</article>
+      <article class="n360-card n360-half"><h3>Raw Network Payload <span class="n360-badge">Advanced</span></h3><details class="n360-details"><summary>Open raw network JSON</summary><pre>${n360Json(network)}</pre></details></article>
+    </section></div>`;
+}
+/* NETWORK_VPN_MACHINE_WISE_ONLY_END */
+
+/* NETWORK_TODAY_IP_CHANGE_RECORDS_START */
+/*
+  Adds Today IP Change Records under Network + VPN page only.
+  Uses existing /api/changes API and current machine selection.
+  Does not change theme, other pages, or backend.
+*/
+async function n360LoadTodayIpChanges(machineId){
+  const box=document.getElementById('n360TodayIpChangesBox');
+  if(!box) return;
+  try{
+    const d=await api('/api/changes');
+    const rows=(d.changes||[]).filter(c=>{
+      const typ=String(c.change_type||c.type||'').toLowerCase();
+      const same=!machineId || c.machine_id===machineId;
+      const day=new Date(c.created_at||c.time||Date.now()).toDateString()===new Date().toDateString();
+      return same && day && (typ==='ip' || typ.includes('ip'));
+    }).slice(0,80);
+
+    if(!rows.length){
+      box.innerHTML='<div class="n360-empty">No IP change record found today for selected machine.</div>';
+      return;
+    }
+
+    box.innerHTML = n360Table(
+      ['Time','Machine','Change','Added IP / Adapter','Removed IP / Adapter'],
+      rows.map(c=>{
+        const added=(c.added_items||[]).join('<br>') || c.added_text || '';
+        const removed=(c.removed_items||[]).join('<br>') || c.removed_text || '';
+        return `<tr>
+          <td>${esc(new Date(c.created_at||c.time).toLocaleString())}</td>
+          <td><strong>${esc(c.hostname||c.machine_id||'')}</strong></td>
+          <td>${esc(c.human_message||c.message||c.title||'IP changed')}</td>
+          <td>${added ? added : 'N/A'}</td>
+          <td>${removed ? removed : 'N/A'}</td>
+        </tr>`;
+      }),
+      'No IP change record found today.'
+    );
+  }catch(e){
+    box.innerHTML='<div class="n360-empty">Unable to load today IP change record. Check server change log API.</div>';
+  }
+}
+
+if(!window.__n360TodayIpHooked){
+  window.__n360TodayIpHooked = true;
+  window.__n360BaseRenderNetwork = renderNetwork;
+  renderNetwork = function(){
+    window.__n360BaseRenderNetwork();
+    setTimeout(()=>{
+      const layout=document.querySelector('#page-network .n360-layout');
+      const m=(typeof n360Selected==='function') ? n360Selected() : null;
+      if(!layout || document.getElementById('n360TodayIpChangesCard')) return;
+      const card=document.createElement('article');
+      card.className='n360-card n360-wide';
+      card.id='n360TodayIpChangesCard';
+      card.innerHTML=`<h3>Today IP Change Records - All LAN Adapters <span class="n360-badge">Today</span></h3><div id="n360TodayIpChangesBox"><div class="n360-empty">Loading today IP changes...</div></div>`;
+      layout.appendChild(card);
+      n360LoadTodayIpChanges(m ? m.machine_id : '');
+    },120);
+  };
+}
+/* NETWORK_TODAY_IP_CHANGE_RECORDS_END */
 

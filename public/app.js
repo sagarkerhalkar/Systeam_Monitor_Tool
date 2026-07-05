@@ -1408,3 +1408,426 @@ if(!window.__n360TodayIpHooked){
 }
 /* NETWORK_TODAY_IP_CHANGE_RECORDS_END */
 
+/* HARDWARE_PREMIUM_PAGE_ONLY_START */
+/*
+  Hardware page premium commercial UI override.
+  Scope: only #page-hardware and renderHardware().
+  Other pages, server.py, dashboard, fleet, Machine 360, Network, USB, Software are untouched.
+*/
+function h360Style(){
+  const old=document.getElementById('h360Style'); if(old) old.remove();
+  const s=document.createElement('style'); s.id='h360Style';
+  s.textContent=`
+  #page-hardware{--hb:#2563eb;--hc:#06b6d4;--hi:#0f172a;--hm:#64748b;--hl:rgba(148,163,184,.25);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+  #page-hardware #hardwareCards{display:block!important;width:100%!important;max-width:none!important}
+  #page-hardware .h360-shell{width:100%;animation:h360Up .45s ease both;color:var(--hi)}
+  #page-hardware .h360-hero{position:relative;overflow:hidden;border-radius:30px;padding:24px;background:radial-gradient(circle at 10% 10%,rgba(37,99,235,.34),transparent 30%),radial-gradient(circle at 90% 18%,rgba(6,182,212,.28),transparent 30%),linear-gradient(135deg,rgba(255,255,255,.96),rgba(239,246,255,.90));border:1px solid rgba(255,255,255,.88);box-shadow:0 24px 80px rgba(30,64,175,.16);isolation:isolate}
+  #page-hardware .h360-hero:before{content:"";position:absolute;inset:-90px;background:conic-gradient(from 140deg,rgba(37,99,235,.12),rgba(6,182,212,.22),rgba(79,70,229,.12),rgba(37,99,235,.12));filter:blur(18px);animation:h360Aura 9s linear infinite;z-index:-1}
+  #page-hardware .h360-top{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap}
+  #page-hardware .h360-eye{letter-spacing:.24em;text-transform:uppercase;font-size:11px;font-weight:900;color:var(--hb);margin:0 0 8px}
+  #page-hardware .h360-hero h2{margin:0;font-size:clamp(26px,3vw,44px);line-height:1.03;letter-spacing:-.04em;color:#08111f}
+  #page-hardware .h360-sub{margin:10px 0 0;color:var(--hm);font-weight:650;font-size:14px}
+  #page-hardware .h360-select{min-width:320px;max-width:560px;border:1px solid rgba(37,99,235,.18);background:rgba(255,255,255,.92);color:#0f172a;border-radius:16px;padding:11px 14px;font-weight:800;outline:none;box-shadow:0 12px 26px rgba(30,64,175,.10)}
+  #page-hardware .h360-chips{margin-top:22px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+  #page-hardware .h360-chip{border-radius:20px;padding:14px 15px;background:rgba(255,255,255,.80);border:1px solid rgba(255,255,255,.90);box-shadow:0 12px 30px rgba(30,64,175,.10);backdrop-filter:blur(16px);transition:.22s}
+  #page-hardware .h360-chip:hover,#page-hardware .h360-card:hover{transform:translateY(-3px);box-shadow:0 24px 55px rgba(30,64,175,.16)}
+  #page-hardware .h360-chip span{display:block;color:var(--hm);font-size:11px;font-weight:850;text-transform:uppercase;letter-spacing:.08em}
+  #page-hardware .h360-chip strong{display:block;margin-top:6px;font-size:20px;color:#0f172a;letter-spacing:-.02em;word-break:break-word}
+  #page-hardware .h360-layout{margin-top:18px;display:grid;grid-template-columns:repeat(12,1fr);gap:16px;align-items:start}
+  #page-hardware .h360-card{grid-column:span 4;border-radius:24px;background:rgba(255,255,255,.84);border:1px solid rgba(255,255,255,.82);box-shadow:0 14px 34px rgba(15,23,42,.10);padding:18px;backdrop-filter:blur(18px);min-width:0;animation:h360Up .45s ease both}
+  #page-hardware .h360-wide{grid-column:1/-1}.h360-half{grid-column:span 6}.h360-third{grid-column:span 4}
+  #page-hardware .h360-card h3{margin:0 0 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:17px;letter-spacing:-.02em;color:#0f172a}
+  #page-hardware .h360-badge{display:inline-flex;border-radius:999px;padding:5px 10px;font-size:11px;font-weight:900;color:#1d4ed8;background:rgba(37,99,235,.10);border:1px solid rgba(37,99,235,.18)}
+  #page-hardware .h360-warn{color:#b45309;background:rgba(245,158,11,.13);border-color:rgba(245,158,11,.24)}
+  #page-hardware .h360-ok{color:#047857;background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.22)}
+  #page-hardware .h360-kv{display:grid;grid-template-columns:minmax(120px,165px) 1fr;gap:9px 12px;padding:8px 0;border-bottom:1px dashed var(--hl);align-items:start}
+  #page-hardware .h360-kv span{color:var(--hm);font-size:12px;font-weight:800}
+  #page-hardware .h360-kv strong{color:#0f172a;font-size:13px;word-break:break-word;font-weight:850}
+  #page-hardware code{color:#1e3a8a;background:rgba(37,99,235,.07);border:1px solid rgba(37,99,235,.13);border-radius:8px;padding:2px 5px;font-family:"Cascadia Code","Consolas",monospace;font-size:11px}
+  #page-hardware .h360-scroll{width:100%;max-height:310px;overflow:auto;border-radius:18px;border:1px solid rgba(148,163,184,.24);background:rgba(255,255,255,.66)}
+  #page-hardware .h360-scroll.small{max-height:240px}
+  #page-hardware .h360-table{width:100%;border-collapse:separate;border-spacing:0;min-width:780px;font-size:13px}
+  #page-hardware .h360-table.compact{min-width:620px}
+  #page-hardware .h360-table th{position:sticky;top:0;z-index:2;text-align:left;padding:11px;color:#334155;background:linear-gradient(180deg,#f8fbff,#eef6ff);border-bottom:1px solid rgba(148,163,184,.28);font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+  #page-hardware .h360-table td{padding:11px;border-bottom:1px solid rgba(148,163,184,.16);color:#0f172a;vertical-align:top;font-weight:650}
+  #page-hardware .h360-table tr:hover td{background:rgba(37,99,235,.045)}
+  #page-hardware .h360-table small{display:block;color:var(--hm);margin-top:4px;font-weight:650}
+  #page-hardware .h360-empty{border-radius:18px;padding:18px;background:rgba(248,250,252,.8);color:var(--hm);border:1px dashed rgba(100,116,139,.30);font-weight:750}
+  #page-hardware .h360-meters{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+  #page-hardware .h360-meter{border-radius:18px;padding:14px;background:linear-gradient(180deg,rgba(255,255,255,.86),rgba(239,246,255,.76));border:1px solid rgba(255,255,255,.9);box-shadow:0 12px 24px rgba(30,64,175,.08)}
+  #page-hardware .h360-meter span{display:flex;justify-content:space-between;color:#334155;font-weight:900;font-size:12px;margin-bottom:8px}
+  #page-hardware .h360-bar{height:10px;background:#e2e8f0;border-radius:999px;overflow:hidden}
+  #page-hardware .h360-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--hb),var(--hc));width:0;animation:h360Grow .8s ease forwards}
+  #page-hardware .h360-fill.warn{background:linear-gradient(90deg,#f59e0b,#ef4444)}
+  #page-hardware details.h360-details summary{cursor:pointer;font-weight:900;color:#1d4ed8}
+  #page-hardware details.h360-details pre{white-space:pre-wrap;max-height:260px;overflow:auto;background:#0b1220;color:#dbeafe;border-radius:16px;padding:14px;font-size:12px;line-height:1.55}
+  @keyframes h360Up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}@keyframes h360Aura{to{transform:rotate(360deg)}}@keyframes h360Grow{from{width:0}to{width:var(--w)}}
+  @media(max-width:1100px){#page-hardware .h360-card,#page-hardware .h360-half,#page-hardware .h360-third{grid-column:1/-1}#page-hardware .h360-select{min-width:240px;width:100%}}@media(max-width:720px){#page-hardware .h360-hero{padding:18px;border-radius:22px}#page-hardware .h360-kv{grid-template-columns:1fr}}
+  `;
+  document.head.appendChild(s);
+}
+function h360List(v){try{if(typeof arr==='function')return arr(v)}catch(e){} if(v==null||v==='')return[]; if(Array.isArray(v))return v.flatMap(h360List); if(typeof v==='object'){const d=['name','display_name','mount','device','used_percent','total_gb','memory_total_mb','temperature_c']; if(d.some(k=>Object.prototype.hasOwnProperty.call(v,k)))return[v]; return Object.values(v).flatMap(h360List)} return[v]}
+function h360Obj(v){return(v&&typeof v==='object'&&!Array.isArray(v))?v:{}}
+function h360Text(v){return esc(v===undefined||v===null||v===''?'N/A':v)}
+function h360Json(v){try{return esc(JSON.stringify(v,null,2))}catch(e){return esc(String(v||''))}}
+function h360Num(v){const n=Number(v||0);return Number.isFinite(n)?n:0}
+function h360Pct(v){return Math.max(0,Math.min(100,h360Num(v)))}
+function h360Mem(mb){try{return typeof fmtMemMb==='function'?fmtMemMb(mb):fmt(Number(mb||0)/1024,' GB')}catch(e){return 'N/A'}}
+function h360MachineLabel(m){return`${host(m)} - ${m.primary_ip||((m.all_ips||[])[0]||'No IP')}`}
+function h360Selected(){const stored=localStorage.getItem('sagar_hardware_machine')||state.selected||'';let m=state.machines.find(x=>x.machine_id===stored)||state.machines[0]||null;if(m){localStorage.setItem('sagar_hardware_machine',m.machine_id);state.selected=m.machine_id;localStorage.setItem('sagar_selected_machine',m.machine_id)}return m}
+function h360SelectMachine(v){localStorage.setItem('sagar_hardware_machine',v||'');if(v){state.selected=v;localStorage.setItem('sagar_selected_machine',v)}renderHardware()}
+function h360Meter(label,value,unit){const p=h360Pct(value);const warn=p>=90?'warn':'';return`<div class="h360-meter"><span><b>${esc(label)}</b><b>${fmt(value,unit||'%')}</b></span><div class="h360-bar"><div class="h360-fill ${warn}" style="--w:${p}%"></div></div></div>`}
+function h360Table(headers,rows,empty,compact=false){if(!rows||!rows.length)return`<div class="h360-empty">${esc(empty||'No data available.')}</div>`;return`<div class="h360-scroll ${compact?'small':''}"><table class="h360-table ${compact?'compact':''}"><thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div>`}
+function h360DiskName(d){return d.mount||d.name||d.device||d.drive||d.DriveLetter||'Disk'}
+function h360GpuName(g){return String(g.name||g.gpu_name||'GPU').replace(/^\s*\d{2}:\d{2}\.\d+\s+[^:]+:\s*/,'').trim()}
+function h360Health(m){const bad=[];if(h360Num(m.cpu_percent)>=90)bad.push('CPU');if(h360Num(m.ram_percent)>=90)bad.push('RAM');if(h360Num(m.disk_max_percent)>=90)bad.push('Disk');if(h360Num(m.gpu_max_temp_c)>=90)bad.push('GPU Temp');return bad}
+
+function renderHardware(){
+  h360Style();
+  const el=$('#hardwareCards'); if(!el)return;
+  if(!state.machines.length){el.innerHTML='<div class="h360-empty">No hardware data yet. Wait for client heartbeat.</div>';return}
+  const m=h360Selected(); if(!m){el.innerHTML='<div class="h360-empty">Select one machine.</div>';return}
+
+  const p=payload(m), hw=h360Obj(nested(p,'hardware',{})), cpu=h360Obj(nested(p,'hardware.cpu',{})), mem=h360Obj(nested(p,'hardware.memory',{})), identity=h360Obj(nested(p,'identity',{}));
+  const disks=h360List(nested(p,'storage.disks',[])).filter(x=>x&&typeof x==='object');
+  const gpus=h360List(nested(p,'hardware.gpus',[])).filter(x=>x&&typeof x==='object');
+  const options=state.machines.map(x=>`<option value="${esc(x.machine_id)}" ${x.machine_id===m.machine_id?'selected':''}>${esc(h360MachineLabel(x))}</option>`).join('');
+  const health=h360Health(m);
+
+  const diskRows=disks.map(d=>`<tr><td><strong>${h360Text(h360DiskName(d))}</strong><small>${h360Text(d.type||d.media_type||d.filesystem||'')}</small></td><td>${fmt(d.used_percent??d.usage_percent,'%')}</td><td>${fmt(d.total_gb??d.size_gb,' GB')}</td><td>${fmt(d.used_gb,' GB')}</td><td>${fmt(d.free_gb,' GB')}</td><td><code>${h360Text(d.serial||d.model||d.device||'')}</code></td></tr>`);
+  const gpuRows=gpus.map(g=>`<tr><td><strong>${h360Text(h360GpuName(g))}</strong><small>${h360Text(g.source||'client')}</small></td><td>${fmt(g.usage_percent??g.utilization_gpu??g.load_percent,'%')}</td><td>${fmt(g.temperature_c??g.temp_c,' C')}</td><td>${h360Mem(g.memory_total_mb||g.adapter_ram_mb||g.dedicated_memory_mb||0)}</td><td>${h360Mem(g.memory_used_mb||0)}</td><td>${h360Text(g.driver_version||g.driver||'')}</td></tr>`);
+  const fleetRows=state.machines.map(x=>`<tr><td><strong>${esc(host(x))}</strong><small>${esc(x.primary_ip||'No IP')}</small></td><td>${statusPill(x)}</td><td>${fmt(x.cpu_percent,'%')}</td><td>${fmt(x.ram_percent,'%')}</td><td>${fmt(x.disk_max_percent,'%')}</td><td>${fmt(x.gpu_max_temp_c,' C')}</td><td><span class="h360-badge ${h360Health(x).length?'h360-warn':'h360-ok'}">${h360Health(x).length?h360Health(x).join(', '):'Healthy'}</span></td></tr>`);
+
+  el.innerHTML=`<div class="h360-shell">
+    <section class="h360-hero">
+      <div class="h360-top">
+        <div><p class="h360-eye">Global Hardware Command View</p><h2>${esc(host(m))}</h2><p class="h360-sub">${h360Text(m.primary_ip||'No LAN IP')} Â· ${h360Text(m.os||'Unknown OS')} Â· Last seen ${ago(m.updated_at)}</p></div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end"><select class="h360-select" onchange="h360SelectMachine(this.value)">${options}</select>${statusPill(m)}</div>
+      </div>
+      <div class="h360-chips">
+        <div class="h360-chip"><span>CPU</span><strong>${fmt(m.cpu_percent,'%')}</strong></div>
+        <div class="h360-chip"><span>RAM</span><strong>${fmt(m.ram_used_gb,' GB')} / ${fmt(m.ram_total_gb,' GB')}</strong></div>
+        <div class="h360-chip"><span>Disk Max</span><strong>${fmt(m.disk_max_percent,'%')}</strong></div>
+        <div class="h360-chip"><span>CPU Temp</span><strong>${fmt(m.cpu_temp_c,' C')}</strong></div>
+        <div class="h360-chip"><span>GPU</span><strong>${gpus.length||m.gpu_count||0}</strong></div>
+        <div class="h360-chip"><span>GPU Temp</span><strong>${fmt(m.gpu_max_temp_c,' C')}</strong></div>
+        <div class="h360-chip"><span>Health</span><strong>${health.length?health.join(', '):'Healthy'}</strong></div>
+      </div>
+    </section>
+
+    <section class="h360-layout">
+      <article class="h360-card h360-wide"><h3>Live Hardware Usage <span class="h360-badge">Animated</span></h3><div class="h360-meters">${h360Meter('CPU Usage',cpu.usage_percent??m.cpu_percent,'%')}${h360Meter('RAM Usage',mem.used_percent??m.ram_percent,'%')}${h360Meter('Disk Usage',m.disk_max_percent,'%')}${h360Meter('GPU Usage',m.gpu_max_usage,'%')}</div></article>
+
+      <article class="h360-card h360-third"><h3>Processor <span class="h360-badge">CPU</span></h3><div class="h360-kv"><span>Name</span><strong>${h360Text(cpu.name||cpu.model||'')}</strong></div><div class="h360-kv"><span>Cores / Threads</span><strong>${h360Text(cpu.cores||'')} / ${h360Text(cpu.threads||'')}</strong></div><div class="h360-kv"><span>Usage</span><strong>${fmt(cpu.usage_percent??m.cpu_percent,'%')}</strong></div><div class="h360-kv"><span>Temperature</span><strong>${fmt(cpu.temperature_c??m.cpu_temp_c,' C')}</strong></div></article>
+
+      <article class="h360-card h360-third"><h3>Memory <span class="h360-badge">RAM</span></h3><div class="h360-kv"><span>Total</span><strong>${fmt(mem.total_gb??m.ram_total_gb,' GB')}</strong></div><div class="h360-kv"><span>Used</span><strong>${fmt(mem.used_gb??m.ram_used_gb,' GB')}</strong></div><div class="h360-kv"><span>Free</span><strong>${fmt(mem.free_gb??m.ram_free_gb,' GB')}</strong></div><div class="h360-kv"><span>Usage</span><strong>${fmt(mem.used_percent??m.ram_percent,'%')}</strong></div></article>
+
+      <article class="h360-card h360-third"><h3>Identity <span class="h360-badge">Asset</span></h3><div class="h360-kv"><span>Machine ID</span><strong><code>${h360Text(m.machine_id)}</code></strong></div><div class="h360-kv"><span>UUID</span><strong><code>${h360Text(identity.system_uuid||'')}</code></strong></div><div class="h360-kv"><span>BIOS Serial</span><strong><code>${h360Text(identity.bios_serial||'')}</code></strong></div><div class="h360-kv"><span>Board Serial</span><strong><code>${h360Text(identity.motherboard_serial||identity.baseboard_serial||'')}</code></strong></div></article>
+
+      <article class="h360-card h360-half"><h3>Storage / Drives <span class="h360-badge">${disks.length} found</span></h3>${h360Table(['Drive','Used %','Total','Used','Free','Serial / Model'],diskRows,'No disk/storage data from this client.',true)}</article>
+      <article class="h360-card h360-half"><h3>GPU / Graphics <span class="h360-badge">${gpus.length} found</span></h3>${h360Table(['GPU','Usage','Temp','Total Memory','Used Memory','Driver'],gpuRows,'No GPU data from this client.',true)}</article>
+
+      <article class="h360-card h360-wide"><h3>Hardware Fleet Overview <span class="h360-badge">${state.machines.length} machines</span></h3>${h360Table(['Machine','Status','CPU','RAM','Disk','GPU Temp','Health'],fleetRows,'No fleet hardware data.',true)}</article>
+
+      <article class="h360-card h360-wide"><h3>Raw Hardware Payload <span class="h360-badge">Collapsed</span></h3><details class="h360-details"><summary>Open advanced raw hardware JSON only when needed</summary><pre>${h360Json(hw)}</pre></details></article>
+    </section>
+  </div>`;
+}
+/* HARDWARE_PREMIUM_PAGE_ONLY_END */
+
+/* SOFTWARE_UNIVERSAL_3D_PAGE_ONLY_START */
+/*
+  Universal 3D Software page UI override.
+  Scope: only #page-software and renderSoftware().
+  Existing software data is used; backend and other pages are untouched.
+*/
+function swuStyle(){
+  const old=document.getElementById('swuStyle'); if(old) old.remove();
+  const s=document.createElement('style'); s.id='swuStyle';
+  s.textContent=`
+  #page-software{
+    --u-bg:#f7fbff;
+    --u-ink:#09111f;
+    --u-muted:#667085;
+    --u-blue:#2563eb;
+    --u-cyan:#06b6d4;
+    --u-violet:#7c3aed;
+    --u-green:#10b981;
+    --u-red:#ef4444;
+    --u-line:rgba(148,163,184,.24);
+    font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  }
+  #page-software #softwareCards,#page-software #softwareTable,#page-software .software-list{
+    display:block!important;width:100%!important;max-width:none!important;
+  }
+  #page-software .swu-shell{width:100%;color:var(--u-ink);animation:swuUp .45s ease both}
+  #page-software .swu-hero{
+    position:relative;
+    overflow:hidden;
+    min-height:250px;
+    border-radius:34px;
+    padding:26px;
+    background:
+      linear-gradient(135deg,rgba(255,255,255,.94),rgba(239,246,255,.90)),
+      radial-gradient(circle at 16% 20%,rgba(37,99,235,.30),transparent 32%),
+      radial-gradient(circle at 84% 18%,rgba(124,58,237,.24),transparent 32%),
+      radial-gradient(circle at 52% 95%,rgba(6,182,212,.24),transparent 36%);
+    border:1px solid rgba(255,255,255,.90);
+    box-shadow:0 28px 90px rgba(30,64,175,.17);
+    isolation:isolate;
+    perspective:1100px;
+  }
+  #page-software .swu-hero:before{
+    content:"";
+    position:absolute;
+    inset:-130px;
+    background:conic-gradient(from 90deg,rgba(37,99,235,.13),rgba(6,182,212,.22),rgba(124,58,237,.16),rgba(37,99,235,.13));
+    filter:blur(24px);
+    animation:swuAura 10s linear infinite;
+    z-index:-2;
+  }
+  #page-software .swu-hero:after{
+    content:"";
+    position:absolute;
+    right:24px;
+    top:22px;
+    width:270px;
+    height:190px;
+    background:
+      linear-gradient(135deg,rgba(37,99,235,.16),rgba(6,182,212,.10)),
+      repeating-linear-gradient(90deg,transparent 0 17px,rgba(37,99,235,.08) 18px 19px),
+      repeating-linear-gradient(0deg,transparent 0 17px,rgba(37,99,235,.06) 18px 19px);
+    border:1px solid rgba(37,99,235,.16);
+    border-radius:28px;
+    transform:rotateX(62deg) rotateZ(-16deg) translateY(-8px);
+    box-shadow:0 36px 70px rgba(37,99,235,.18);
+    opacity:.78;
+    z-index:-1;
+    animation:swuFloat 4.5s ease-in-out infinite;
+  }
+  #page-software .swu-top{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap;position:relative;z-index:2}
+  #page-software .swu-eye{letter-spacing:.24em;text-transform:uppercase;font-size:11px;font-weight:950;color:var(--u-blue);margin:0 0 8px}
+  #page-software .swu-hero h2{margin:0;font-size:clamp(28px,3.2vw,48px);line-height:1;letter-spacing:-.05em;color:#07111f}
+  #page-software .swu-sub{margin:10px 0 0;color:var(--u-muted);font-weight:700;font-size:14px}
+  #page-software .swu-control{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+  #page-software .swu-select,#page-software .swu-search{
+    border:1px solid rgba(37,99,235,.18);
+    background:rgba(255,255,255,.92);
+    color:#0f172a;
+    border-radius:18px;
+    padding:12px 15px;
+    font-weight:850;
+    outline:none;
+    box-shadow:0 12px 30px rgba(30,64,175,.11);
+  }
+  #page-software .swu-select{min-width:330px;max-width:580px}
+  #page-software .swu-search{min-width:310px}
+  #page-software .swu-orbit{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(145px,1fr));
+    gap:14px;
+    margin-top:24px;
+    position:relative;
+    z-index:2;
+  }
+  #page-software .swu-appcard{
+    position:relative;
+    overflow:hidden;
+    border-radius:24px;
+    padding:16px;
+    background:rgba(255,255,255,.78);
+    border:1px solid rgba(255,255,255,.90);
+    box-shadow:0 16px 34px rgba(30,64,175,.12), inset 0 1px 0 rgba(255,255,255,.7);
+    transform-style:preserve-3d;
+    transition:transform .24s ease, box-shadow .24s ease;
+    backdrop-filter:blur(18px);
+  }
+  #page-software .swu-appcard:hover{transform:translateY(-6px) rotateX(4deg) rotateY(-4deg);box-shadow:0 28px 70px rgba(30,64,175,.19)}
+  #page-software .swu-appcard:before{
+    content:"";
+    position:absolute;
+    right:-22px;
+    top:-26px;
+    width:82px;
+    height:82px;
+    border-radius:26px;
+    background:linear-gradient(135deg,rgba(37,99,235,.22),rgba(6,182,212,.10));
+    transform:rotate(18deg);
+  }
+  #page-software .swu-icon{
+    width:42px;height:42px;border-radius:14px;
+    display:grid;place-items:center;
+    color:white;font-weight:950;
+    background:linear-gradient(135deg,var(--u-blue),var(--u-cyan));
+    box-shadow:0 14px 28px rgba(37,99,235,.25);
+    margin-bottom:10px;
+  }
+  #page-software .swu-appcard span{display:block;color:var(--u-muted);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.08em}
+  #page-software .swu-appcard strong{display:block;margin-top:6px;font-size:22px;color:#0f172a;letter-spacing:-.03em;word-break:break-word}
+  #page-software .swu-layout{margin-top:18px;display:grid;grid-template-columns:repeat(12,1fr);gap:16px;align-items:start}
+  #page-software .swu-card{
+    grid-column:span 6;
+    border-radius:26px;
+    background:rgba(255,255,255,.86);
+    border:1px solid rgba(255,255,255,.88);
+    box-shadow:0 16px 38px rgba(15,23,42,.10);
+    padding:18px;
+    backdrop-filter:blur(18px);
+    animation:swuUp .45s ease both;
+    transition:transform .22s ease, box-shadow .22s ease;
+  }
+  #page-software .swu-card:hover{transform:translateY(-3px);box-shadow:0 24px 60px rgba(30,64,175,.16)}
+  #page-software .swu-wide{grid-column:1/-1}
+  #page-software .swu-card h3{margin:0 0 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:18px;letter-spacing:-.025em;color:#0f172a}
+  #page-software .swu-badge{display:inline-flex;align-items:center;border-radius:999px;padding:6px 11px;font-size:11px;font-weight:950;color:#1d4ed8;background:rgba(37,99,235,.10);border:1px solid rgba(37,99,235,.18)}
+  #page-software .swu-add{color:#047857;background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.22)}
+  #page-software .swu-rem{color:#b91c1c;background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.22)}
+  #page-software .swu-stack{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+  #page-software .swu-mini{
+    border:1px solid rgba(148,163,184,.22);
+    background:linear-gradient(180deg,rgba(255,255,255,.78),rgba(248,251,255,.80));
+    border-radius:20px;
+    padding:13px;
+  }
+  #page-software .swu-mini span{display:block;color:var(--u-muted);font-size:12px;font-weight:850}
+  #page-software .swu-mini strong{display:block;margin-top:5px;color:#0f172a;font-size:13px;word-break:break-word}
+  #page-software .swu-scroll{width:100%;max-height:500px;overflow:auto;border-radius:20px;border:1px solid rgba(148,163,184,.24);background:rgba(255,255,255,.68)}
+  #page-software .swu-scroll.small{max-height:330px}
+  #page-software .swu-table{width:100%;border-collapse:separate;border-spacing:0;min-width:920px;font-size:13px}
+  #page-software .swu-table th{position:sticky;top:0;z-index:2;text-align:left;padding:12px;color:#334155;background:linear-gradient(180deg,#f8fbff,#eef6ff);border-bottom:1px solid rgba(148,163,184,.28);font-size:12px;text-transform:uppercase;letter-spacing:.08em}
+  #page-software .swu-table td{padding:12px;border-bottom:1px solid rgba(148,163,184,.16);color:#0f172a;vertical-align:top;font-weight:650}
+  #page-software .swu-table tr:hover td{background:rgba(37,99,235,.045)}
+  #page-software .swu-table small{display:block;color:var(--u-muted);margin-top:4px;font-weight:650}
+  #page-software .swu-empty{border-radius:20px;padding:18px;background:rgba(248,250,252,.82);color:var(--u-muted);border:1px dashed rgba(100,116,139,.30);font-weight:800}
+  #page-software code{color:#1e3a8a;background:rgba(37,99,235,.07);border:1px solid rgba(37,99,235,.13);border-radius:8px;padding:2px 5px;font-family:"Cascadia Code","Consolas",monospace;font-size:11px}
+  @keyframes swuUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes swuAura{to{transform:rotate(360deg)}}
+  @keyframes swuFloat{0%,100%{transform:rotateX(62deg) rotateZ(-16deg) translateY(-8px)}50%{transform:rotateX(62deg) rotateZ(-13deg) translateY(8px)}}
+  @media(max-width:1100px){#page-software .swu-card{grid-column:1/-1}#page-software .swu-select,#page-software .swu-search{min-width:240px;width:100%}}
+  @media(max-width:720px){#page-software .swu-hero{padding:18px;border-radius:24px}#page-software .swu-hero:after{display:none}}
+  `;
+  document.head.appendChild(s);
+}
+function swuList(v){try{if(typeof arr==='function')return arr(v)}catch(e){} if(v==null||v==='')return[]; if(Array.isArray(v))return v.flatMap(swuList); if(typeof v==='object'){const d=['name','display_name','DisplayName','version','publisher','vendor','install_date']; if(d.some(k=>Object.prototype.hasOwnProperty.call(v,k)))return[v]; return Object.values(v).flatMap(swuList)} return[v]}
+function swuText(v){return esc(v===undefined||v===null||v===''?'N/A':v)}
+function swuName(a){return a.name||a.display_name||a.DisplayName||a.package||'Unknown software'}
+function swuVersion(a){return a.version||a.DisplayVersion||''}
+function swuPublisher(a){return a.publisher||a.vendor||a.Publisher||''}
+function swuDate(a){try{return typeof fmtInstallDate==='function'?fmtInstallDate(a.install_date||a.installDate||a.InstallDate||''):(a.install_date||a.installDate||a.InstallDate||'')}catch(e){return a.install_date||a.installDate||a.InstallDate||''}}
+function swuMachineLabel(m){return`${host(m)} - ${m.primary_ip||((m.all_ips||[])[0]||'No IP')}`}
+function swuSelected(){const stored=localStorage.getItem('sagar_software_machine')||state.selected||'';let m=state.machines.find(x=>x.machine_id===stored)||state.machines[0]||null;if(m){localStorage.setItem('sagar_software_machine',m.machine_id);state.selected=m.machine_id;localStorage.setItem('sagar_selected_machine',m.machine_id)}return m}
+function swuSelectMachine(v){localStorage.setItem('sagar_software_machine',v||'');if(v){state.selected=v;localStorage.setItem('sagar_selected_machine',v)}renderSoftware()}
+function swuSearch(v){localStorage.setItem('sagar_software_search',v||'');renderSoftware()}
+function swuTable(headers,rows,empty,small=false){if(!rows||!rows.length)return`<div class="swu-empty">${esc(empty||'No data available.')}</div>`;return`<div class="swu-scroll ${small?'small':''}"><table class="swu-table"><thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div>`}
+function swuInitial(name){return esc(String(name||'S').trim().charAt(0).toUpperCase()||'S')}
+
+async function swuLoadTodayChanges(machineId){
+  const box=document.getElementById('swuTodayChangesBox');
+  if(!box) return;
+  try{
+    const d=await api('/api/changes');
+    const rows=(d.changes||[]).filter(c=>{
+      const txt=String((c.change_type||c.type||'')+' '+(c.human_message||c.message||c.title||'')).toLowerCase();
+      const same=!machineId || c.machine_id===machineId;
+      const day=new Date(c.created_at||c.time||Date.now()).toDateString()===new Date().toDateString();
+      return same && day && (txt.includes('software') || txt.includes('app') || txt.includes('program') || txt.includes('installed') || txt.includes('removed'));
+    }).slice(0,100);
+
+    if(!rows.length){
+      box.innerHTML='<div class="swu-empty">No software added or removed today for selected machine.</div>';
+      return;
+    }
+
+    box.innerHTML=swuTable(
+      ['Time','Action','Software Change Details','Added Software','Removed Software'],
+      rows.map(c=>{
+        const added=(c.added_items||[]).map(esc).join('<br>') || esc(c.added_text||'');
+        const removed=(c.removed_items||[]).map(esc).join('<br>') || esc(c.removed_text||'');
+        const msg=esc(c.human_message||c.message||c.title||'Software changed');
+        let action='Changed', cls='swu-badge';
+        if(added && !removed){action='Added'; cls='swu-badge swu-add';}
+        if(removed && !added){action='Removed'; cls='swu-badge swu-rem';}
+        if(added && removed){action='Added + Removed';}
+        return `<tr><td>${esc(new Date(c.created_at||c.time).toLocaleString())}</td><td><span class="${cls}">${action}</span></td><td>${msg}</td><td>${added||'N/A'}</td><td>${removed||'N/A'}</td></tr>`;
+      }),
+      'No software change record found today.',
+      true
+    );
+  }catch(e){
+    box.innerHTML='<div class="swu-empty">Unable to load today software changes. Check server change log API.</div>';
+  }
+}
+
+function renderSoftware(){
+  swuStyle();
+  let el=$('#softwareCards') || $('#softwareTable') || document.querySelector('#page-software .software-list') || document.querySelector('#page-software .grid') || document.querySelector('#page-software .panel');
+  if(!el) return;
+  if(!state.machines.length){el.innerHTML='<div class="swu-empty">No software data yet. Wait for client heartbeat.</div>';return}
+
+  const m=swuSelected(); if(!m){el.innerHTML='<div class="swu-empty">Select one machine.</div>';return}
+  const p=payload(m);
+  const apps=swuList(nested(p,'software.installed',nested(p,'software',[]))).filter(x=>x&&typeof x==='object');
+  const search=(localStorage.getItem('sagar_software_search')||'').toLowerCase().trim();
+  const filtered=search ? apps.filter(a=>`${swuName(a)} ${swuVersion(a)} ${swuPublisher(a)}`.toLowerCase().includes(search)) : apps;
+  const options=state.machines.map(x=>`<option value="${esc(x.machine_id)}" ${x.machine_id===m.machine_id?'selected':''}>${esc(swuMachineLabel(x))}</option>`).join('');
+
+  const publishers=[...new Set(apps.map(swuPublisher).filter(Boolean))];
+  const withVersion=apps.filter(a=>swuVersion(a)).length;
+  const recentInstalled=apps.filter(a=>String(swuDate(a)||'').trim()).slice(0,6);
+  const topPublishers=publishers.slice(0,8);
+  const rows=filtered.map((a,i)=>`<tr><td><strong>${swuText(swuName(a))}</strong><small>App #${i+1}</small></td><td>${swuText(swuVersion(a))}</td><td>${swuText(swuPublisher(a))}</td><td>${swuText(swuDate(a))}</td><td><code>${swuText(a.install_location||a.InstallLocation||a.source||'')}</code></td></tr>`);
+  const pubCards=topPublishers.map(x=>`<div class="swu-mini"><span>Publisher</span><strong>${swuText(x)}</strong></div>`).join('');
+  const recentCards=recentInstalled.map(a=>`<div class="swu-mini"><span>${swuText(swuDate(a))}</span><strong>${swuText(swuName(a))}</strong></div>`).join('');
+
+  el.innerHTML=`<div class="swu-shell">
+    <section class="swu-hero">
+      <div class="swu-top">
+        <div>
+          <p class="swu-eye">Universal Software Intelligence</p>
+          <h2>${esc(host(m))}</h2>
+          <p class="swu-sub">${swuText(m.primary_ip||'No LAN IP')} Â· ${swuText(m.os||'Unknown OS')} Â· Last seen ${ago(m.updated_at)}</p>
+        </div>
+        <div class="swu-control">
+          <select class="swu-select" onchange="swuSelectMachine(this.value)">${options}</select>
+          ${statusPill(m)}
+        </div>
+      </div>
+      <div class="swu-orbit">
+        <div class="swu-appcard"><div class="swu-icon">A</div><span>Total Apps</span><strong>${apps.length}</strong></div>
+        <div class="swu-appcard"><div class="swu-icon">S</div><span>Showing</span><strong>${filtered.length}</strong></div>
+        <div class="swu-appcard"><div class="swu-icon">P</div><span>Publishers</span><strong>${publishers.length}</strong></div>
+        <div class="swu-appcard"><div class="swu-icon">V</div><span>With Version</span><strong>${withVersion}</strong></div>
+        <div class="swu-appcard"><div class="swu-icon">${swuInitial(host(m))}</div><span>Machine</span><strong>${esc(host(m))}</strong></div>
+      </div>
+    </section>
+
+    <section class="swu-layout">
+      <article class="swu-card swu-wide">
+        <h3>Installed Software Universe <span class="swu-badge">${filtered.length} records</span></h3>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+          <input class="swu-search" value="${esc(localStorage.getItem('sagar_software_search')||'')}" placeholder="Search app / publisher / version" oninput="swuSearch(this.value)">
+        </div>
+        ${swuTable(['Software','Version','Publisher','Install Date','Install Location / Source'],rows,'No installed software data from this client.')}
+      </article>
+
+      <article class="swu-card">
+        <h3>Publisher Landscape <span class="swu-badge">${publishers.length}</span></h3>
+        <div class="swu-stack">${pubCards || '<div class="swu-empty">No publisher data available.</div>'}</div>
+      </article>
+
+      <article class="swu-card">
+        <h3>Recent Installed Records <span class="swu-badge">${recentInstalled.length}</span></h3>
+        <div class="swu-stack">${recentCards || '<div class="swu-empty">No install date data available.</div>'}</div>
+      </article>
+
+      <article class="swu-card swu-wide">
+        <h3>Today Software Changes <span class="swu-badge">Added / Removed</span></h3>
+        <div id="swuTodayChangesBox"><div class="swu-empty">Loading today software add/remove changes...</div></div>
+      </article>
+    </section>
+  </div>`;
+
+  setTimeout(()=>swuLoadTodayChanges(m.machine_id),120);
+}
+/* SOFTWARE_UNIVERSAL_3D_PAGE_ONLY_END */
+

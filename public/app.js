@@ -1535,299 +1535,301 @@ function renderHardware(){
 }
 /* HARDWARE_PREMIUM_PAGE_ONLY_END */
 
-/* SOFTWARE_UNIVERSAL_3D_PAGE_ONLY_START */
+/* SOFTWARE_KEEP_PUBLISHERS_PAGE_ONLY_START */
 /*
-  Universal 3D Software page UI override.
-  Scope: only #page-software and renderSoftware().
-  Existing software data is used; backend and other pages are untouched.
+  Software page only.
+  Final:
+  - Same machine selection for Software Application Center and Installed Software grid.
+  - Download Software CSV.
+  - Remove Software Map.
+  - Keep Top Publishers.
+  - Keep Recent Install Records.
+  - Today Software Changes shows software add/remove from /api/changes.
 */
-function swuStyle(){
-  const old=document.getElementById('swuStyle'); if(old) old.remove();
-  const s=document.createElement('style'); s.id='swuStyle';
+function swfStyle(){
+  const old=document.getElementById('swfStyle'); if(old) old.remove();
+  const s=document.createElement('style'); s.id='swfStyle';
   s.textContent=`
   #page-software{
-    --u-bg:#f7fbff;
-    --u-ink:#09111f;
-    --u-muted:#667085;
-    --u-blue:#2563eb;
-    --u-cyan:#06b6d4;
-    --u-violet:#7c3aed;
-    --u-green:#10b981;
-    --u-red:#ef4444;
-    --u-line:rgba(148,163,184,.24);
+    --x-ink:#07111f;--x-muted:#64748b;--x-blue:#2563eb;--x-cyan:#06b6d4;--x-violet:#7c3aed;--x-green:#10b981;--x-red:#ef4444;--x-line:rgba(148,163,184,.24);
     font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
   }
-  #page-software #softwareCards,#page-software #softwareTable,#page-software .software-list{
-    display:block!important;width:100%!important;max-width:none!important;
+  #page-software #softwareCards,#page-software #softwareTable,#page-software .software-list{display:block!important;width:100%!important;max-width:none!important}
+  #page-software .swf-shell{width:100%;color:var(--x-ink);animation:swfIn .45s ease both}
+  #page-software .swf-hero{
+    position:relative;overflow:hidden;border-radius:34px;padding:26px;
+    background:linear-gradient(135deg,rgba(255,255,255,.96),rgba(240,247,255,.92)),
+      radial-gradient(circle at 10% 20%,rgba(37,99,235,.26),transparent 30%),
+      radial-gradient(circle at 90% 12%,rgba(124,58,237,.22),transparent 30%),
+      radial-gradient(circle at 55% 100%,rgba(6,182,212,.18),transparent 35%);
+    border:1px solid rgba(255,255,255,.92);box-shadow:0 28px 90px rgba(30,64,175,.17);isolation:isolate;perspective:1200px;
   }
-  #page-software .swu-shell{width:100%;color:var(--u-ink);animation:swuUp .45s ease both}
-  #page-software .swu-hero{
-    position:relative;
-    overflow:hidden;
-    min-height:250px;
-    border-radius:34px;
-    padding:26px;
-    background:
-      linear-gradient(135deg,rgba(255,255,255,.94),rgba(239,246,255,.90)),
-      radial-gradient(circle at 16% 20%,rgba(37,99,235,.30),transparent 32%),
-      radial-gradient(circle at 84% 18%,rgba(124,58,237,.24),transparent 32%),
-      radial-gradient(circle at 52% 95%,rgba(6,182,212,.24),transparent 36%);
-    border:1px solid rgba(255,255,255,.90);
-    box-shadow:0 28px 90px rgba(30,64,175,.17);
-    isolation:isolate;
-    perspective:1100px;
+  #page-software .swf-hero:before{
+    content:"";position:absolute;inset:-150px;background:conic-gradient(from 90deg,rgba(37,99,235,.12),rgba(6,182,212,.20),rgba(124,58,237,.16),rgba(37,99,235,.12));
+    filter:blur(26px);animation:swfAura 12s linear infinite;z-index:-2;
   }
-  #page-software .swu-hero:before{
-    content:"";
-    position:absolute;
-    inset:-130px;
-    background:conic-gradient(from 90deg,rgba(37,99,235,.13),rgba(6,182,212,.22),rgba(124,58,237,.16),rgba(37,99,235,.13));
-    filter:blur(24px);
-    animation:swuAura 10s linear infinite;
-    z-index:-2;
+  #page-software .swf-hero:after{
+    content:"";position:absolute;right:26px;top:24px;width:300px;height:190px;
+    background:linear-gradient(135deg,rgba(37,99,235,.14),rgba(6,182,212,.08)),
+      repeating-linear-gradient(90deg,transparent 0 28px,rgba(37,99,235,.08) 29px 30px),
+      repeating-linear-gradient(0deg,transparent 0 28px,rgba(37,99,235,.06) 29px 30px);
+    border:1px solid rgba(37,99,235,.15);border-radius:30px;transform:rotateX(62deg) rotateZ(-17deg);
+    box-shadow:0 38px 70px rgba(37,99,235,.18);animation:swfFloat 4.5s ease-in-out infinite;z-index:-1;opacity:.72;
   }
-  #page-software .swu-hero:after{
-    content:"";
-    position:absolute;
-    right:24px;
-    top:22px;
-    width:270px;
-    height:190px;
-    background:
-      linear-gradient(135deg,rgba(37,99,235,.16),rgba(6,182,212,.10)),
-      repeating-linear-gradient(90deg,transparent 0 17px,rgba(37,99,235,.08) 18px 19px),
-      repeating-linear-gradient(0deg,transparent 0 17px,rgba(37,99,235,.06) 18px 19px);
-    border:1px solid rgba(37,99,235,.16);
-    border-radius:28px;
-    transform:rotateX(62deg) rotateZ(-16deg) translateY(-8px);
-    box-shadow:0 36px 70px rgba(37,99,235,.18);
-    opacity:.78;
-    z-index:-1;
-    animation:swuFloat 4.5s ease-in-out infinite;
+  #page-software .swf-top{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap;position:relative;z-index:2}
+  #page-software .swf-eye{margin:0 0 10px;color:var(--x-blue);font-size:11px;font-weight:950;letter-spacing:.25em;text-transform:uppercase}
+  #page-software .swf-title{margin:0;font-size:clamp(30px,3.5vw,54px);line-height:.98;letter-spacing:-.06em;color:#06111f}
+  #page-software .swf-sub{margin:12px 0 0;color:var(--x-muted);font-size:14px;font-weight:750}
+  #page-software .swf-control{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+  #page-software .swf-select,#page-software .swf-search{
+    border:1px solid rgba(37,99,235,.18);background:rgba(255,255,255,.94);color:#0f172a;border-radius:18px;padding:12px 15px;font-weight:850;outline:none;box-shadow:0 12px 30px rgba(30,64,175,.10)
   }
-  #page-software .swu-top{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap;position:relative;z-index:2}
-  #page-software .swu-eye{letter-spacing:.24em;text-transform:uppercase;font-size:11px;font-weight:950;color:var(--u-blue);margin:0 0 8px}
-  #page-software .swu-hero h2{margin:0;font-size:clamp(28px,3.2vw,48px);line-height:1;letter-spacing:-.05em;color:#07111f}
-  #page-software .swu-sub{margin:10px 0 0;color:var(--u-muted);font-weight:700;font-size:14px}
-  #page-software .swu-control{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
-  #page-software .swu-select,#page-software .swu-search{
-    border:1px solid rgba(37,99,235,.18);
-    background:rgba(255,255,255,.92);
-    color:#0f172a;
-    border-radius:18px;
-    padding:12px 15px;
-    font-weight:850;
-    outline:none;
-    box-shadow:0 12px 30px rgba(30,64,175,.11);
+  #page-software .swf-select{min-width:330px;max-width:580px}
+  #page-software .swf-search{min-width:310px}
+  #page-software .swf-btn{
+    border:1px solid rgba(37,99,235,.20);background:linear-gradient(135deg,#2563eb,#06b6d4);color:white;border-radius:18px;padding:12px 15px;font-weight:950;cursor:pointer;box-shadow:0 14px 30px rgba(37,99,235,.22);transition:.22s;
   }
-  #page-software .swu-select{min-width:330px;max-width:580px}
-  #page-software .swu-search{min-width:310px}
-  #page-software .swu-orbit{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(145px,1fr));
-    gap:14px;
-    margin-top:24px;
-    position:relative;
-    z-index:2;
+  #page-software .swf-btn:hover{transform:translateY(-3px);box-shadow:0 24px 52px rgba(37,99,235,.28)}
+  #page-software .swf-stats{margin-top:24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;position:relative;z-index:2}
+  #page-software .swf-stat{
+    position:relative;overflow:hidden;border-radius:22px;padding:16px;background:rgba(255,255,255,.82);border:1px solid rgba(255,255,255,.92);
+    box-shadow:0 16px 34px rgba(30,64,175,.12);transition:transform .25s ease,box-shadow .25s ease;transform-style:preserve-3d;
   }
-  #page-software .swu-appcard{
-    position:relative;
-    overflow:hidden;
-    border-radius:24px;
-    padding:16px;
-    background:rgba(255,255,255,.78);
-    border:1px solid rgba(255,255,255,.90);
-    box-shadow:0 16px 34px rgba(30,64,175,.12), inset 0 1px 0 rgba(255,255,255,.7);
-    transform-style:preserve-3d;
-    transition:transform .24s ease, box-shadow .24s ease;
-    backdrop-filter:blur(18px);
+  #page-software .swf-stat:hover{transform:translateY(-5px) rotateX(4deg);box-shadow:0 28px 68px rgba(30,64,175,.18)}
+  #page-software .swf-stat:after{content:"";position:absolute;right:-20px;top:-22px;width:76px;height:76px;border-radius:24px;background:linear-gradient(135deg,rgba(37,99,235,.16),rgba(6,182,212,.10));transform:rotate(18deg)}
+  #page-software .swf-stat span{display:block;color:var(--x-muted);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.08em}
+  #page-software .swf-stat strong{display:block;margin-top:7px;font-size:23px;letter-spacing:-.03em;color:#0f172a;word-break:break-word}
+  #page-software .swf-section{
+    margin-top:18px;border-radius:28px;background:rgba(255,255,255,.88);border:1px solid rgba(255,255,255,.90);box-shadow:0 16px 38px rgba(15,23,42,.10);padding:18px;backdrop-filter:blur(18px);animation:swfIn .45s ease both;
   }
-  #page-software .swu-appcard:hover{transform:translateY(-6px) rotateX(4deg) rotateY(-4deg);box-shadow:0 28px 70px rgba(30,64,175,.19)}
-  #page-software .swu-appcard:before{
-    content:"";
-    position:absolute;
-    right:-22px;
-    top:-26px;
-    width:82px;
-    height:82px;
-    border-radius:26px;
-    background:linear-gradient(135deg,rgba(37,99,235,.22),rgba(6,182,212,.10));
-    transform:rotate(18deg);
+  #page-software .swf-section h3{margin:0 0 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:18px;letter-spacing:-.025em;color:#0f172a}
+  #page-software .swf-badge{display:inline-flex;align-items:center;border-radius:999px;padding:6px 11px;font-size:11px;font-weight:950;color:#1d4ed8;background:rgba(37,99,235,.10);border:1px solid rgba(37,99,235,.18)}
+  #page-software .swf-add{color:#047857;background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.22)}
+  #page-software .swf-rem{color:#b91c1c;background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.22)}
+  #page-software .swf-app-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;max-height:610px;overflow:auto;padding:4px}
+  #page-software .swf-app{
+    position:relative;overflow:hidden;min-height:150px;border-radius:24px;padding:15px;background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(248,251,255,.84));
+    border:1px solid rgba(148,163,184,.22);box-shadow:0 14px 30px rgba(15,23,42,.08);transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease;transform-style:preserve-3d;
   }
-  #page-software .swu-icon{
-    width:42px;height:42px;border-radius:14px;
-    display:grid;place-items:center;
-    color:white;font-weight:950;
-    background:linear-gradient(135deg,var(--u-blue),var(--u-cyan));
-    box-shadow:0 14px 28px rgba(37,99,235,.25);
-    margin-bottom:10px;
-  }
-  #page-software .swu-appcard span{display:block;color:var(--u-muted);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.08em}
-  #page-software .swu-appcard strong{display:block;margin-top:6px;font-size:22px;color:#0f172a;letter-spacing:-.03em;word-break:break-word}
-  #page-software .swu-layout{margin-top:18px;display:grid;grid-template-columns:repeat(12,1fr);gap:16px;align-items:start}
-  #page-software .swu-card{
-    grid-column:span 6;
-    border-radius:26px;
-    background:rgba(255,255,255,.86);
-    border:1px solid rgba(255,255,255,.88);
-    box-shadow:0 16px 38px rgba(15,23,42,.10);
-    padding:18px;
-    backdrop-filter:blur(18px);
-    animation:swuUp .45s ease both;
-    transition:transform .22s ease, box-shadow .22s ease;
-  }
-  #page-software .swu-card:hover{transform:translateY(-3px);box-shadow:0 24px 60px rgba(30,64,175,.16)}
-  #page-software .swu-wide{grid-column:1/-1}
-  #page-software .swu-card h3{margin:0 0 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:18px;letter-spacing:-.025em;color:#0f172a}
-  #page-software .swu-badge{display:inline-flex;align-items:center;border-radius:999px;padding:6px 11px;font-size:11px;font-weight:950;color:#1d4ed8;background:rgba(37,99,235,.10);border:1px solid rgba(37,99,235,.18)}
-  #page-software .swu-add{color:#047857;background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.22)}
-  #page-software .swu-rem{color:#b91c1c;background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.22)}
-  #page-software .swu-stack{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
-  #page-software .swu-mini{
-    border:1px solid rgba(148,163,184,.22);
-    background:linear-gradient(180deg,rgba(255,255,255,.78),rgba(248,251,255,.80));
-    border-radius:20px;
-    padding:13px;
-  }
-  #page-software .swu-mini span{display:block;color:var(--u-muted);font-size:12px;font-weight:850}
-  #page-software .swu-mini strong{display:block;margin-top:5px;color:#0f172a;font-size:13px;word-break:break-word}
-  #page-software .swu-scroll{width:100%;max-height:500px;overflow:auto;border-radius:20px;border:1px solid rgba(148,163,184,.24);background:rgba(255,255,255,.68)}
-  #page-software .swu-scroll.small{max-height:330px}
-  #page-software .swu-table{width:100%;border-collapse:separate;border-spacing:0;min-width:920px;font-size:13px}
-  #page-software .swu-table th{position:sticky;top:0;z-index:2;text-align:left;padding:12px;color:#334155;background:linear-gradient(180deg,#f8fbff,#eef6ff);border-bottom:1px solid rgba(148,163,184,.28);font-size:12px;text-transform:uppercase;letter-spacing:.08em}
-  #page-software .swu-table td{padding:12px;border-bottom:1px solid rgba(148,163,184,.16);color:#0f172a;vertical-align:top;font-weight:650}
-  #page-software .swu-table tr:hover td{background:rgba(37,99,235,.045)}
-  #page-software .swu-table small{display:block;color:var(--u-muted);margin-top:4px;font-weight:650}
-  #page-software .swu-empty{border-radius:20px;padding:18px;background:rgba(248,250,252,.82);color:var(--u-muted);border:1px dashed rgba(100,116,139,.30);font-weight:800}
-  #page-software code{color:#1e3a8a;background:rgba(37,99,235,.07);border:1px solid rgba(37,99,235,.13);border-radius:8px;padding:2px 5px;font-family:"Cascadia Code","Consolas",monospace;font-size:11px}
-  @keyframes swuUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
-  @keyframes swuAura{to{transform:rotate(360deg)}}
-  @keyframes swuFloat{0%,100%{transform:rotateX(62deg) rotateZ(-16deg) translateY(-8px)}50%{transform:rotateX(62deg) rotateZ(-13deg) translateY(8px)}}
-  @media(max-width:1100px){#page-software .swu-card{grid-column:1/-1}#page-software .swu-select,#page-software .swu-search{min-width:240px;width:100%}}
-  @media(max-width:720px){#page-software .swu-hero{padding:18px;border-radius:24px}#page-software .swu-hero:after{display:none}}
+  #page-software .swf-app:hover{transform:translateY(-6px) scale(1.01) rotateX(2deg);box-shadow:0 26px 58px rgba(30,64,175,.16);border-color:rgba(37,99,235,.28)}
+  #page-software .swf-app:before{content:"";position:absolute;right:-28px;bottom:-34px;width:112px;height:112px;border-radius:34px;background:linear-gradient(135deg,rgba(37,99,235,.12),rgba(6,182,212,.08));transform:rotate(18deg)}
+  #page-software .swf-app-head{display:flex;gap:12px;align-items:flex-start;position:relative;z-index:2}
+  #page-software .swf-logo{flex:0 0 46px;width:46px;height:46px;border-radius:16px;display:grid;place-items:center;color:white;font-weight:950;font-size:18px;background:linear-gradient(135deg,var(--x-blue),var(--x-cyan));box-shadow:0 14px 24px rgba(37,99,235,.22)}
+  #page-software .swf-app-title{min-width:0}
+  #page-software .swf-app-title strong{display:block;font-size:14px;line-height:1.25;color:#0f172a;word-break:break-word}
+  #page-software .swf-app-title small{display:block;margin-top:4px;color:var(--x-muted);font-weight:750}
+  #page-software .swf-meta{position:relative;z-index:2;margin-top:12px;display:flex;flex-wrap:wrap;gap:6px}
+  #page-software .swf-tag{border-radius:999px;padding:5px 8px;background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.12);color:#1d4ed8;font-size:11px;font-weight:850}
+  #page-software .swf-two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  #page-software .swf-info-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+  #page-software .swf-info{border:1px solid rgba(148,163,184,.20);background:linear-gradient(180deg,rgba(255,255,255,.80),rgba(248,251,255,.82));border-radius:18px;padding:12px;transition:.2s}
+  #page-software .swf-info:hover{transform:translateY(-3px);border-color:rgba(37,99,235,.26);box-shadow:0 16px 32px rgba(30,64,175,.10)}
+  #page-software .swf-info span{display:block;color:var(--x-muted);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.06em}
+  #page-software .swf-info strong{display:block;margin-top:4px;color:#0f172a;font-size:13px;word-break:break-word}
+  #page-software .swf-change-list{display:grid;gap:10px;max-height:390px;overflow:auto}
+  #page-software .swf-change{display:grid;grid-template-columns:110px 1fr 1fr;gap:12px;border:1px solid rgba(148,163,184,.22);background:rgba(255,255,255,.78);border-radius:20px;padding:13px;transition:.2s}
+  #page-software .swf-change:hover{transform:translateY(-3px);box-shadow:0 18px 38px rgba(30,64,175,.12)}
+  #page-software .swf-time{color:var(--x-muted);font-size:12px;font-weight:900}
+  #page-software .swf-change strong{display:block;color:#0f172a;font-size:13px}
+  #page-software .swf-change small{display:block;color:var(--x-muted);margin-top:5px;font-weight:750;line-height:1.45}
+  #page-software .swf-empty{border-radius:20px;padding:18px;background:rgba(248,250,252,.82);color:var(--x-muted);border:1px dashed rgba(100,116,139,.30);font-weight:800}
+  @keyframes swfIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}@keyframes swfAura{to{transform:rotate(360deg)}}@keyframes swfFloat{0%,100%{transform:rotateX(62deg) rotateZ(-17deg) translateY(0)}50%{transform:rotateX(62deg) rotateZ(-14deg) translateY(12px)}}
+  @media(max-width:1050px){#page-software .swf-two{grid-template-columns:1fr}#page-software .swf-select,#page-software .swf-search{min-width:240px;width:100%}}
+  @media(max-width:760px){#page-software .swf-hero{padding:18px;border-radius:24px}#page-software .swf-hero:after{display:none}#page-software .swf-change{grid-template-columns:1fr}}
   `;
   document.head.appendChild(s);
 }
-function swuList(v){try{if(typeof arr==='function')return arr(v)}catch(e){} if(v==null||v==='')return[]; if(Array.isArray(v))return v.flatMap(swuList); if(typeof v==='object'){const d=['name','display_name','DisplayName','version','publisher','vendor','install_date']; if(d.some(k=>Object.prototype.hasOwnProperty.call(v,k)))return[v]; return Object.values(v).flatMap(swuList)} return[v]}
-function swuText(v){return esc(v===undefined||v===null||v===''?'N/A':v)}
-function swuName(a){return a.name||a.display_name||a.DisplayName||a.package||'Unknown software'}
-function swuVersion(a){return a.version||a.DisplayVersion||''}
-function swuPublisher(a){return a.publisher||a.vendor||a.Publisher||''}
-function swuDate(a){try{return typeof fmtInstallDate==='function'?fmtInstallDate(a.install_date||a.installDate||a.InstallDate||''):(a.install_date||a.installDate||a.InstallDate||'')}catch(e){return a.install_date||a.installDate||a.InstallDate||''}}
-function swuMachineLabel(m){return`${host(m)} - ${m.primary_ip||((m.all_ips||[])[0]||'No IP')}`}
-function swuSelected(){const stored=localStorage.getItem('sagar_software_machine')||state.selected||'';let m=state.machines.find(x=>x.machine_id===stored)||state.machines[0]||null;if(m){localStorage.setItem('sagar_software_machine',m.machine_id);state.selected=m.machine_id;localStorage.setItem('sagar_selected_machine',m.machine_id)}return m}
-function swuSelectMachine(v){localStorage.setItem('sagar_software_machine',v||'');if(v){state.selected=v;localStorage.setItem('sagar_selected_machine',v)}renderSoftware()}
-function swuSearch(v){localStorage.setItem('sagar_software_search',v||'');renderSoftware()}
-function swuTable(headers,rows,empty,small=false){if(!rows||!rows.length)return`<div class="swu-empty">${esc(empty||'No data available.')}</div>`;return`<div class="swu-scroll ${small?'small':''}"><table class="swu-table"><thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div>`}
-function swuInitial(name){return esc(String(name||'S').trim().charAt(0).toUpperCase()||'S')}
-
-async function swuLoadTodayChanges(machineId){
-  const box=document.getElementById('swuTodayChangesBox');
+function swfList(v){try{if(typeof arr==='function')return arr(v)}catch(e){} if(v==null||v==='')return[]; if(Array.isArray(v))return v.flatMap(swfList); if(typeof v==='object'){const d=['name','display_name','DisplayName','version','publisher','vendor','install_date']; if(d.some(k=>Object.prototype.hasOwnProperty.call(v,k)))return[v]; return Object.values(v).flatMap(swfList)} return[v]}
+function swfText(v){return esc(v===undefined||v===null||v===''?'N/A':v)}
+function swfName(a){return a.name||a.display_name||a.DisplayName||a.package||'Unknown software'}
+function swfVersion(a){return a.version||a.DisplayVersion||''}
+function swfPublisher(a){return a.publisher||a.vendor||a.Publisher||''}
+function swfDate(a){try{return typeof fmtInstallDate==='function'?fmtInstallDate(a.install_date||a.installDate||a.InstallDate||''):(a.install_date||a.installDate||a.InstallDate||'')}catch(e){return a.install_date||a.installDate||a.InstallDate||''}}
+function swfInitial(name){return esc(String(name||'S').trim().charAt(0).toUpperCase()||'S')}
+function swfMachineLabel(m){return`${host(m)} - ${m.primary_ip||((m.all_ips||[])[0]||'No IP')}`}
+function swfSelected(){
+  const stored=localStorage.getItem('sagar_selected_machine') || localStorage.getItem('sagar_software_machine') || state.selected || '';
+  let m=state.machines.find(x=>x.machine_id===stored)||state.machines[0]||null;
+  if(m){
+    state.selected=m.machine_id;
+    localStorage.setItem('sagar_selected_machine',m.machine_id);
+    localStorage.setItem('sagar_software_machine',m.machine_id);
+  }
+  return m;
+}
+function swfSyncExternalSelects(machineId){
+  ['machineSelect','softwareSelect','softwareMachine','softwareMachineSelect'].forEach(id=>{
+    const e=document.getElementById(id);
+    if(e && e.tagName==='SELECT'){
+      try{e.value=machineId;}catch(_){}
+    }
+  });
+}
+function swfSelectMachine(v){
+  if(v){
+    state.selected=v;
+    localStorage.setItem('sagar_selected_machine',v);
+    localStorage.setItem('sagar_software_machine',v);
+    swfSyncExternalSelects(v);
+  }
+  renderSoftware();
+}
+function swfSearch(v){localStorage.setItem('sagar_software_search',v||'');renderSoftware()}
+function swfAppCard(a,i){
+  const name=swfName(a), ver=swfVersion(a), pub=swfPublisher(a), dt=swfDate(a);
+  return `<article class="swf-app">
+    <div class="swf-app-head">
+      <div class="swf-logo">${swfInitial(name)}</div>
+      <div class="swf-app-title"><strong>${swfText(name)}</strong><small>${swfText(pub||'Unknown publisher')}</small></div>
+    </div>
+    <div class="swf-meta">
+      <span class="swf-tag">#${i+1}</span>
+      <span class="swf-tag">Version: ${swfText(ver||'N/A')}</span>
+      <span class="swf-tag">Install: ${swfText(dt||'N/A')}</span>
+    </div>
+  </article>`;
+}
+function swfCsvCell(v){
+  const s=String(v===undefined||v===null?'':v);
+  return `"${s.replace(/"/g,'""')}"`;
+}
+function swfDownloadSoftware(){
+  const m=swfSelected();
+  if(!m) return;
+  const p=payload(m);
+  const apps=swfList(nested(p,'software.installed',nested(p,'software',[]))).filter(x=>x&&typeof x==='object');
+  const search=(localStorage.getItem('sagar_software_search')||'').toLowerCase().trim();
+  const filtered=search ? apps.filter(a=>`${swfName(a)} ${swfVersion(a)} ${swfPublisher(a)}`.toLowerCase().includes(search)) : apps;
+  const header=['Machine','Primary IP','Software','Version','Publisher','Install Date','Install Location / Source'];
+  const rows=filtered.map(a=>[host(m), m.primary_ip||'', swfName(a), swfVersion(a), swfPublisher(a), swfDate(a), a.install_location||a.InstallLocation||a.source||'']);
+  const csv=[header,...rows].map(r=>r.map(swfCsvCell).join(',')).join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const safeHost=String(host(m)||'machine').replace(/[^a-z0-9_-]+/gi,'_');
+  a.href=url;
+  a.download=`software_${safeHost}_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+function swfIsToday(ts){
+  const d=new Date(ts||Date.now());
+  if(isNaN(d.getTime())) return false;
+  return d.toDateString()===new Date().toDateString();
+}
+function swfChangeItems(v){
+  if(!v) return [];
+  if(Array.isArray(v)) return v.map(x=>String(x||'').trim()).filter(Boolean);
+  if(typeof v==='string') return v.split(/\s*\|\|\s*|\n/).map(x=>x.trim()).filter(Boolean);
+  return [String(v)].filter(Boolean);
+}
+async function swfLoadTodayChanges(machineId){
+  const box=document.getElementById('swfTodayChangesBox');
   if(!box) return;
   try{
     const d=await api('/api/changes');
     const rows=(d.changes||[]).filter(c=>{
-      const txt=String((c.change_type||c.type||'')+' '+(c.human_message||c.message||c.title||'')).toLowerCase();
-      const same=!machineId || c.machine_id===machineId;
-      const day=new Date(c.created_at||c.time||Date.now()).toDateString()===new Date().toDateString();
-      return same && day && (txt.includes('software') || txt.includes('app') || txt.includes('program') || txt.includes('installed') || txt.includes('removed'));
+      const ctype=String(c.change_type||c.type||'').toLowerCase();
+      const msg=String(c.human_message||c.message||c.title||'').toLowerCase();
+      const same=c.machine_id===machineId;
+      const today=swfIsToday(c.created_at||c.time);
+      return same && today && (ctype==='software' || ctype.includes('software') || msg.includes('software list changed') || msg.includes('software'));
     }).slice(0,100);
 
     if(!rows.length){
-      box.innerHTML='<div class="swu-empty">No software added or removed today for selected machine.</div>';
+      box.innerHTML='<div class="swf-empty">No software added or removed today for selected machine.</div>';
       return;
     }
 
-    box.innerHTML=swuTable(
-      ['Time','Action','Software Change Details','Added Software','Removed Software'],
-      rows.map(c=>{
-        const added=(c.added_items||[]).map(esc).join('<br>') || esc(c.added_text||'');
-        const removed=(c.removed_items||[]).map(esc).join('<br>') || esc(c.removed_text||'');
-        const msg=esc(c.human_message||c.message||c.title||'Software changed');
-        let action='Changed', cls='swu-badge';
-        if(added && !removed){action='Added'; cls='swu-badge swu-add';}
-        if(removed && !added){action='Removed'; cls='swu-badge swu-rem';}
-        if(added && removed){action='Added + Removed';}
-        return `<tr><td>${esc(new Date(c.created_at||c.time).toLocaleString())}</td><td><span class="${cls}">${action}</span></td><td>${msg}</td><td>${added||'N/A'}</td><td>${removed||'N/A'}</td></tr>`;
-      }),
-      'No software change record found today.',
-      true
-    );
+    box.innerHTML=`<div class="swf-change-list">${rows.map(c=>{
+      const added=swfChangeItems((c.added_items&&c.added_items.length)?c.added_items:(c.added_text||c.added||''));
+      const removed=swfChangeItems((c.removed_items&&c.removed_items.length)?c.removed_items:(c.removed_text||c.removed||''));
+      const msg=esc(c.human_message||c.message||c.title||'Software list changed');
+      let action='Changed', cls='swf-badge';
+      if(added.length && !removed.length){action='Added'; cls='swf-badge swf-add';}
+      if(removed.length && !added.length){action='Removed'; cls='swf-badge swf-rem';}
+      if(added.length && removed.length){action='Added + Removed';}
+      const addedHtml=added.length?added.map(esc).join('<br>'):'N/A';
+      const removedHtml=removed.length?removed.map(esc).join('<br>'):'N/A';
+      return `<div class="swf-change">
+        <div class="swf-time">${esc(new Date(c.created_at||c.time).toLocaleTimeString())}<br><span class="${cls}">${action}</span></div>
+        <div><strong>${msg}</strong><small>Added / Installed / Updated:<br>${addedHtml}</small></div>
+        <div><strong>Removed Software</strong><small>${removedHtml}</small></div>
+      </div>`;
+    }).join('')}</div>`;
   }catch(e){
-    box.innerHTML='<div class="swu-empty">Unable to load today software changes. Check server change log API.</div>';
+    box.innerHTML='<div class="swf-empty">Unable to load today software changes from /api/changes.</div>';
   }
 }
-
 function renderSoftware(){
-  swuStyle();
+  swfStyle();
   let el=$('#softwareCards') || $('#softwareTable') || document.querySelector('#page-software .software-list') || document.querySelector('#page-software .grid') || document.querySelector('#page-software .panel');
   if(!el) return;
-  if(!state.machines.length){el.innerHTML='<div class="swu-empty">No software data yet. Wait for client heartbeat.</div>';return}
+  if(!state.machines.length){el.innerHTML='<div class="swf-empty">No software data yet. Wait for client heartbeat.</div>';return;}
+  const m=swfSelected(); if(!m){el.innerHTML='<div class="swf-empty">Select one machine.</div>';return;}
+  swfSyncExternalSelects(m.machine_id);
 
-  const m=swuSelected(); if(!m){el.innerHTML='<div class="swu-empty">Select one machine.</div>';return}
   const p=payload(m);
-  const apps=swuList(nested(p,'software.installed',nested(p,'software',[]))).filter(x=>x&&typeof x==='object');
+  const apps=swfList(nested(p,'software.installed',nested(p,'software',[]))).filter(x=>x&&typeof x==='object');
   const search=(localStorage.getItem('sagar_software_search')||'').toLowerCase().trim();
-  const filtered=search ? apps.filter(a=>`${swuName(a)} ${swuVersion(a)} ${swuPublisher(a)}`.toLowerCase().includes(search)) : apps;
-  const options=state.machines.map(x=>`<option value="${esc(x.machine_id)}" ${x.machine_id===m.machine_id?'selected':''}>${esc(swuMachineLabel(x))}</option>`).join('');
+  const filtered=search ? apps.filter(a=>`${swfName(a)} ${swfVersion(a)} ${swfPublisher(a)}`.toLowerCase().includes(search)) : apps;
+  const publishers=[...new Set(apps.map(swfPublisher).filter(Boolean))];
+  const withVersion=apps.filter(a=>swfVersion(a)).length;
+  const recentInstalled=apps.filter(a=>String(swfDate(a)||'').trim()).slice(0,12);
+  const topPublishers=publishers.slice(0,16);
+  const options=state.machines.map(x=>`<option value="${esc(x.machine_id)}" ${x.machine_id===m.machine_id?'selected':''}>${esc(swfMachineLabel(x))}</option>`).join('');
 
-  const publishers=[...new Set(apps.map(swuPublisher).filter(Boolean))];
-  const withVersion=apps.filter(a=>swuVersion(a)).length;
-  const recentInstalled=apps.filter(a=>String(swuDate(a)||'').trim()).slice(0,6);
-  const topPublishers=publishers.slice(0,8);
-  const rows=filtered.map((a,i)=>`<tr><td><strong>${swuText(swuName(a))}</strong><small>App #${i+1}</small></td><td>${swuText(swuVersion(a))}</td><td>${swuText(swuPublisher(a))}</td><td>${swuText(swuDate(a))}</td><td><code>${swuText(a.install_location||a.InstallLocation||a.source||'')}</code></td></tr>`);
-  const pubCards=topPublishers.map(x=>`<div class="swu-mini"><span>Publisher</span><strong>${swuText(x)}</strong></div>`).join('');
-  const recentCards=recentInstalled.map(a=>`<div class="swu-mini"><span>${swuText(swuDate(a))}</span><strong>${swuText(swuName(a))}</strong></div>`).join('');
+  const publisherCards=topPublishers.map(x=>`<div class="swf-info"><span>Publisher</span><strong>${swfText(x)}</strong></div>`).join('');
+  const recentCards=recentInstalled.map(a=>`<div class="swf-info"><span>${swfText(swfDate(a))}</span><strong>${swfText(swfName(a))}</strong></div>`).join('');
 
-  el.innerHTML=`<div class="swu-shell">
-    <section class="swu-hero">
-      <div class="swu-top">
+  el.innerHTML=`<div class="swf-shell">
+    <section class="swf-hero">
+      <div class="swf-top">
         <div>
-          <p class="swu-eye">Universal Software Intelligence</p>
+          <p class="swf-eye">Software Application Center</p>
           <h2>${esc(host(m))}</h2>
-          <p class="swu-sub">${swuText(m.primary_ip||'No LAN IP')} Â· ${swuText(m.os||'Unknown OS')} Â· Last seen ${ago(m.updated_at)}</p>
+          <p class="swf-sub">${swfText(m.primary_ip||'No LAN IP')} Â· ${swfText(m.os||'Unknown OS')} Â· Last seen ${ago(m.updated_at)}</p>
         </div>
-        <div class="swu-control">
-          <select class="swu-select" onchange="swuSelectMachine(this.value)">${options}</select>
+        <div class="swf-control">
+          <select class="swf-select" onchange="swfSelectMachine(this.value)">${options}</select>
+          <button class="swf-btn download-only" onclick="swfDownloadSoftware()">Download Software CSV</button>
           ${statusPill(m)}
         </div>
       </div>
-      <div class="swu-orbit">
-        <div class="swu-appcard"><div class="swu-icon">A</div><span>Total Apps</span><strong>${apps.length}</strong></div>
-        <div class="swu-appcard"><div class="swu-icon">S</div><span>Showing</span><strong>${filtered.length}</strong></div>
-        <div class="swu-appcard"><div class="swu-icon">P</div><span>Publishers</span><strong>${publishers.length}</strong></div>
-        <div class="swu-appcard"><div class="swu-icon">V</div><span>With Version</span><strong>${withVersion}</strong></div>
-        <div class="swu-appcard"><div class="swu-icon">${swuInitial(host(m))}</div><span>Machine</span><strong>${esc(host(m))}</strong></div>
+      <div class="swf-stats">
+        <div class="swf-stat"><span>Total Software</span><strong>${apps.length}</strong></div>
+        <div class="swf-stat"><span>Showing</span><strong>${filtered.length}</strong></div>
+        <div class="swf-stat"><span>Publishers</span><strong>${publishers.length}</strong></div>
+        <div class="swf-stat"><span>With Version</span><strong>${withVersion}</strong></div>
+        <div class="swf-stat"><span>Selected Machine</span><strong>${esc(host(m))}</strong></div>
       </div>
     </section>
 
-    <section class="swu-layout">
-      <article class="swu-card swu-wide">
-        <h3>Installed Software Universe <span class="swu-badge">${filtered.length} records</span></h3>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">
-          <input class="swu-search" value="${esc(localStorage.getItem('sagar_software_search')||'')}" placeholder="Search app / publisher / version" oninput="swuSearch(this.value)">
-        </div>
-        ${swuTable(['Software','Version','Publisher','Install Date','Install Location / Source'],rows,'No installed software data from this client.')}
-      </article>
+    <section class="swf-section">
+      <h3>Installed Software / Application Grid <span class="swf-badge">Same selected machine: ${esc(host(m))}</span></h3>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+        <input class="swf-search" value="${esc(localStorage.getItem('sagar_software_search')||'')}" placeholder="Search app / publisher / version" oninput="swfSearch(this.value)">
+        <button class="swf-btn download-only" onclick="swfDownloadSoftware()">Download Current List</button>
+      </div>
+      <div class="swf-app-grid">${filtered.map(swfAppCard).join('') || '<div class="swf-empty">No installed software data from this client.</div>'}</div>
+    </section>
 
-      <article class="swu-card">
-        <h3>Publisher Landscape <span class="swu-badge">${publishers.length}</span></h3>
-        <div class="swu-stack">${pubCards || '<div class="swu-empty">No publisher data available.</div>'}</div>
+    <section class="swf-two">
+      <article class="swf-section">
+        <h3>Top Publishers <span class="swf-badge">${topPublishers.length}</span></h3>
+        <div class="swf-info-list">${publisherCards || '<div class="swf-empty">No publisher data available.</div>'}</div>
       </article>
-
-      <article class="swu-card">
-        <h3>Recent Installed Records <span class="swu-badge">${recentInstalled.length}</span></h3>
-        <div class="swu-stack">${recentCards || '<div class="swu-empty">No install date data available.</div>'}</div>
-      </article>
-
-      <article class="swu-card swu-wide">
-        <h3>Today Software Changes <span class="swu-badge">Added / Removed</span></h3>
-        <div id="swuTodayChangesBox"><div class="swu-empty">Loading today software add/remove changes...</div></div>
+      <article class="swf-section">
+        <h3>Recent Install Records <span class="swf-badge">${recentInstalled.length}</span></h3>
+        <div class="swf-info-list">${recentCards || '<div class="swf-empty">No install date data available.</div>'}</div>
       </article>
     </section>
-  </div>`;
 
-  setTimeout(()=>swuLoadTodayChanges(m.machine_id),120);
+    <section class="swf-section">
+      <h3>Today Software Changes <span class="swf-badge">Added / Removed</span></h3>
+      <div id="swfTodayChangesBox"><div class="swf-empty">Loading today software changes...</div></div>
+    </section>
+  </div>`;
+  setTimeout(()=>swfLoadTodayChanges(m.machine_id),120);
 }
-/* SOFTWARE_UNIVERSAL_3D_PAGE_ONLY_END */
+/* SOFTWARE_KEEP_PUBLISHERS_PAGE_ONLY_END */
 

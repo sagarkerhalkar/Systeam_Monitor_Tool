@@ -539,10 +539,8 @@ async function resetDeployCommands(){
 }
 
 
-
 /* login-experience-v1 */
 document.documentElement.classList.toggle('reduced-motion', window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-
 
 
 /* display-only-gpu-command-text-fix-v1
@@ -621,7 +619,6 @@ function renderHardware(){
     return `<article class="hw-card"><h3>${esc(host(m))}</h3><div class="kv"><span>CPU</span><strong>${esc(cpu.name||'')}</strong></div><div class="kv"><span>Cores / Threads</span><strong>${esc(cpu.cores||'')} / ${esc(cpu.threads||'')}</strong></div><div class="kv"><span>RAM</span><strong>${fmt(mem.used_gb,' GB')} / ${fmt(mem.total_gb,' GB')}</strong></div><div class="kv"><span>CPU Temp</span><strong>${fmt(cpu.temperature_c,' C')}</strong></div><h4>Disks</h4>${disks.map(d=>`<p>${esc(d.mount||d.name)}: ${fmt(d.used_percent,'%')} of ${fmt(d.total_gb,' GB')}</p>`).join('')||'<p>No disk data</p>'}<h4>GPU</h4>${displayGpuDetailsHtml(m)}</article>`;
   }).join('') || '<div class="empty">No hardware data.</div>';
 }
-
 
 
 /* strict-actual-gpu-display-v1
@@ -2503,4 +2500,128 @@ if(typeof renderSoftware==='function' && !window.__skSoftwareCleanFixWrapped){
   };
 }
 /* USB_SOFTWARE_CLEAN_DOWNLOAD_AND_CHANGES_FIX_END */
+
+
+/* USB_SOFTWARE_MINIMAL_SEARCH_FONT_FIX_START */
+/*
+  Minimal fix only:
+  - USB + Software pages keep original page design.
+  - Hide duplicate search boxes only.
+  - Normal readable font only.
+  - Replace broken mojibake text like Â· with normal dash.
+  - Does not touch Human Change Log.
+*/
+(function(){
+  function addStyle(){
+    const old=document.getElementById('skMinSearchFontStyle');
+    if(old) old.remove();
+    const s=document.createElement('style');
+    s.id='skMinSearchFontStyle';
+    s.textContent=`
+      #page-usb, #page-software,
+      #page-usb *, #page-software *{
+        font-family:"Segoe UI", Arial, sans-serif !important;
+        letter-spacing:normal !important;
+      }
+      #page-usb .sk-min-hidden-duplicate,
+      #page-software .sk-min-hidden-duplicate{
+        display:none !important;
+        visibility:hidden !important;
+      }
+    `;
+    document.head.appendChild(s);
+  }
+
+  function isVisible(el){
+    if(!el) return false;
+    const st=getComputedStyle(el);
+    return st.display!=='none' && st.visibility!=='hidden' && el.offsetParent!==null;
+  }
+
+  function isSearchInput(el){
+    if(!el || el.tagName!=='INPUT') return false;
+    const text=[
+      el.type || '',
+      el.placeholder || '',
+      el.id || '',
+      el.name || '',
+      el.className || '',
+      el.getAttribute('aria-label') || ''
+    ].join(' ').toLowerCase();
+
+    return (el.type||'').toLowerCase()==='search' ||
+           text.includes('search') ||
+           text.includes('filter');
+  }
+
+  function cleanBrokenText(page){
+    if(!page) return;
+    const walker=document.createTreeWalker(page, NodeFilter.SHOW_TEXT, null);
+    const nodes=[];
+    while(walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(n=>{
+      let t=n.nodeValue;
+      const nt=t
+        .replace(/Â·/g,' - ')
+        .replace(/âŒ¨ï¸/g,'')
+        .replace(/â€”/g,'-')
+        .replace(/â€“/g,'-')
+        .replace(/Â/g,'');
+      if(nt!==t) n.nodeValue=nt;
+    });
+  }
+
+  function keepOnlyOneSearch(pageSel){
+    const page=document.querySelector(pageSel);
+    if(!page) return;
+
+    cleanBrokenText(page);
+
+    const searches=[...page.querySelectorAll('input')].filter(isSearchInput);
+
+    searches.forEach(x=>{
+      x.classList.remove('sk-min-hidden-duplicate');
+      x.style.display='';
+      x.style.visibility='';
+    });
+
+    const visible=searches.filter(isVisible);
+    if(visible.length <= 1) return;
+
+    // User said one search is not working and second is working.
+    // So keep the last visible search box and hide only earlier duplicate search boxes.
+    const keep=visible[visible.length-1];
+
+    visible.forEach(x=>{
+      if(x!==keep){
+        x.classList.add('sk-min-hidden-duplicate');
+        x.style.display='none';
+      }
+    });
+  }
+
+  function run(){
+    addStyle();
+    keepOnlyOneSearch('#page-usb');
+    keepOnlyOneSearch('#page-software');
+  }
+
+  ['renderUsb','renderUSB','renderSoftware'].forEach(fn=>{
+    if(typeof window[fn]==='function' && !window['__skMinSearchFontWrap_'+fn]){
+      window['__skMinSearchFontWrap_'+fn]=true;
+      const old=window[fn];
+      window[fn]=function(){
+        const out=old.apply(this,arguments);
+        setTimeout(run,100);
+        setTimeout(run,400);
+        return out;
+      };
+    }
+  });
+
+  setTimeout(run,500);
+  setInterval(run,1500);
+})();
+ /* USB_SOFTWARE_MINIMAL_SEARCH_FONT_FIX_END */
+
 

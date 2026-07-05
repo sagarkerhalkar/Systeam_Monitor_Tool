@@ -107,8 +107,6 @@ def log(msg: str) -> None:
         pass
 
 
-
-
 def _b64(data: bytes) -> str:
     return base64.urlsafe_b64encode(data).decode("ascii").rstrip("=")
 
@@ -331,8 +329,6 @@ def _refresh_server_isp_background() -> None:
     finally:
         with SERVER_ISP_LOCK:
             SERVER_ISP_REFRESHING = False
-
-
 
 
 def server_cloudflare_speed_test(download_bytes: int = 5_000_000, upload_bytes: int = 1_000_000) -> Dict[str, Any]:
@@ -1201,7 +1197,6 @@ def process_change_events(summary: Dict[str, Any], payload: Dict[str, Any]) -> N
         con.commit()
 
 
-
 def format_change_value(v: Any) -> str:
     """Compact a change item so human change log does not become unreadable."""
     if isinstance(v, dict):
@@ -1379,7 +1374,6 @@ def check_offline_notifications() -> None:
         con.commit()
 
 
-
 def create_client_message(target_machine_id: str, target_hostname: str, title: str, message: str, priority: str = "normal") -> Dict[str, Any]:
     with DB_LOCK, db_connect() as con:
         cur = con.execute("""INSERT INTO client_messages(created_at,target_machine_id,target_hostname,title,message,priority,status)
@@ -1387,7 +1381,6 @@ def create_client_message(target_machine_id: str, target_hostname: str, title: s
         con.commit()
         mid = cur.lastrowid
     return {"ok": True, "id": mid}
-
 
 
 def list_client_messages(limit: int = 200) -> List[Dict[str, Any]]:
@@ -2204,4 +2197,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
 

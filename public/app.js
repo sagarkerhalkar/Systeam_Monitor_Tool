@@ -2275,3 +2275,232 @@ function usbSimpleDeviceCard(u,i){
 }
 /* USB_CSS_PICTURE_ICONS_ONLY_END */
 
+/* USB_SOFTWARE_CLEAN_DOWNLOAD_AND_CHANGES_FIX_START */
+/*
+  Fixes only USB + Software pages:
+  1) Hide old mismatched header/download controls outside the new page shell.
+  2) Keep only one clean download button.
+  3) Today USB/Software Changes reads real human change records from /api/changes.
+  4) Falls back from "today" to "recent" if date format/timezone causes blank result.
+*/
+
+function skFixRowsFromApi(d){
+  if(Array.isArray(d)) return d;
+  const keys=['changes','events','items','rows','records','logs'];
+  for(const k of keys){
+    if(d && Array.isArray(d[k])) return d[k];
+  }
+  if(d && d.data){
+    if(Array.isArray(d.data)) return d.data;
+    for(const k of keys){
+      if(Array.isArray(d.data[k])) return d.data[k];
+    }
+  }
+  return [];
+}
+function skFixText(c){
+  try{
+    return [
+      c.change_type,c.type,c.category,c.kind,
+      c.human_message,c.message,c.title,c.summary,c.description,c.details,
+      c.added_text,c.removed_text,c.added,c.removed
+    ].filter(Boolean).map(x=>typeof x==='string'?x:JSON.stringify(x)).join(' ');
+  }catch(e){
+    return String(c.human_message||c.message||c.title||'');
+  }
+}
+function skFixEsc(v){ return (typeof esc==='function') ? esc(v) : String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+function skFixItems(){
+  const out=[];
+  for(const v of arguments){
+    if(!v) continue;
+    if(Array.isArray(v)){
+      v.forEach(x=>{ const s=String(x||'').trim(); if(s) out.push(s); });
+    }else if(typeof v==='object'){
+      const s=JSON.stringify(v); if(s && s!=='{}') out.push(s);
+    }else{
+      String(v).split(/\s*\|\|\s*|\r?\n/).map(x=>x.trim()).filter(Boolean).forEach(x=>out.push(x));
+    }
+  }
+  return [...new Set(out)].slice(0,60);
+}
+function skFixTime(c){
+  return c.created_at||c.time||c.timestamp||c.created||c.updated_at||c.date||'';
+}
+function skFixIsTodayOrRecent(ts){
+  if(!ts) return true;
+  const d=new Date(ts);
+  if(isNaN(d.getTime())) return true;
+  const now=new Date();
+  if(d.toDateString()===now.toDateString()) return true;
+  return (now.getTime()-d.getTime()) <= (30*60*60*1000) && (now.getTime()-d.getTime()) >= 0;
+}
+function skFixMachineMatch(c,machineId){
+  const m=(state.machines||[]).find(x=>x.machine_id===machineId)||null;
+  const names=[
+    machineId,
+    m&&m.machine_id,
+    m&&host(m),
+    m&&m.hostname,
+    m&&m.primary_ip,
+    c.machine_id,c.host_id,c.hostname,c.host,c.machine,c.device_name,c.computer_name,c.pc_name
+  ].filter(Boolean).map(x=>String(x).toLowerCase());
+  const cMachine=String(c.machine_id||c.host_id||c.hostname||c.host||c.machine||c.computer_name||c.pc_name||'').toLowerCase();
+  if(!cMachine) return true;
+  return names.includes(cMachine);
+}
+function skFixIsUsbChange(c){
+  const t=skFixText(c).toLowerCase();
+  const ctype=String(c.change_type||c.type||c.category||'').toLowerCase();
+  return ctype.includes('usb') || t.includes('usb') || t.includes('peripheral') || t.includes('keyboard') || t.includes('mouse') || t.includes('headphone') || t.includes('camera') || t.includes('printer') || t.includes('bluetooth') || t.includes('pen drive') || t.includes('pendrive');
+}
+function skFixIsSoftwareChange(c){
+  const t=skFixText(c).toLowerCase();
+  const ctype=String(c.change_type||c.type||c.category||'').toLowerCase();
+  return ctype.includes('software') || ctype.includes('app') || t.includes('software') || t.includes('installed software') || t.includes('software list changed') || t.includes('program') || t.includes('application installed') || t.includes('application removed');
+}
+function skFixHideOldPageChrome(pageSel,shellSel,downloadLabel){
+  const page=document.querySelector(pageSel);
+  if(!page) return;
+  const shell=page.querySelector(shellSel);
+
+  // Hide old page top chrome that contains duplicate titles / old download buttons.
+  [...page.children].forEach(ch=>{
+    if(shell && (ch.contains(shell) || ch===shell || ch.querySelector(shellSel))) return;
+    const tx=(ch.textContent||'').toLowerCase();
+    if(tx.includes('download selected') || tx.includes('download all') || tx.includes('usb + peripherals') || tx.includes('software') || tx.includes('application center')){
+      ch.style.display='none';
+    }
+  });
+
+  // Keep only one download button inside the new shell.
+  if(shell){
+    const btns=[...shell.querySelectorAll('button.download-only')];
+    btns.forEach((b,i)=>{
+      b.textContent=downloadLabel;
+      if(i>0) b.style.display='none';
+    });
+  }
+
+  // Hide any old download buttons outside the new shell.
+  [...page.querySelectorAll('button,a')].forEach(b=>{
+    if(shell && shell.contains(b)) return;
+    const tx=(b.textContent||'').toLowerCase();
+    if(tx.includes('download selected') || tx.includes('download all') || tx.includes('download usb') || tx.includes('download software')){
+      b.style.display='none';
+    }
+  });
+}
+
+async function usbSimpleLoadTodayChanges(machineId){
+  const box=document.getElementById('usbSimpleTodayChangesBox') || document.getElementById('usbxTodayChangesBox');
+  if(!box) return;
+  try{
+    const d=await api('/api/changes');
+    const all=skFixRowsFromApi(d).filter(c=>skFixMachineMatch(c,machineId) && skFixIsUsbChange(c));
+
+    let rows=all.filter(c=>skFixIsTodayOrRecent(skFixTime(c))).slice(0,100);
+    let titleNote='';
+    if(!rows.length && all.length){
+      rows=all.slice(0,50);
+      titleNote='<div class="usb-simple-empty" style="margin-bottom:10px">No exact today timestamp matched. Showing recent USB human change records.</div>';
+    }
+
+    if(!rows.length){
+      box.innerHTML='<div class="usb-simple-empty">No USB connected or removed record found for selected machine.</div>';
+      return;
+    }
+
+    box.innerHTML=titleNote+`<div class="usb-simple-change-list">${rows.map(c=>{
+      const added=skFixItems(c.added_items,c.added_text,c.added,c.connected_items,c.connected_text,c.new_items);
+      const removed=skFixItems(c.removed_items,c.removed_text,c.removed,c.disconnected_items,c.disconnected_text, c.old_items);
+      const msg=skFixEsc(c.human_message||c.message||c.title||'USB/peripheral changed');
+      let action='Changed', cls='usb-simple-badge';
+      if(added.length && !removed.length){action='Connected'; cls='usb-simple-badge usb-simple-add';}
+      if(removed.length && !added.length){action='Removed'; cls='usb-simple-badge usb-simple-rem';}
+      if(added.length && removed.length){action='Connected + Removed';}
+      const when=skFixTime(c);
+      const whenText=when ? new Date(when).toLocaleString() : 'Time N/A';
+      const addedHtml=added.length?added.map(skFixEsc).join('<br>'):'See details';
+      const removedHtml=removed.length?removed.map(skFixEsc).join('<br>'):'See details';
+      return `<div class="usb-simple-change">
+        <div class="usb-simple-time">${skFixEsc(whenText)}<br><span class="${cls}">${action}</span></div>
+        <div><strong>${msg}</strong><small>Connected / Added:<br>${addedHtml}</small></div>
+        <div><strong>Removed / Disconnected</strong><small>${removedHtml}</small></div>
+      </div>`;
+    }).join('')}</div>`;
+  }catch(e){
+    box.innerHTML='<div class="usb-simple-empty">Unable to load USB changes from /api/changes.</div>';
+  }
+}
+
+async function swfLoadTodayChanges(machineId){
+  const box=document.getElementById('swfTodayChangesBox') || document.getElementById('swxTodayChangesBox') || document.getElementById('swaTodayChangesBox') || document.getElementById('swuTodayChangesBox');
+  if(!box) return;
+  try{
+    const d=await api('/api/changes');
+    const all=skFixRowsFromApi(d).filter(c=>skFixMachineMatch(c,machineId) && skFixIsSoftwareChange(c));
+
+    let rows=all.filter(c=>skFixIsTodayOrRecent(skFixTime(c))).slice(0,100);
+    let titleNote='';
+    if(!rows.length && all.length){
+      rows=all.slice(0,50);
+      titleNote='<div class="swf-empty" style="margin-bottom:10px">No exact today timestamp matched. Showing recent software human change records.</div>';
+    }
+
+    if(!rows.length){
+      box.innerHTML='<div class="swf-empty">No software added or removed record found for selected machine.</div>';
+      return;
+    }
+
+    box.innerHTML=titleNote+`<div class="swf-change-list">${rows.map(c=>{
+      const added=skFixItems(c.added_items,c.added_text,c.added,c.installed_items,c.installed_text,c.new_items,c.software_added);
+      const removed=skFixItems(c.removed_items,c.removed_text,c.removed,c.uninstalled_items,c.uninstalled_text,c.old_items,c.software_removed);
+      const msg=skFixEsc(c.human_message||c.message||c.title||'Software list changed');
+      let action='Changed', cls='swf-badge';
+      if(added.length && !removed.length){action='Added'; cls='swf-badge swf-add';}
+      if(removed.length && !added.length){action='Removed'; cls='swf-badge swf-rem';}
+      if(added.length && removed.length){action='Added + Removed';}
+      const when=skFixTime(c);
+      const whenText=when ? new Date(when).toLocaleString() : 'Time N/A';
+      const addedHtml=added.length?added.map(skFixEsc).join('<br>'):'See details';
+      const removedHtml=removed.length?removed.map(skFixEsc).join('<br>'):'See details';
+      return `<div class="swf-change">
+        <div class="swf-time">${skFixEsc(whenText)}<br><span class="${cls}">${action}</span></div>
+        <div><strong>${msg}</strong><small>Added / Installed:<br>${addedHtml}</small></div>
+        <div><strong>Removed / Uninstalled</strong><small>${removedHtml}</small></div>
+      </div>`;
+    }).join('')}</div>`;
+  }catch(e){
+    box.innerHTML='<div class="swf-empty">Unable to load software changes from /api/changes.</div>';
+  }
+}
+
+if(typeof renderUsb==='function' && !window.__skUsbCleanFixWrapped){
+  window.__skUsbCleanFixWrapped=true;
+  window.__skOldRenderUsbCleanFix=renderUsb;
+  renderUsb=function(){
+    window.__skOldRenderUsbCleanFix();
+    setTimeout(()=>{
+      skFixHideOldPageChrome('#page-usb','.usb-simple-shell','Download USB CSV');
+      const m=(typeof usbSimpleSelected==='function') ? usbSimpleSelected() : null;
+      if(m) usbSimpleLoadTodayChanges(m.machine_id);
+    },120);
+  };
+  renderUSB=function(){return renderUsb();};
+}
+
+if(typeof renderSoftware==='function' && !window.__skSoftwareCleanFixWrapped){
+  window.__skSoftwareCleanFixWrapped=true;
+  window.__skOldRenderSoftwareCleanFix=renderSoftware;
+  renderSoftware=function(){
+    window.__skOldRenderSoftwareCleanFix();
+    setTimeout(()=>{
+      skFixHideOldPageChrome('#page-software','.swf-shell','Download Software CSV');
+      const m=(typeof swfSelected==='function') ? swfSelected() : null;
+      if(m) swfLoadTodayChanges(m.machine_id);
+    },120);
+  };
+}
+/* USB_SOFTWARE_CLEAN_DOWNLOAD_AND_CHANGES_FIX_END */
+

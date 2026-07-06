@@ -4374,3 +4374,1568 @@ if(typeof renderSoftware==='function' && !window.__skSoftwareCleanFixWrapped){
   setInterval(run,2500);
 })();
 /* FULL_NAME_LABELS_ONLY_END */
+
+/* CLIENT_MESSAGES_UI_V2_ONLY_START */
+(function(){
+  function q(s,r){return (r||document).querySelector(s)}
+  function qa(s,r){return Array.from((r||document).querySelectorAll(s))}
+  function txt(el){return (el && (el.innerText || el.textContent) || '').trim()}
+
+  function findClientMessagesPage(){
+    const ids=['#page-client-messages','#page-clientmessages','#page-messages','#page-clientMessages','#page-client_messages'];
+    for(const id of ids){const el=q(id);if(el)return el;}
+    return qa('.page,[id^="page-"],main section').find(p=>{
+      const t=txt(p).toLowerCase();
+      return t.includes('client messages') || t.includes('client message') || (t.includes('send') && t.includes('message') && t.includes('client'));
+    }) || null;
+  }
+
+  function addCss(){
+    if(q('#clientMessagesUiV2Css')) return;
+    const s=document.createElement('style');
+    s.id='clientMessagesUiV2Css';
+    s.textContent=`
+      .client-msg-v2{
+        position:relative;
+        overflow:hidden;
+        min-height:calc(100vh - 120px);
+        padding:18px!important;
+        background:
+          radial-gradient(circle at 8% 5%, rgba(14,165,233,.14), transparent 28%),
+          radial-gradient(circle at 90% 8%, rgba(16,185,129,.12), transparent 28%),
+          linear-gradient(180deg,#f6f9ff 0%,#edf3fb 100%)!important;
+        color:#10233f;
+        font-family:"Inter","Segoe UI",Arial,sans-serif;
+      }
+      .client-msg-v2:before{
+        content:"";
+        position:absolute;
+        inset:0;
+        pointer-events:none;
+        opacity:.50;
+        background:linear-gradient(135deg,rgba(255,255,255,.72),transparent 26%),linear-gradient(315deg,rgba(255,255,255,.32),transparent 28%);
+      }
+      .client-msg-v2 > *{position:relative;z-index:1}
+      @keyframes cm2Float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+      @keyframes cm2Shine{0%{background-position:-220px 0}100%{background-position:calc(100% + 220px) 0}}
+
+      .cm2-hero{
+        display:grid;
+        grid-template-columns:72px 1fr auto;
+        gap:16px;
+        align-items:center;
+        padding:18px 22px;
+        border-radius:28px;
+        margin-bottom:16px;
+        background:linear-gradient(135deg,#0b1220 0%,#172554 56%,#0f766e 138%);
+        color:#fff;
+        box-shadow:0 20px 60px rgba(15,23,42,.18);
+        animation:cm2Float 7s ease-in-out infinite;
+      }
+      .cm2-icon{
+        width:70px;height:70px;border-radius:22px;
+        background:linear-gradient(135deg,#67e8f9 0%,#3b82f6 52%,#8b5cf6 100%);
+        box-shadow:0 16px 34px rgba(59,130,246,.34),inset -14px -14px 28px rgba(15,23,42,.25);
+        transform:rotate(-8deg);
+        position:relative;
+      }
+      .cm2-icon:before{
+        content:"";
+        position:absolute;
+        inset:13px;
+        border-radius:17px;
+        border:1.5px solid rgba(255,255,255,.45);
+      }
+      .cm2-hero h1{margin:0;font-size:32px;letter-spacing:-.9px;color:#fff}
+      .cm2-hero p{margin:7px 0 0;color:#dbeafe;font-weight:650;font-size:14px}
+      .cm2-ready{
+        display:inline-flex;align-items:center;gap:8px;
+        padding:9px 13px;border-radius:999px;
+        background:rgba(255,255,255,.14);
+        border:1px solid rgba(255,255,255,.22);
+        color:#d1fae5;font-weight:900;white-space:nowrap;
+      }
+      .cm2-ready-dot{width:9px;height:9px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 6px rgba(34,197,94,.15)}
+
+      .cm2-section{
+        background:rgba(255,255,255,.90)!important;
+        border:1px solid rgba(215,227,245,.95)!important;
+        border-radius:24px!important;
+        box-shadow:0 10px 30px rgba(15,23,42,.06)!important;
+        backdrop-filter:blur(14px);
+        margin-bottom:16px!important;
+        overflow:hidden;
+      }
+      .cm2-section-head{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:10px;
+        padding:16px 18px;
+        border-bottom:1px solid #e8eef8;
+        background:linear-gradient(180deg,#fff,#f8fbff);
+      }
+      .cm2-section-head h2{
+        margin:0;
+        font-size:20px;
+        color:#10233f;
+        letter-spacing:-.35px;
+      }
+      .cm2-section-head p{
+        margin:4px 0 0;
+        color:#5b708d;
+        font-size:12px;
+        font-weight:750;
+      }
+      .cm2-pill{
+        display:inline-flex;
+        align-items:center;
+        gap:6px;
+        padding:6px 10px;
+        border-radius:999px;
+        background:#f1f7ff;
+        border:1px solid #dbe6f4;
+        color:#0f4c81;
+        font-size:12px;
+        font-weight:850;
+        white-space:nowrap;
+      }
+      .cm2-section-body{padding:16px}
+
+      .client-msg-v2 h1,
+      .client-msg-v2 h2,
+      .client-msg-v2 h3{
+        color:#10233f;
+        letter-spacing:-.3px;
+      }
+      .client-msg-v2 input,
+      .client-msg-v2 select,
+      .client-msg-v2 textarea{
+        border:1px solid #d7e3f5!important;
+        background:#fff!important;
+        color:#0f172a!important;
+        border-radius:14px!important;
+        padding:11px 13px!important;
+        font-weight:750!important;
+        outline:none!important;
+        box-shadow:0 6px 18px rgba(15,23,42,.04)!important;
+        font-family:"Inter","Segoe UI",Arial,sans-serif!important;
+      }
+      .client-msg-v2 textarea{
+        min-height:118px;
+        resize:vertical;
+        line-height:1.45;
+      }
+      .client-msg-v2 button,
+      .client-msg-v2 .btn,
+      .client-msg-v2 a.button{
+        border-radius:14px!important;
+        padding:10px 14px!important;
+        font-weight:850!important;
+        border:1px solid #dbe6f4!important;
+        box-shadow:0 8px 24px rgba(15,23,42,.06)!important;
+        transition:transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+        font-family:"Inter","Segoe UI",Arial,sans-serif!important;
+      }
+      .client-msg-v2 button:hover,
+      .client-msg-v2 .btn:hover{transform:translateY(-1px);box-shadow:0 12px 30px rgba(15,23,42,.10)!important}
+      .client-msg-v2 button:not(.danger):not(.red):not(.delete),
+      .client-msg-v2 .btn:not(.danger):not(.red):not(.delete){
+        background:linear-gradient(135deg,#06b6d4,#22c55e)!important;
+        color:#062033!important;
+      }
+
+      .client-msg-v2 table{
+        width:100%;
+        border-collapse:separate!important;
+        border-spacing:0!important;
+        background:#fff!important;
+        border:1px solid #dbe6f4!important;
+        border-radius:18px!important;
+        overflow:hidden!important;
+        box-shadow:none!important;
+      }
+      .client-msg-v2 th{
+        position:sticky;
+        top:0;
+        z-index:2;
+        padding:13px 11px!important;
+        background:#f8fbff!important;
+        color:#43617f!important;
+        text-align:left!important;
+        border-bottom:1px solid #dbe6f4!important;
+        font-weight:900!important;
+        white-space:nowrap;
+      }
+      .client-msg-v2 td{
+        padding:13px 11px!important;
+        border-bottom:1px solid #edf2fa!important;
+        color:#122033!important;
+        vertical-align:middle!important;
+      }
+      .client-msg-v2 tr:hover td{background:#f9fcff!important}
+
+      .cm2-message-item{
+        border:1px solid #dbe6f4!important;
+        border-radius:18px!important;
+        background:#fff!important;
+        box-shadow:0 6px 18px rgba(15,23,42,.04)!important;
+        padding:13px!important;
+        margin-bottom:10px!important;
+      }
+      .cm2-hide{display:none!important}
+
+      .cm2-pager{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:10px;
+        padding:14px 16px;
+        border-top:1px solid #e8eef8;
+        background:#fbfdff;
+        flex-wrap:wrap;
+      }
+      .cm2-pager button{
+        background:#fff!important;
+        color:#0f172a!important;
+      }
+      .cm2-page-info{
+        color:#5b708d;
+        font-size:12px;
+        font-weight:850;
+      }
+      @media(max-width:900px){
+        .cm2-hero{grid-template-columns:1fr}
+        .cm2-icon{display:none}
+      }
+    `;
+    document.head.appendChild(s);
+  }
+
+  function removeOldStats(page){
+    qa('.cm-pro-quickbar', page).forEach(x=>x.remove());
+    qa('.cm-pro-stat', page).forEach(x=>x.remove());
+    const badTexts=['Visible Messages','Page Scope','UI Mode','Premium'];
+    qa('div,section,article', page).forEach(el=>{
+      const t=txt(el);
+      if(t && badTexts.some(b=>t===b || t.includes('Visible Messages') || t.includes('Page Scope') || t.includes('UI Mode')) && el.className && String(el.className).includes('cm-pro')){
+        el.remove();
+      }
+    });
+  }
+
+  function ensureHero(page){
+    qa('.cm-pro-hero', page).forEach(x=>x.remove());
+    if(q('.cm2-hero', page)) return;
+    const hero=document.createElement('div');
+    hero.className='cm2-hero';
+    hero.innerHTML=`
+      <div class="cm2-icon"></div>
+      <div>
+        <h1>Client Message Center</h1>
+        <p>Send messages to selected clients and review delivery status in a clean, simple command view.</p>
+      </div>
+      <div class="cm2-ready"><span class="cm2-ready-dot"></span>Ready</div>
+    `;
+    page.insertBefore(hero, page.firstChild);
+  }
+
+  function findComposer(page){
+    const candidates=qa('section,.card,.panel,.box,form,div', page).filter(el=>{
+      if(el.closest('.cm2-hero') || el.closest('.cm2-section') || el.classList.contains('cm2-hero')) return false;
+      const t=txt(el).toLowerCase();
+      const hasTextArea=!!q('textarea',el);
+      const hasSend=qa('button,input[type="submit"]',el).some(b=>txt(b).toLowerCase().includes('send') || String(b.value||'').toLowerCase().includes('send'));
+      return t.includes('send message to client') || t.includes('send message') || (hasTextArea && hasSend);
+    });
+    return candidates.sort((a,b)=>a.querySelectorAll('*').length-b.querySelectorAll('*').length)[0] || null;
+  }
+
+  function findDelivery(page, composer){
+    const candidates=qa('section,.card,.panel,.box,div', page).filter(el=>{
+      if(el===composer || el.contains(composer) || el.closest('.cm2-hero') || el.closest('.cm2-section') || el.classList.contains('cm2-hero')) return false;
+      const t=txt(el).toLowerCase();
+      const hasRows=qa('tbody tr',el).length>0;
+      const hasMessageItems=qa('.message,.msg,[class*="message"],[class*="Message"]',el).length>0;
+      return t.includes('message delivery') || t.includes('delivery') || t.includes('delivered') || t.includes('pending') || hasRows || hasMessageItems;
+    });
+    return candidates.sort((a,b)=>a.querySelectorAll('*').length-b.querySelectorAll('*').length)[0] || null;
+  }
+
+  function sectionWrap(page, id, title, subtitle, badge, content){
+    let wrap=q('#'+id,page);
+    if(!wrap){
+      wrap=document.createElement('div');
+      wrap.id=id;
+      wrap.className='cm2-section';
+      wrap.innerHTML=`
+        <div class="cm2-section-head">
+          <div><h2>${title}</h2><p>${subtitle}</p></div>
+          <span class="cm2-pill">${badge}</span>
+        </div>
+        <div class="cm2-section-body"></div>
+      `;
+      page.appendChild(wrap);
+    }
+    const body=q('.cm2-section-body',wrap);
+    if(content && content.parentElement!==body) body.appendChild(content);
+    return wrap;
+  }
+
+  function deliveryItems(delivery){
+    if(!delivery) return [];
+    const rows=qa('tbody tr',delivery);
+    if(rows.length) return rows;
+    let cards=qa('.message,.msg,[class*="message"],[class*="Message"]',delivery)
+      .filter(x=>txt(x).length>0 && !x.closest('.cm2-hero') && !x.closest('.cm2-pager'));
+    if(cards.length) return cards;
+    return qa(':scope > *',delivery).filter(x=>txt(x).length>0 && !x.classList.contains('cm2-pager'));
+  }
+
+  function applyDeliveryPagination(section){
+    if(!section) return;
+    const body=q('.cm2-section-body',section);
+    if(!body) return;
+    const deliveryContent=qa(':scope > *',body).find(x=>!x.classList.contains('cm2-pager'));
+    if(!deliveryContent) return;
+    const items=deliveryItems(deliveryContent);
+    const total=items.length;
+    const pageSize=10;
+    section.__cm2Page = section.__cm2Page || 1;
+    const pages=Math.max(1,Math.ceil(total/pageSize));
+    if(section.__cm2Page>pages) section.__cm2Page=pages;
+    if(section.__cm2Page<1) section.__cm2Page=1;
+    const start=(section.__cm2Page-1)*pageSize;
+    const end=start+pageSize;
+
+    items.forEach((it,i)=>{
+      it.classList.toggle('cm2-hide', !(i>=start && i<end));
+      if(!it.matches('tr')) it.classList.add('cm2-message-item');
+    });
+
+    let pager=q('.cm2-pager',section);
+    if(!pager){
+      pager=document.createElement('div');
+      pager.className='cm2-pager';
+      section.appendChild(pager);
+    }
+    pager.innerHTML=`
+      <span class="cm2-page-info">Showing ${total?start+1:0}-${Math.min(end,total)} of ${total} messages</span>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button type="button" class="cm2-prev">Previous</button>
+        <span class="cm2-pill">Page ${section.__cm2Page} / ${pages}</span>
+        <button type="button" class="cm2-next">Next</button>
+      </div>
+    `;
+    q('.cm2-prev',pager).onclick=function(){section.__cm2Page=Math.max(1,section.__cm2Page-1);applyDeliveryPagination(section)};
+    q('.cm2-next',pager).onclick=function(){section.__cm2Page=Math.min(pages,section.__cm2Page+1);applyDeliveryPagination(section)};
+  }
+
+  function renameComposerTitle(composer){
+    if(!composer) return;
+    const heads=qa('h1,h2,h3,h4,strong,b',composer);
+    const found=heads.find(h=>txt(h).toLowerCase().includes('send') && txt(h).toLowerCase().includes('message'));
+    if(found) found.textContent='Send Message to Client';
+  }
+
+  function run(){
+    addCss();
+    const page=findClientMessagesPage();
+    if(!page) return;
+    page.classList.add('client-msg-v2');
+    page.classList.remove('client-msg-pro');
+
+    removeOldStats(page);
+    ensureHero(page);
+
+    const composer=findComposer(page);
+    if(composer){
+      renameComposerTitle(composer);
+      const composerSection=sectionWrap(page,'cm2-send-section','Send Message to Client','Choose client, write message, and send using existing working logic.','Composer',composer);
+      const hero=q('.cm2-hero',page);
+      if(hero && composerSection.previousElementSibling!==hero) hero.insertAdjacentElement('afterend',composerSection);
+    }
+
+    const delivery=findDelivery(page, composer);
+    if(delivery){
+      const deliverySection=sectionWrap(page,'cm2-delivery-section','Message Delivery','Recent 10 messages show first. Use Next for remaining delivery history.','Recent 10',delivery);
+      const composerSection=q('#cm2-send-section',page);
+      if(composerSection && deliverySection.previousElementSibling!==composerSection) composerSection.insertAdjacentElement('afterend',deliverySection);
+      applyDeliveryPagination(deliverySection);
+    }
+  }
+
+  setTimeout(run,300);
+  setTimeout(run,1000);
+  setTimeout(run,2200);
+  setInterval(run,2500);
+})();
+/* CLIENT_MESSAGES_UI_V2_ONLY_END */
+
+/* NOTIFICATION_SIMPLE_PAGED_HISTORY_UI_ONLY_START */
+(function(){
+  function q(s,r){return (r||document).querySelector(s)}
+  function qa(s,r){return Array.from((r||document).querySelectorAll(s))}
+  function txt(el){return (el && (el.innerText || el.textContent) || '').trim()}
+
+  function findNotificationPage(){
+    const ids=['#page-notifications','#page-notification','#page-alerts','#page-rules'];
+    for(const id of ids){const el=q(id);if(el)return el;}
+    return qa('.page,[id^="page-"],main section').find(p=>{
+      const t=txt(p).toLowerCase();
+      return t.includes('notification') || (t.includes('alert history') && t.includes('rule'));
+    }) || null;
+  }
+
+  function addCss(){
+    if(q('#notificationSimplePagedCss')) return;
+    const s=document.createElement('style');
+    s.id='notificationSimplePagedCss';
+    s.textContent=`
+      .notif-simple-page{
+        padding:18px!important;
+        background:
+          radial-gradient(circle at 8% 5%, rgba(14,165,233,.08), transparent 28%),
+          linear-gradient(180deg,#f7fbff 0%,#eef4fb 100%)!important;
+        color:#111827!important;
+        font-family:"Segoe UI",Arial,sans-serif!important;
+      }
+
+      .notif-simple-page *,
+      .notif-simple-page table,
+      .notif-simple-page td,
+      .notif-simple-page th,
+      .notif-simple-page input,
+      .notif-simple-page select,
+      .notif-simple-page textarea,
+      .notif-simple-page button{
+        font-family:"Segoe UI",Arial,sans-serif!important;
+      }
+
+      .notif-simple-page .nt-hero,
+      .notif-simple-page #ntExtraAlertsSection,
+      .notif-simple-page .nt-alert-grid,
+      .notif-simple-page .nt-alert-card,
+      .notif-simple-page .ns-compact-head,
+      .notif-simple-page #ncfTopbar,
+      .notif-simple-page #ncfGrid,
+      .notif-simple-page .ncf-topbar,
+      .notif-simple-page .ncf-grid{
+        display:none!important;
+      }
+
+      .notif-simple-title{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:12px;
+        margin:0 0 14px;
+        padding:14px 16px;
+        border-radius:18px;
+        background:#ffffff;
+        border:1px solid #dbe6f4;
+        box-shadow:0 8px 22px rgba(15,23,42,.05);
+      }
+      .notif-simple-title h1{
+        margin:0;
+        color:#0f172a!important;
+        font-size:24px;
+        font-weight:800;
+        letter-spacing:-.3px;
+      }
+      .notif-simple-title p{
+        margin:3px 0 0;
+        color:#475569!important;
+        font-size:13px;
+        font-weight:600;
+      }
+      .notif-simple-badge{
+        padding:7px 11px;
+        border-radius:999px;
+        background:#ecfdf5;
+        border:1px solid #bbf7d0;
+        color:#15803d;
+        font-size:12px;
+        font-weight:800;
+        white-space:nowrap;
+      }
+
+      .notif-simple-page .card,
+      .notif-simple-page .panel,
+      .notif-simple-page .box,
+      .notif-simple-page .section,
+      .notif-simple-page form{
+        background:#ffffff!important;
+        border:1px solid #dbe6f4!important;
+        border-radius:16px!important;
+        box-shadow:0 6px 18px rgba(15,23,42,.04)!important;
+        color:#111827!important;
+      }
+
+      .notif-simple-page h1,
+      .notif-simple-page h2,
+      .notif-simple-page h3,
+      .notif-simple-page label,
+      .notif-simple-page strong,
+      .notif-simple-page b{
+        color:#0f172a!important;
+      }
+
+      .notif-simple-page p,
+      .notif-simple-page span,
+      .notif-simple-page small,
+      .notif-simple-page div{
+        color:inherit;
+      }
+
+      .notif-simple-page input,
+      .notif-simple-page select,
+      .notif-simple-page textarea{
+        border:1px solid #cbd5e1!important;
+        background:#ffffff!important;
+        color:#0f172a!important;
+        border-radius:10px!important;
+        padding:9px 10px!important;
+        font-size:14px!important;
+        font-weight:600!important;
+        outline:none!important;
+      }
+
+      .notif-simple-page button,
+      .notif-simple-page .btn{
+        border-radius:10px!important;
+        padding:9px 12px!important;
+        font-size:13px!important;
+        font-weight:750!important;
+        border:1px solid #cbd5e1!important;
+        background:#ffffff!important;
+        color:#0f172a!important;
+        box-shadow:none!important;
+      }
+      .notif-simple-page button:hover,
+      .notif-simple-page .btn:hover{
+        background:#f8fafc!important;
+      }
+
+      .notif-simple-page table{
+        width:100%;
+        border-collapse:separate!important;
+        border-spacing:0!important;
+        background:#ffffff!important;
+        border:1px solid #dbe6f4!important;
+        border-radius:14px!important;
+        overflow:hidden!important;
+        box-shadow:none!important;
+        font-size:14px!important;
+      }
+      .notif-simple-page th{
+        position:sticky;
+        top:0;
+        z-index:2;
+        padding:10px!important;
+        background:#f1f5f9!important;
+        color:#0f172a!important;
+        text-align:left!important;
+        border-bottom:1px solid #cbd5e1!important;
+        font-size:13px!important;
+        font-weight:850!important;
+        white-space:nowrap;
+      }
+      .notif-simple-page td{
+        padding:10px!important;
+        border-bottom:1px solid #e2e8f0!important;
+        color:#111827!important;
+        vertical-align:middle!important;
+        font-size:13px!important;
+      }
+      .notif-simple-page tr:hover td{
+        background:#f8fafc!important;
+      }
+
+      .notif-history-simple{
+        background:#ffffff!important;
+        border:1px solid #dbe6f4!important;
+        border-radius:16px!important;
+        box-shadow:0 6px 18px rgba(15,23,42,.04)!important;
+        margin-top:14px!important;
+        overflow:hidden!important;
+      }
+      .notif-history-simple-head{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:10px;
+        padding:13px 15px;
+        background:#ffffff;
+        border-bottom:1px solid #e2e8f0;
+      }
+      .notif-history-simple-head h2{
+        margin:0;
+        color:#0f172a!important;
+        font-size:19px;
+        font-weight:800;
+      }
+      .notif-history-simple-head p{
+        margin:3px 0 0;
+        color:#475569!important;
+        font-size:12px;
+        font-weight:600;
+      }
+      .notif-history-body{
+        padding:12px;
+        max-height:420px;
+        overflow:auto;
+        background:#ffffff;
+      }
+      .notif-history-hide{
+        display:none!important;
+      }
+      .notif-history-pager{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:10px;
+        padding:11px 12px;
+        border-top:1px solid #e2e8f0;
+        background:#f8fafc;
+        flex-wrap:wrap;
+      }
+      .notif-history-pager span{
+        color:#334155!important;
+        font-size:12px;
+        font-weight:750;
+      }
+      .notif-history-pager button{
+        background:#ffffff!important;
+        color:#0f172a!important;
+      }
+
+      @media(max-width:700px){
+        .notif-simple-title,
+        .notif-history-simple-head,
+        .notif-history-pager{
+          align-items:flex-start;
+          flex-direction:column;
+        }
+      }
+    `;
+    document.head.appendChild(s);
+  }
+
+  function removeBadAddedUi(page){
+    // Remove old bulky blocks and confusing two-panel UI created earlier.
+    qa('.nt-hero,.ns-compact-head,#ntExtraAlertsSection,.nt-alert-grid,.nt-alert-card,#ncfTopbar,#ncfGrid,.ncf-topbar,.ncf-grid',page).forEach(x=>{
+      // If previous two-panel moved real content inside, move it back before removing.
+      if(x.id==='ncfGrid'){
+        const rules=q('#ncfRulesBody',x);
+        const history=q('#ncfHistoryBody',x);
+        const parent=x.parentElement;
+        if(parent){
+          if(rules){ while(rules.firstChild) parent.insertBefore(rules.firstChild,x); }
+          if(history){ while(history.firstChild) parent.insertBefore(history.firstChild,x); }
+        }
+      }
+      x.remove();
+    });
+
+    // Remove text-only bulky block if it survived.
+    qa('div,section,article',page).forEach(el=>{
+      const t=txt(el);
+      if(!t) return;
+      if(
+        t.includes('New Advanced Alert Rules') ||
+        t.includes('Add / Refresh Rules') ||
+        t.includes('Metric: max_disk_used_percent') ||
+        t.includes('Metric: cpu_ram_combined_percent') ||
+        t.includes('Metric: cpu_gpu_temp_max_c') ||
+        t.includes('Metric: thread_core_usage_percent')
+      ){
+        if(t.length < 2500 || el.id==='ntExtraAlertsSection' || String(el.className).includes('nt-')){
+          el.remove();
+        }
+      }
+    });
+  }
+
+  function ensureSimpleHeader(page){
+    if(q('#notifSimpleTitle',page)) return;
+    const title=document.createElement('div');
+    title.id='notifSimpleTitle';
+    title.className='notif-simple-title';
+    title.innerHTML=`
+      <div>
+        <h1>Notification Center</h1>
+        <p>Simple view for alert rules and alert history.</p>
+      </div>
+      <span class="notif-simple-badge">Readable Mode</span>
+    `;
+    page.insertBefore(title,page.firstChild);
+  }
+
+  function findHistory(page){
+    return qa('section,.card,.panel,.box,div,table',page).find(el=>{
+      if(el.closest('#notifSimpleTitle') || el.closest('.notif-history-simple')) return false;
+      const t=txt(el).toLowerCase();
+      return t.includes('alert history') || (t.includes('history') && t.includes('alert'));
+    }) || null;
+  }
+
+  function wrapHistory(page){
+    let section=q('#notifHistorySimple',page);
+    if(section) return section;
+
+    const old=findHistory(page);
+    if(!old) return null;
+
+    section=document.createElement('div');
+    section.id='notifHistorySimple';
+    section.className='notif-history-simple';
+    section.innerHTML=`
+      <div class="notif-history-simple-head">
+        <div>
+          <h2>Alert History</h2>
+          <p>Recent 10 alerts first. Click Next for older alerts.</p>
+        </div>
+        <span class="notif-simple-badge" style="background:#eff6ff;border-color:#bfdbfe;color:#1d4ed8">Page Wise</span>
+      </div>
+      <div class="notif-history-body"></div>
+    `;
+    old.insertAdjacentElement('beforebegin',section);
+    q('.notif-history-body',section).appendChild(old);
+    return section;
+  }
+
+  function historyItems(section){
+    const body=q('.notif-history-body',section);
+    if(!body) return [];
+    const rows=qa('tbody tr',body);
+    if(rows.length) return rows;
+
+    let items=qa('.alert,.event,.log,.message,.card,.panel,.box,li',body).filter(x=>txt(x).length>0 && !x.closest('.notif-history-pager'));
+    if(items.length) return items;
+
+    return qa(':scope > *',body).filter(x=>txt(x).length>0 && !x.classList.contains('notif-history-pager'));
+  }
+
+  function paginateHistory(section){
+    if(!section) return;
+    const items=historyItems(section);
+    const total=items.length;
+    const size=10;
+
+    section.__notifSimplePage = section.__notifSimplePage || 1;
+    const pages=Math.max(1,Math.ceil(total/size));
+    if(section.__notifSimplePage>pages) section.__notifSimplePage=pages;
+    if(section.__notifSimplePage<1) section.__notifSimplePage=1;
+
+    const start=(section.__notifSimplePage-1)*size;
+    const end=start+size;
+
+    items.forEach((it,i)=>it.classList.toggle('notif-history-hide', !(i>=start && i<end)));
+
+    let pager=q('.notif-history-pager',section);
+    if(!pager){
+      pager=document.createElement('div');
+      pager.className='notif-history-pager';
+      section.appendChild(pager);
+    }
+
+    pager.innerHTML=`
+      <span>Showing ${total?start+1:0}-${Math.min(end,total)} of ${total} alerts</span>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button type="button" class="notif-prev">Previous</button>
+        <span>Page ${section.__notifSimplePage} / ${pages}</span>
+        <button type="button" class="notif-next">Next</button>
+      </div>
+    `;
+
+    q('.notif-prev',pager).onclick=function(){
+      section.__notifSimplePage=Math.max(1,section.__notifSimplePage-1);
+      paginateHistory(section);
+    };
+    q('.notif-next',pager).onclick=function(){
+      section.__notifSimplePage=Math.min(pages,section.__notifSimplePage+1);
+      paginateHistory(section);
+    };
+  }
+
+  function run(){
+    addCss();
+    const page=findNotificationPage();
+    if(!page) return;
+
+    page.classList.add('notif-simple-page');
+    page.classList.remove('notif-pro','notif-smooth','noti-compact-page');
+
+    removeBadAddedUi(page);
+    ensureSimpleHeader(page);
+    const history=wrapHistory(page);
+    paginateHistory(history);
+  }
+
+  setTimeout(run,250);
+  setTimeout(run,900);
+  setTimeout(run,1800);
+  setInterval(run,3000);
+})();
+/* NOTIFICATION_SIMPLE_PAGED_HISTORY_UI_ONLY_END */
+
+/* UNIVERSAL_BRANDING_SAFE_V4_ONLY_START */
+(function(){
+  const KEY = 'sk_branding_safe_v4';
+  const DEFAULTS = {
+    companyName: 'Next Toppers',
+    website: 'https://www.nexttoppers.com',
+    logoUrl: '/branding/nexttoppers-logo.png',
+    teamBgUrl: '/branding/nexttoppers-team-bg.png',
+    statusText: 'System Health Status',
+    sidebarSubtitle: '',
+    tagline: 'Live system health monitoring for labs, classrooms, offices and mixed Windows + Ubuntu fleets.'
+  };
+
+  function q(s,r){return (r||document).querySelector(s)}
+  function qa(s,r){return Array.from((r||document).querySelectorAll(s))}
+  function text(el){return (el && (el.innerText || el.textContent) || '').trim()}
+  function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+
+  function getBrand(){
+    try{
+      return Object.assign({}, DEFAULTS, JSON.parse(localStorage.getItem(KEY) || '{}') || {});
+    }catch(e){
+      return Object.assign({}, DEFAULTS);
+    }
+  }
+  function saveBrand(b){
+    localStorage.setItem(KEY, JSON.stringify(Object.assign({}, DEFAULTS, b || {})));
+  }
+
+  function addCss(){
+    if(q('#brandSafeV4Css')) return;
+    const s=document.createElement('style');
+    s.id='brandSafeV4Css';
+    s.textContent = `
+      .brand-logo-box{
+        background:#000!important;
+        border-radius:14px!important;
+        overflow:hidden!important;
+        display:flex!important;
+        align-items:center!important;
+        justify-content:center!important;
+        color:transparent!important;
+        font-size:0!important;
+        line-height:0!important;
+      }
+      .brand-logo-box img{
+        width:88%!important;
+        height:88%!important;
+        object-fit:contain!important;
+        display:block!important;
+      }
+      .brand-logo-wide{
+        background:#000!important;
+        border-radius:12px!important;
+        overflow:hidden!important;
+        display:flex!important;
+        align-items:center!important;
+        justify-content:center!important;
+      }
+      .brand-logo-wide img{
+        width:92%!important;
+        height:92%!important;
+        object-fit:contain!important;
+        display:block!important;
+      }
+      .brand-hide{display:none!important}
+      .brand-company-pill{
+        display:flex;align-items:center;gap:12px;
+        min-width:280px;max-width:430px;
+        padding:10px 14px;border-radius:18px;
+        background:#fff;border:1px solid #dbe6f4;
+        box-shadow:0 8px 24px rgba(15,23,42,.05);
+      }
+      .brand-company-pill-logo{width:42px;height:42px;flex:0 0 auto}
+      .brand-company-pill b{display:block;color:#0f172a;font-size:15px;line-height:1.1;font-weight:850}
+      .brand-company-pill span{display:block;color:#64748b;font-size:11px;font-weight:750;margin-top:3px}
+      .brand-login-bg{
+        background:#000!important;
+        position:relative!important;
+        overflow:hidden!important;
+      }
+      .brand-login-bg:before{
+        content:"";
+        position:absolute;inset:0;
+        background-image:var(--brand-team-bg);
+        background-size:cover;background-position:center top;background-repeat:no-repeat;
+        opacity:.36;pointer-events:none;
+      }
+      .brand-login-bg:after{
+        content:"";
+        position:absolute;inset:0;
+        background:linear-gradient(180deg,rgba(0,0,0,.12),rgba(0,0,0,.55));
+        pointer-events:none;
+      }
+      .brand-login-bg > *{position:relative;z-index:1}
+      .brand-small-tagline{font-size:50%!important;line-height:1.2!important}
+      .brand-settings-card{
+        margin-top:16px;padding:18px;border-radius:18px;
+        background:#fff;border:1px solid #dbe6f4;
+        box-shadow:0 8px 24px rgba(15,23,42,.05);
+      }
+      .brand-settings-card h3{margin:0 0 6px;color:#0f172a;font-size:22px;font-weight:850}
+      .brand-settings-card p{margin:0 0 14px;color:#64748b;font-size:13px;font-weight:650}
+      .brand-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+      .brand-field label{display:block;font-size:12px;font-weight:850;color:#0f172a;margin-bottom:6px}
+      .brand-field input{
+        width:100%;box-sizing:border-box;
+        padding:10px 12px;border-radius:12px;
+        border:1px solid #cbd5e1;background:#fff;color:#0f172a;
+        font-size:14px;font-weight:650;
+      }
+      .brand-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center}
+      .brand-btn{padding:10px 14px;border-radius:12px;border:1px solid #dbe6f4;background:#fff;color:#0f172a;font-weight:850;cursor:pointer}
+      .brand-btn.primary{background:linear-gradient(135deg,#06b6d4,#22c55e);border-color:transparent;color:#062033}
+      .brand-preview{display:flex;gap:10px;align-items:center;margin-top:8px}
+      .brand-preview-logo{width:86px;height:58px}
+      .brand-preview-bg{width:130px;height:78px;border-radius:14px;overflow:hidden;background:#000;border:1px solid #dbe6f4}
+      .brand-preview-bg img{width:100%;height:100%;object-fit:cover}
+      .brand-status{font-size:12px;font-weight:850;color:#15803d}
+    `;
+    document.head.appendChild(s);
+  }
+
+  function setLogo(el, url, wide){
+    if(!el) return;
+    el.classList.add(wide ? 'brand-logo-wide' : 'brand-logo-box');
+    el.innerHTML = '<img alt="Company logo" src="'+url+'">';
+  }
+
+  function fixSidebar(brand){
+    const sidebar = qa('aside, nav, .sidebar').find(el => {
+      const t=text(el);
+      return t.includes('Machine Fleet') || t.includes('System Health Monitor') || t.includes('Sagar Kerhalkar') || t.includes('SK');
+    });
+    if(!sidebar) return;
+
+    // Replace SK / SK LIVE boxes with logo
+    qa('*', sidebar).forEach(el => {
+      const t=text(el);
+      if(t === 'SK' || t === 'SK LIVE'){
+        setLogo(el, brand.logoUrl, false);
+      }
+      if(t === 'Sagar Kerhalkar' || t === 'System Health Monitor'){
+        el.classList.add('brand-hide');
+      }
+    });
+
+    // Hide parent text area beside top logo, keep only logo box
+    const brandBlock = qa('div,section,header,article', sidebar).find(el => {
+      const t=text(el);
+      return t.includes('Sagar Kerhalkar') || t.includes('System Health Monitor');
+    });
+    if(brandBlock){
+      let logoBox = qa('div,span', brandBlock).find(el => text(el)==='SK' || text(el)==='SK LIVE' || (el.clientWidth>20 && el.clientWidth<90 && el.clientHeight>20 && el.clientHeight<90));
+      if(!logoBox) logoBox = brandBlock.firstElementChild;
+      if(logoBox) setLogo(logoBox, brand.logoUrl, false);
+      Array.from(brandBlock.children).forEach(ch => {
+        if(ch !== logoBox) ch.classList.add('brand-hide');
+      });
+    }
+  }
+
+  function replaceSearchWithCompany(brand){
+    const search = qa('input').find(el => (el.placeholder||'').toLowerCase().includes('search machine'));
+    if(!search) return;
+
+    search.classList.add('brand-hide');
+    const holder = search.parentElement || search;
+    if(!q('#brandCompanyPill')){
+      const pill=document.createElement('div');
+      pill.id='brandCompanyPill';
+      pill.className='brand-company-pill';
+      pill.innerHTML = `
+        <div class="brand-company-pill-logo brand-logo-wide"><img alt="Company logo" src="${brand.logoUrl}"></div>
+        <div>
+          <b>${esc(brand.companyName)}</b>
+          <span>${esc(brand.statusText)}</span>
+        </div>
+      `;
+      holder.insertAdjacentElement('beforebegin', pill);
+    }else{
+      const pill=q('#brandCompanyPill');
+      const img=q('img',pill); if(img) img.src = brand.logoUrl;
+      const b=q('b',pill); if(b) b.textContent = brand.companyName;
+      const span=q('span',pill); if(span) span.textContent = brand.statusText;
+    }
+  }
+
+  function fixWebsiteButton(brand){
+    qa('button,a').forEach(el => {
+      const t=text(el);
+      if(t === 'Profile Website' || t === 'Company Website'){
+        el.textContent='Company Website';
+        el.onclick=function(e){
+          e.preventDefault();
+          let url=brand.website || DEFAULTS.website;
+          if(!/^https?:\/\//i.test(url)) url='https://' + url;
+          window.open(url,'_blank');
+        };
+      }
+    });
+  }
+
+  function fixLoginPage(brand){
+    const hasSidebar = !!qa('aside, nav, .sidebar').find(el => text(el).includes('Machine Fleet'));
+    const hasPassword = !!qa('input[type="password"], input[name*="password" i]').length;
+    if(!hasPassword || hasSidebar) return;
+
+    document.documentElement.style.setProperty('--brand-team-bg', 'url("'+brand.teamBgUrl+'")');
+    const wrap = q('main') || q('#root') || document.body;
+    wrap.classList.add('brand-login-bg');
+
+    qa('*', wrap).forEach(el => {
+      const t=text(el);
+      if(t === 'SK' || t === 'SK LIVE'){
+        setLogo(el, brand.logoUrl, false);
+      }
+      if(t.includes('Live system health monitoring for labs') || t === brand.tagline){
+        el.textContent = brand.tagline;
+        el.classList.add('brand-small-tagline');
+      }
+    });
+  }
+
+  function addSettingsCard(brand){
+    const page = qa('.page,[id^="page-"],main section,section,div').find(el => {
+      const t=text(el);
+      return t.includes('Settings') && (t.includes('Users') || t.includes('password') || t.includes('refresh'));
+    });
+    if(!page) return;
+    if(q('#brandSettingsCard', page)) return;
+
+    const card=document.createElement('div');
+    card.id='brandSettingsCard';
+    card.className='brand-settings-card';
+    card.innerHTML = `
+      <h3>Company Branding Settings</h3>
+      <p>Change company name, logo, website and login background.</p>
+      <div class="brand-grid">
+        <div class="brand-field">
+          <label>Company Name</label>
+          <input id="brandCompanyName" type="text" value="${esc(brand.companyName)}">
+        </div>
+        <div class="brand-field">
+          <label>Company Website</label>
+          <input id="brandWebsite" type="url" value="${esc(brand.website)}">
+        </div>
+        <div class="brand-field">
+          <label>Status Text</label>
+          <input id="brandStatusText" type="text" value="${esc(brand.statusText)}">
+        </div>
+        <div class="brand-field">
+          <label>Login Tagline</label>
+          <input id="brandTagline" type="text" value="${esc(brand.tagline)}">
+        </div>
+        <div class="brand-field">
+          <label>Company Logo</label>
+          <input id="brandLogoFile" type="file" accept="image/*">
+          <div class="brand-preview">
+            <div class="brand-preview-logo brand-logo-wide"><img src="${brand.logoUrl}" alt="logo"></div>
+          </div>
+        </div>
+        <div class="brand-field">
+          <label>Login Background Image</label>
+          <input id="brandBgFile" type="file" accept="image/*">
+          <div class="brand-preview">
+            <div class="brand-preview-bg"><img src="${brand.teamBgUrl}" alt="background"></div>
+          </div>
+        </div>
+      </div>
+      <div class="brand-actions">
+        <button type="button" class="brand-btn primary" id="brandSaveBtn">Save Branding</button>
+        <button type="button" class="brand-btn" id="brandResetBtn">Reset Default</button>
+        <span class="brand-status" id="brandSaveStatus">Ready</span>
+      </div>
+    `;
+    page.appendChild(card);
+
+    function readFile(input, cb){
+      const f=input && input.files && input.files[0];
+      if(!f) return cb('');
+      const r=new FileReader();
+      r.onload=function(){cb(String(r.result||''))};
+      r.readAsDataURL(f);
+    }
+
+    q('#brandSaveBtn',card).onclick=function(){
+      const next=Object.assign({}, getBrand(), {
+        companyName: q('#brandCompanyName',card).value || DEFAULTS.companyName,
+        website: q('#brandWebsite',card).value || DEFAULTS.website,
+        statusText: q('#brandStatusText',card).value || DEFAULTS.statusText,
+        tagline: q('#brandTagline',card).value || DEFAULTS.tagline
+      });
+      const status=q('#brandSaveStatus',card);
+      status.textContent='Saving...';
+
+      readFile(q('#brandLogoFile',card), function(logo){
+        if(logo) next.logoUrl=logo;
+        readFile(q('#brandBgFile',card), function(bg){
+          if(bg) next.teamBgUrl=bg;
+          saveBrand(next);
+          status.textContent='Saved';
+          apply();
+          setTimeout(()=>status.textContent='Ready',1500);
+        });
+      });
+    };
+
+    q('#brandResetBtn',card).onclick=function(){
+      saveBrand(DEFAULTS);
+      location.reload();
+    };
+  }
+
+  function apply(){
+    try{
+      addCss();
+      const brand=getBrand();
+      fixSidebar(brand);
+      replaceSearchWithCompany(brand);
+      fixWebsiteButton(brand);
+      fixLoginPage(brand);
+      addSettingsCard(brand);
+    }catch(e){
+      console.warn('branding safe v4 error', e);
+    }
+  }
+
+  setTimeout(apply,250);
+  setTimeout(apply,900);
+  setTimeout(apply,1800);
+  setInterval(apply,3500);
+})();
+/* UNIVERSAL_BRANDING_SAFE_V4_ONLY_END */
+
+/* BRANDING_LOGO_TAGLINE_LOGINBG_FIX_ONLY_START */
+(function(){
+  const BRAND = {
+    companyName: 'Next Toppers',
+    website: 'https://www.nexttoppers.com',
+    logoUrl: '/branding/nexttoppers-logo.png',
+    teamBgUrl: '/branding/nexttoppers-team-bg.png',
+    statusText: 'System Health Status',
+    tagline: 'Live system health monitoring for labs, classrooms, offices and mixed Windows + Ubuntu fleets.'
+  };
+
+  function q(s,r){return (r||document).querySelector(s)}
+  function qa(s,r){return Array.from((r||document).querySelectorAll(s))}
+  function txt(el){return (el && (el.innerText || el.textContent) || '').trim()}
+
+  function saveBrandDefaults(){
+    const keys=['sk_branding_safe_v4','sk_universal_branding_settings_v1'];
+    keys.forEach(k=>{
+      try{
+        const old = JSON.parse(localStorage.getItem(k) || '{}') || {};
+        const next = Object.assign({}, old, BRAND);
+        localStorage.setItem(k, JSON.stringify(next));
+      }catch(e){
+        localStorage.setItem(k, JSON.stringify(BRAND));
+      }
+    });
+  }
+
+  function addCss(){
+    if(q('#brandingLogoTaglineFixCss')) return;
+    const s=document.createElement('style');
+    s.id='brandingLogoTaglineFixCss';
+    s.textContent = `
+      .ntfix-logo-box{
+        background:#000!important;
+        border-radius:14px!important;
+        overflow:hidden!important;
+        display:flex!important;
+        align-items:center!important;
+        justify-content:center!important;
+        color:transparent!important;
+        font-size:0!important;
+        line-height:0!important;
+      }
+      .ntfix-logo-box img{
+        width:88%!important;
+        height:88%!important;
+        object-fit:contain!important;
+        display:block!important;
+      }
+      .ntfix-logo-wide{
+        background:#000!important;
+        border-radius:12px!important;
+        overflow:hidden!important;
+        display:flex!important;
+        align-items:center!important;
+        justify-content:center!important;
+      }
+      .ntfix-logo-wide img{
+        width:92%!important;
+        height:92%!important;
+        object-fit:contain!important;
+        display:block!important;
+      }
+      .ntfix-hide{display:none!important}
+      .ntfix-pill{
+        display:flex;align-items:center;gap:12px;
+        min-width:280px;max-width:430px;
+        padding:10px 14px;border-radius:18px;
+        background:#fff;border:1px solid #dbe6f4;
+        box-shadow:0 8px 24px rgba(15,23,42,.05);
+      }
+      .ntfix-pill-logo{width:42px;height:42px;flex:0 0 auto}
+      .ntfix-pill b{display:block;color:#0f172a;font-size:15px;line-height:1.1;font-weight:850}
+      .ntfix-pill span{display:block;color:#64748b;font-size:11px;font-weight:750;margin-top:3px}
+      .ntfix-login-bg{
+        background:#000!important;
+        position:relative!important;
+        overflow:hidden!important;
+      }
+      .ntfix-login-bg:before{
+        content:"";
+        position:absolute;inset:0;
+        background-image:url('/branding/nexttoppers-team-bg.png');
+        background-size:cover;background-position:center top;background-repeat:no-repeat;
+        opacity:.36;pointer-events:none;
+      }
+      .ntfix-login-bg:after{
+        content:"";
+        position:absolute;inset:0;
+        background:linear-gradient(180deg,rgba(0,0,0,.12),rgba(0,0,0,.55));
+        pointer-events:none;
+      }
+      .ntfix-login-bg > *{position:relative;z-index:1}
+      .ntfix-small-tagline{font-size:50%!important;line-height:1.2!important}
+    `;
+    document.head.appendChild(s);
+  }
+
+  function setLogo(el, wide){
+    if(!el) return;
+    el.classList.add(wide ? 'ntfix-logo-wide' : 'ntfix-logo-box');
+    el.innerHTML = '<img alt="Next Toppers logo" src="'+BRAND.logoUrl+'">';
+  }
+
+  function replaceSidebarBrand(){
+    const sidebar = qa('aside, nav, .sidebar').find(el=>{
+      const t=txt(el);
+      return t.includes('Machine Fleet') || t.includes('Sagar Kerhalkar') || t.includes('System Health Monitor') || t.includes('SK');
+    });
+    if(!sidebar) return;
+
+    qa('*', sidebar).forEach(el=>{
+      const t=txt(el);
+      if(t==='SK' || t==='SK LIVE'){ setLogo(el, false); }
+      if(t==='Sagar Kerhalkar' || t==='System Health Monitor'){ el.classList.add('ntfix-hide'); }
+    });
+
+    const topBlock = qa('div,section,header,article', sidebar).find(el=>{
+      const t=txt(el);
+      return t.includes('Sagar Kerhalkar') || t.includes('System Health Monitor');
+    });
+    if(topBlock){
+      let logoBox = qa('div,span', topBlock).find(el=> txt(el)==='SK' || txt(el)==='SK LIVE');
+      if(!logoBox) logoBox = topBlock.firstElementChild;
+      if(logoBox) setLogo(logoBox, false);
+      Array.from(topBlock.children).forEach(ch=>{
+        if(ch!==logoBox) ch.classList.add('ntfix-hide');
+      });
+    }
+  }
+
+  function replaceSearchWithCompanyPill(){
+    const search = qa('input').find(el=> (el.placeholder||'').toLowerCase().includes('search machine'));
+    if(!search) return;
+    search.classList.add('ntfix-hide');
+
+    if(!q('#ntfixCompanyPill')){
+      const pill=document.createElement('div');
+      pill.id='ntfixCompanyPill';
+      pill.className='ntfix-pill';
+      pill.innerHTML = `
+        <div class="ntfix-pill-logo ntfix-logo-wide"><img alt="logo" src="${BRAND.logoUrl}"></div>
+        <div>
+          <b>${BRAND.companyName}</b>
+          <span>${BRAND.statusText}</span>
+        </div>
+      `;
+      search.parentElement.insertAdjacentElement('beforebegin', pill);
+    }else{
+      const pill=q('#ntfixCompanyPill');
+      const img=q('img', pill); if(img) img.src=BRAND.logoUrl;
+      const b=q('b', pill); if(b) b.textContent=BRAND.companyName;
+      const span=q('span', pill); if(span) span.textContent=BRAND.statusText;
+    }
+  }
+
+  function fixWebsiteButton(){
+    qa('button,a').forEach(el=>{
+      const t=txt(el);
+      if(t==='Profile Website' || t==='Company Website'){
+        el.textContent='Company Website';
+        el.onclick=function(e){
+          e.preventDefault();
+          window.open(BRAND.website, '_blank');
+        };
+      }
+    });
+  }
+
+  function fixLoginPage(){
+    const hasSidebar = !!qa('aside, nav, .sidebar').find(el=> txt(el).includes('Machine Fleet'));
+    const hasPassword = !!qa('input[type="password"], input[name*="password" i]').length;
+    if(!hasPassword || hasSidebar) return;
+
+    const wrap = q('main') || q('#root') || document.body;
+    wrap.classList.add('ntfix-login-bg');
+
+    qa('*', wrap).forEach(el=>{
+      const t=txt(el);
+      if(t==='SK' || t==='SK LIVE'){ setLogo(el, false); }
+      if(t.includes('Live system health monitoring for labs') || t===BRAND.tagline){
+        el.textContent = BRAND.tagline;
+        el.classList.add('ntfix-small-tagline');
+      }
+    });
+  }
+
+  function fixSettingsDefaults(){
+    const nameInput=q('#brandCompanyName'); if(nameInput && !nameInput.value) nameInput.value=BRAND.companyName;
+    const websiteInput=q('#brandWebsite'); if(websiteInput && !websiteInput.value) websiteInput.value=BRAND.website;
+  }
+
+  function run(){
+    try{
+      saveBrandDefaults();
+      addCss();
+      replaceSidebarBrand();
+      replaceSearchWithCompanyPill();
+      fixWebsiteButton();
+      fixLoginPage();
+      fixSettingsDefaults();
+    }catch(e){
+      console.warn('branding fix error', e);
+    }
+  }
+
+  setTimeout(run,250);
+  setTimeout(run,900);
+  setTimeout(run,1800);
+  setInterval(run,3500);
+})();
+/* BRANDING_LOGO_TAGLINE_LOGINBG_FIX_ONLY_END */
+
+/* BRANDING_SINGLE_PILL_LOGO_LOGINBG_ONLY_START */
+(function(){
+  const BRAND = {
+    companyName: 'Next Toppers',
+    website: 'https://www.nexttoppers.com',
+    logoUrl: '/branding/nexttoppers-logo.png',
+    teamBgUrl: '/branding/nexttoppers-team-bg.png',
+    statusText: 'System Health Status',
+    tagline: 'Live system health monitoring for labs, classrooms, offices and mixed Windows + Ubuntu fleets.'
+  };
+
+  function q(s,r){return (r||document).querySelector(s)}
+  function qa(s,r){return Array.from((r||document).querySelectorAll(s))}
+  function txt(el){return (el && (el.innerText || el.textContent) || '').trim()}
+
+  function addCss(){
+    if(q('#brandingSinglePillFixCss')) return;
+    const s=document.createElement('style');
+    s.id='brandingSinglePillFixCss';
+    s.textContent = `
+      .sgbrand-logo-box{
+        background:#000!important;
+        border-radius:14px!important;
+        overflow:hidden!important;
+        display:flex!important;
+        align-items:center!important;
+        justify-content:center!important;
+        color:transparent!important;
+        font-size:0!important;
+        line-height:0!important;
+      }
+      .sgbrand-logo-box img{
+        width:88%!important;
+        height:88%!important;
+        object-fit:contain!important;
+        display:block!important;
+      }
+      .sgbrand-logo-wide{
+        background:#000!important;
+        border-radius:12px!important;
+        overflow:hidden!important;
+        display:flex!important;
+        align-items:center!important;
+        justify-content:center!important;
+      }
+      .sgbrand-logo-wide img{
+        width:92%!important;
+        height:92%!important;
+        object-fit:contain!important;
+        display:block!important;
+      }
+      .sgbrand-hide{display:none!important}
+      .sgbrand-pill{
+        display:flex;align-items:center;gap:12px;
+        min-width:280px;max-width:430px;
+        padding:10px 14px;border-radius:18px;
+        background:#fff;border:1px solid #dbe6f4;
+        box-shadow:0 8px 24px rgba(15,23,42,.05);
+      }
+      .sgbrand-pill-logo{width:42px;height:42px;flex:0 0 auto}
+      .sgbrand-pill b{display:block;color:#0f172a;font-size:15px;line-height:1.1;font-weight:850}
+      .sgbrand-pill span{display:block;color:#64748b;font-size:11px;font-weight:750;margin-top:3px}
+      .sgbrand-login-bg{
+        background:#000!important;
+        position:relative!important;
+        overflow:hidden!important;
+      }
+      .sgbrand-login-bg:before{
+        content:"";
+        position:absolute;inset:0;
+        background-image:url('/branding/nexttoppers-team-bg.png');
+        background-size:cover;background-position:center top;background-repeat:no-repeat;
+        opacity:.36;pointer-events:none;
+      }
+      .sgbrand-login-bg:after{
+        content:"";
+        position:absolute;inset:0;
+        background:linear-gradient(180deg,rgba(0,0,0,.12),rgba(0,0,0,.55));
+        pointer-events:none;
+      }
+      .sgbrand-login-bg > *{position:relative;z-index:1}
+      .sgbrand-small-tagline{font-size:50%!important;line-height:1.2!important}
+    `;
+    document.head.appendChild(s);
+  }
+
+  function saveBrandDefaults(){
+    ['sk_branding_safe_v4','sk_universal_branding_settings_v1'].forEach(key=>{
+      try{
+        const old = JSON.parse(localStorage.getItem(key) || '{}') || {};
+        localStorage.setItem(key, JSON.stringify(Object.assign({}, old, BRAND)));
+      }catch(e){
+        localStorage.setItem(key, JSON.stringify(BRAND));
+      }
+    });
+  }
+
+  function setLogo(el, wide){
+    if(!el) return;
+    el.classList.add(wide ? 'sgbrand-logo-wide' : 'sgbrand-logo-box');
+    el.innerHTML = '<img alt="Next Toppers logo" src="'+BRAND.logoUrl+'">';
+  }
+
+  function fixSidebarLogoOnly(){
+    const sidebar = qa('aside, nav, .sidebar').find(el=>{
+      const t=txt(el);
+      return t.includes('Machine Fleet') || t.includes('Sagar Kerhalkar') || t.includes('System Health Monitor') || t.includes('SK');
+    });
+    if(!sidebar) return;
+
+    qa('*', sidebar).forEach(el=>{
+      const t=txt(el);
+      if(t==='SK' || t==='SK LIVE'){ setLogo(el, false); }
+      if(t==='Sagar Kerhalkar' || t==='System Health Monitor'){ el.classList.add('sgbrand-hide'); }
+    });
+
+    const topBlock = qa('div,section,header,article', sidebar).find(el=>{
+      const t=txt(el);
+      return t.includes('Sagar Kerhalkar') || t.includes('System Health Monitor');
+    });
+    if(topBlock){
+      let logoBox = qa('div,span', topBlock).find(el=> txt(el)==='SK' || txt(el)==='SK LIVE');
+      if(!logoBox) logoBox = topBlock.firstElementChild;
+      if(logoBox) setLogo(logoBox, false);
+      Array.from(topBlock.children).forEach(ch=>{
+        if(ch!==logoBox) ch.classList.add('sgbrand-hide');
+      });
+    }
+  }
+
+  function removeDuplicatePillsAndKeepOne(){
+    const search = qa('input').find(el=> (el.placeholder||'').toLowerCase().includes('search machine'));
+    if(search) search.classList.add('sgbrand-hide');
+
+    const allPills = [
+      ...qa('#brandCompanyPill,#ntfixCompanyPill,#ubCompanyPill,.brand-company-pill,.ntfix-pill,.ub-company-pill,.sgbrand-pill')
+    ].filter(Boolean);
+
+    // Remove every old pill first.
+    allPills.forEach(el=>el.remove());
+
+    // Insert only one clean pill.
+    if(search){
+      const holder = search.parentElement || search;
+      if(!q('#sgbrandCompanyPill')){
+        const pill=document.createElement('div');
+        pill.id='sgbrandCompanyPill';
+        pill.className='sgbrand-pill';
+        pill.innerHTML = `
+          <div class="sgbrand-pill-logo sgbrand-logo-wide"><img alt="logo" src="${BRAND.logoUrl}"></div>
+          <div>
+            <b>${BRAND.companyName}</b>
+            <span>${BRAND.statusText}</span>
+          </div>
+        `;
+        holder.insertAdjacentElement('beforebegin', pill);
+      }
+    }
+  }
+
+  function fixWebsiteButton(){
+    qa('button,a').forEach(el=>{
+      const t=txt(el);
+      if(t==='Profile Website' || t==='Company Website'){
+        el.textContent='Company Website';
+        el.onclick=function(e){
+          e.preventDefault();
+          window.open(BRAND.website, '_blank');
+        };
+      }
+    });
+  }
+
+  function fixLoginPage(){
+    const hasSidebar = !!qa('aside, nav, .sidebar').find(el=> txt(el).includes('Machine Fleet'));
+    const hasPassword = !!qa('input[type="password"], input[name*="password" i]').length;
+    if(!hasPassword || hasSidebar) return;
+
+    const wrap = q('main') || q('#root') || document.body;
+    wrap.classList.add('sgbrand-login-bg');
+
+    qa('*', wrap).forEach(el=>{
+      const t=txt(el);
+      if(t==='SK' || t==='SK LIVE'){ setLogo(el, false); }
+      if(t.includes('Live system health monitoring for labs') || t===BRAND.tagline){
+        el.textContent = BRAND.tagline;
+        el.classList.add('sgbrand-small-tagline');
+      }
+    });
+  }
+
+  function run(){
+    try{
+      saveBrandDefaults();
+      addCss();
+      fixSidebarLogoOnly();
+      removeDuplicatePillsAndKeepOne();
+      fixWebsiteButton();
+      fixLoginPage();
+    }catch(e){
+      console.warn('single branding fix error', e);
+    }
+  }
+
+  setTimeout(run,250);
+  setTimeout(run,900);
+  setTimeout(run,1800);
+  setInterval(run,3500);
+})();
+/* BRANDING_SINGLE_PILL_LOGO_LOGINBG_ONLY_END */

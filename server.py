@@ -31,6 +31,112 @@ from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+# SK_NOTIFICATION_EXTRA_METRICS_START
+def _sk_num(v, default=0.0):
+    try:
+        if isinstance(v, bool):
+            return 1.0 if v else 0.0
+        if isinstance(v, (int, float)):
+            return float(v)
+        s = str(v).strip().replace("%", "").replace("°C", "").replace("C", "")
+        return float(s)
+    except Exception:
+        return default
+
+def _sk_walk_values(obj, prefix=""):
+    try:
+        if isinstance(obj, dict):
+            for k, v in obj.items():
+                kk = (prefix + "." + str(k)).strip(".")
+                yield kk, v
+                yield from _sk_walk_values(v, kk)
+        elif isinstance(obj, list):
+            for i, v in enumerate(obj[:200]):
+                yield prefix + "." + str(i), v
+                yield from _sk_walk_values(v, prefix + "." + str(i))
+    except Exception:
+        return
+
+def _sk_enrich_notification_metrics(summary, payload):
+    """Adds composite metrics used by notification rules without changing existing logic."""
+    try:
+        if not isinstance(summary, dict):
+            return summary
+
+        all_pairs = []
+        try:
+            all_pairs.extend(list(_sk_walk_values(summary)))
+        except Exception:
+            pass
+        try:
+            all_pairs.extend(list(_sk_walk_values(payload)))
+        except Exception:
+            pass
+
+        def first_metric(names):
+            for k, v in all_pairs:
+                lk = str(k).lower()
+                if any(n in lk for n in names):
+                    n = _sk_num(v, None)
+                    if n is not None:
+                        return n
+            return 0.0
+
+        cpu = _sk_num(summary.get("cpu_percent") or summary.get("cpu_usage_percent") or summary.get("cpu_usage") or first_metric(["cpu_percent", "cpu.usage", "cpu_usage"]), 0)
+        ram = _sk_num(summary.get("ram_percent") or summary.get("memory_percent") or summary.get("ram_usage_percent") or first_metric(["ram_percent", "memory_percent", "ram.usage", "memory.usage"]), 0)
+
+        if cpu and ram:
+            summary["cpu_ram_combined_percent"] = round(min(cpu, ram), 2)
+            summary["cpu_ram_peak_percent"] = round(max(cpu, ram), 2)
+        else:
+            summary["cpu_ram_combined_percent"] = round(max(cpu, ram), 2)
+            summary["cpu_ram_peak_percent"] = round(max(cpu, ram), 2)
+
+        disk_vals = []
+        temp_vals = []
+        core_vals = []
+
+        for k, v in all_pairs:
+            lk = str(k).lower()
+            n = _sk_num(v, None)
+            if n is None:
+                continue
+
+            # Disk / SSD / HDD usage percent
+            if (
+                ("disk" in lk or "ssd" in lk or "hdd" in lk or "drive" in lk or "storage" in lk)
+                and ("percent" in lk or "pct" in lk or "usage" in lk or "used" in lk)
+                and 0 <= n <= 100
+            ):
+                disk_vals.append(n)
+
+            # CPU / GPU temperature
+            if (
+                ("temp" in lk or "temperature" in lk)
+                and ("cpu" in lk or "gpu" in lk or "processor" in lk or "graphics" in lk)
+                and 10 <= n <= 130
+            ):
+                temp_vals.append(n)
+
+            # Thread / Core usage
+            if (
+                ("core" in lk or "thread" in lk or "logical" in lk)
+                and ("percent" in lk or "pct" in lk or "usage" in lk or "load" in lk)
+                and 0 <= n <= 100
+            ):
+                core_vals.append(n)
+
+        summary["max_disk_used_percent"] = round(max(disk_vals) if disk_vals else _sk_num(summary.get("disk_used_percent") or summary.get("storage_used_percent"), 0), 2)
+        summary["cpu_gpu_temp_max_c"] = round(max(temp_vals) if temp_vals else _sk_num(summary.get("cpu_temp_c") or summary.get("gpu_temp_c") or summary.get("temperature_c"), 0), 2)
+        summary["thread_core_usage_percent"] = round(max(core_vals) if core_vals else _sk_num(summary.get("cpu_core_max_percent") or summary.get("thread_usage_percent"), 0), 2)
+
+        return summary
+    except Exception:
+        return summary
+# SK_NOTIFICATION_EXTRA_METRICS_END
+
+
+
 BASE_DIR = Path(__file__).resolve().parent
 PUBLIC_DIR = BASE_DIR / "public"
 SCRIPTS_DIR = BASE_DIR / "scripts"
@@ -1447,6 +1553,10 @@ def upsert_heartbeat(payload: Dict[str, Any], client_ip: str) -> Dict[str, Any]:
         pending_messages = take_pending_messages(con, summary["machine_id"], summary.get("hostname", ""))
         con.commit()
     evaluate_notifications(summary)
+    try:
+        _sk_enrich_notification_metrics(summary, payload)
+    except Exception:
+        pass
     process_change_events(summary, payload)
     return {"ok": True, "machine_id": summary["machine_id"], "id_source": summary["id_source"], "received_at": received_at, "changes_received": len(payload.get("changes") or []), "pending_messages": pending_messages}
 
@@ -2491,6 +2601,124 @@ class Handler(BaseHTTPRequestHandler):
                         pass
                     return _sw_del_send({"ok": False, "error": str(e)}, 500)
             # SK_SW_INVENTORY_ROUTES_END
+            # SK_NOTIFICATION_EXTRA_RULES_ROUTE_START
+            if path == "/api/notification-extra-rules-seed":
+                import json, sqlite3, pathlib, urllib.parse, time
+                def _sk_notif_send(payload, code=200):
+                    raw = json.dumps(payload, ensure_ascii=False, default=str).encode("utf-8")
+                    self.send_response(code)
+                    self.send_header("Content-Type", "application/json; charset=utf-8")
+                    self.send_header("Cache-Control", "no-store")
+                    self.send_header("Content-Length", str(len(raw)))
+                    self.end_headers()
+                    self.wfile.write(raw)
+                try:
+                    base = pathlib.Path(__file__).resolve().parent
+                    db = pathlib.Path(globals().get("DB_PATH") or globals().get("DATABASE") or globals().get("DB_FILE") or (base / "data" / "monitor.db"))
+                    db.parent.mkdir(parents=True, exist_ok=True)
+                    con = sqlite3.connect(str(db), timeout=20)
+                    con.row_factory = sqlite3.Row
+
+                    # Works with existing notification_rules table. Creates only if missing.
+                    con.execute("""CREATE TABLE IF NOT EXISTS notification_rules (
+                        id TEXT PRIMARY KEY,
+                        name TEXT,
+                        metric TEXT,
+                        op TEXT,
+                        threshold REAL,
+                        enabled INTEGER DEFAULT 0,
+                        severity TEXT DEFAULT 'warning',
+                        cooldown_minutes INTEGER DEFAULT 15
+                    )""")
+
+                    cols = {r[1] for r in con.execute("PRAGMA table_info(notification_rules)").fetchall()}
+                    needed = {
+                        "id": "TEXT PRIMARY KEY",
+                        "name": "TEXT",
+                        "metric": "TEXT",
+                        "op": "TEXT",
+                        "threshold": "REAL",
+                        "enabled": "INTEGER DEFAULT 0",
+                        "severity": "TEXT DEFAULT 'warning'",
+                        "cooldown_minutes": "INTEGER DEFAULT 15"
+                    }
+                    for c, typ in needed.items():
+                        if c not in cols and c != "id":
+                            try:
+                                con.execute("ALTER TABLE notification_rules ADD COLUMN " + c + " " + typ)
+                            except Exception:
+                                pass
+
+                    rules = [
+                        {
+                            "id": "disk_usage_high",
+                            "name": "SSD/HDD usage high",
+                            "metric": "max_disk_used_percent",
+                            "op": ">=",
+                            "threshold": 90,
+                            "enabled": 0,
+                            "severity": "critical",
+                            "cooldown_minutes": 15
+                        },
+                        {
+                            "id": "cpu_ram_combo_high",
+                            "name": "CPU + RAM combined high",
+                            "metric": "cpu_ram_combined_percent",
+                            "op": ">=",
+                            "threshold": 85,
+                            "enabled": 0,
+                            "severity": "critical",
+                            "cooldown_minutes": 10
+                        },
+                        {
+                            "id": "cpu_gpu_temp_high",
+                            "name": "CPU/GPU temperature high",
+                            "metric": "cpu_gpu_temp_max_c",
+                            "op": ">=",
+                            "threshold": 80,
+                            "enabled": 0,
+                            "severity": "critical",
+                            "cooldown_minutes": 10
+                        },
+                        {
+                            "id": "thread_core_usage_high",
+                            "name": "Thread/Core usage high",
+                            "metric": "thread_core_usage_percent",
+                            "op": ">=",
+                            "threshold": 90,
+                            "enabled": 0,
+                            "severity": "warning",
+                            "cooldown_minutes": 10
+                        }
+                    ]
+
+                    inserted = 0
+                    updated = 0
+                    for r in rules:
+                        exists = con.execute("SELECT id FROM notification_rules WHERE id=?", (r["id"],)).fetchone()
+                        if exists:
+                            con.execute("""UPDATE notification_rules
+                                           SET name=?, metric=?, op=?, threshold=?, severity=?, cooldown_minutes=?
+                                           WHERE id=?""",
+                                        (r["name"], r["metric"], r["op"], r["threshold"], r["severity"], r["cooldown_minutes"], r["id"]))
+                            updated += 1
+                        else:
+                            con.execute("""INSERT INTO notification_rules(id,name,metric,op,threshold,enabled,severity,cooldown_minutes)
+                                           VALUES(?,?,?,?,?,?,?,?)""",
+                                        (r["id"], r["name"], r["metric"], r["op"], r["threshold"], r["enabled"], r["severity"], r["cooldown_minutes"]))
+                            inserted += 1
+
+                    con.commit()
+                    total = con.execute("SELECT COUNT(*) FROM notification_rules").fetchone()[0]
+                    con.close()
+                    return _sk_notif_send({"ok": True, "inserted": inserted, "updated": updated, "total": total, "rules": rules})
+                except Exception as e:
+                    try:
+                        con.close()
+                    except Exception:
+                        pass
+                    return _sk_notif_send({"ok": False, "error": str(e)}, 500)
+            # SK_NOTIFICATION_EXTRA_RULES_ROUTE_END
             if path == "/api/changes":
                 return self.send_json({"changes": latest_change_events(300, human=True)})
             if path == "/api/export/changes.csv":

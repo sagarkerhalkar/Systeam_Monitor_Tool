@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sagar Kerhalkar System Monitor Tool</title>
+  <title>Next Toppers System Monitor Tool</title>
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
@@ -14,7 +14,7 @@
 
     <section class="login-stage industry-stage" aria-label="System overview">
       <div class="stage-kicker">Industrial fleet observability</div>
-      <h1 class="industry-hero-title">Live system health monitoring for labs, classrooms, offices and mixed Windows + Ubuntu fleets.</h1>
+      <h1 id="brandLoginTagline" class="industry-hero-title" data-brand-field="loginTagline">Live system health monitoring for labs, classrooms, offices and mixed Windows + Ubuntu fleets.</h1>
       <p class="industry-hero-copy">Monitor CPU, RAM, storage, GPU, internet, USB, software inventory, notifications and daily history from one operations console.</p>
 
       <div class="hero-ops-grid">
@@ -34,7 +34,7 @@
         </div>
         <div class="ops-visual-body">
           <div class="signal-board">
-            <div class="signal-core"><b>SK</b><span>LIVE</span></div>
+            <div id="brandPulseLogo" class="signal-core brand-exact-logo-box"><img alt="Next Toppers logo" src="/branding/nexttoppers-logo.png"></div>
             <i class="signal-ring ring-1"></i>
             <i class="signal-ring ring-2"></i>
             <i class="signal-ring ring-3"></i>
@@ -53,7 +53,7 @@
 
     <aside class="login-card industry-login-card">
       <div class="login-card-top">
-        <div class="login-logo">SK</div>
+        <div id="brandLoginLogo" class="login-logo brand-exact-logo-box"><img alt="Next Toppers logo" src="/branding/nexttoppers-logo.png"></div>
         <div>
           <p class="eyebrow">Secure admin portal</p>
           <h2>System Health Monitor Tool</h2>
@@ -76,8 +76,8 @@
   <div id="appShell" class="shell locked">
     <aside class="sidebar">
       <div class="brand">
-        <div class="brand-mark">SK</div>
-        <div><strong>Sagar Kerhalkar</strong><span>System Health Monitor</span></div>
+        <div id="brandSidebarLogo" class="brand-mark brand-exact-logo-box"><img alt="Next Toppers logo" src="/branding/nexttoppers-logo.png"></div>
+        <div id="brandSidebarText" class="brand-text-hidden"><strong id="brandSidebarName">Next Toppers</strong><span>System Health Monitor</span></div>
       </div>
       <button class="nav active" data-page="dashboard">Command Center</button>
       <button class="nav" data-page="fleet">Machine Fleet</button>
@@ -103,10 +103,11 @@
           <p id="pageSubtitle">Colorful system-wise command analysis, ISP health, downloads, alerts and history.</p>
         </div>
         <div class="top-actions">
-          <input id="globalSearch" placeholder="Search machine, IP, GPU, OS..." />
+          <input id="globalSearch" class="brand-hidden-search" placeholder="Search machine, IP, GPU, OS..." />
+        <div id="brandTopPill" class="brand-top-company-pill"><div id="brandTopPillLogo" class="brand-top-pill-logo brand-exact-logo-box"><img alt="Next Toppers logo" src="/branding/nexttoppers-logo.png"></div><div><b id="brandTopPillName">Next Toppers</b><span>System Health Status</span></div></div>
           <button id="autoRefreshBtn" class="btn ghost">Live: On</button>
           <button id="refreshBtn" class="btn primary">Refresh</button>
-          <span id="roleBadge" class="role-badge">admin</span><a class="btn" href="https://sagarkerhalkar.com" target="_blank">Profile Website</a><button id="logoutBtn" class="btn ghost">Logout</button>
+          <span id="roleBadge" class="role-badge">admin</span><a id="companyWebsiteBtn" class="btn" href="https://www.nexttoppers.com" target="_blank">Company Website</a><button id="logoutBtn" class="btn ghost">Logout</button>
         </div>
       </header>
       <div id="newDataBanner" class="banner hidden">New data arrived. <button class="linkbtn" onclick="refresh(true)">Update view</button></div>

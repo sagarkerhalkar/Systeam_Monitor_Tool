@@ -5462,7 +5462,7 @@ if(typeof renderSoftware==='function' && !window.__skSoftwareCleanFixWrapped){
 })();
 /* BRANDING_SETTINGS_FOUNDATION_ONLY_END */
 
-/* BRANDING_APPLY_FROM_SETTINGS_SAFE_ONLY_START */
+/* BRANDING_EXACT_STATIC_APPLY_ONLY_START */
 (function(){
   const BRAND_KEY = 'sk_company_branding_foundation_v1';
   const DEFAULT_BRAND = {
@@ -5476,292 +5476,230 @@ if(typeof renderSoftware==='function' && !window.__skSoftwareCleanFixWrapped){
 
   function q(s,r){return (r||document).querySelector(s)}
   function qa(s,r){return Array.from((r||document).querySelectorAll(s))}
-  function txt(el){return (el && (el.innerText || el.textContent) || '').trim()}
+  function cleanUrlForCss(url){return String(url||'').replace(/"/g,'%22').replace(/\n/g,'');}
   function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 
   function getBrand(){
     try{
-      const saved = JSON.parse(localStorage.getItem(BRAND_KEY) || '{}') || {};
-      return Object.assign({}, DEFAULT_BRAND, saved);
+      if(typeof window.getCompanyBranding === 'function'){
+        return Object.assign({}, DEFAULT_BRAND, window.getCompanyBranding() || {});
+      }
+      return Object.assign({}, DEFAULT_BRAND, JSON.parse(localStorage.getItem(BRAND_KEY) || '{}') || {});
     }catch(e){
       return Object.assign({}, DEFAULT_BRAND);
     }
   }
 
-  function addCss(){
-    if(q('#brandingApplySafeCss')) return;
-    const s=document.createElement('style');
-    s.id='brandingApplySafeCss';
-    s.textContent = `
-      .brand-apply-logo-box{
-        background:#000!important;
-        border-radius:14px!important;
-        overflow:hidden!important;
-        display:flex!important;
-        align-items:center!important;
-        justify-content:center!important;
-        color:transparent!important;
-        font-size:0!important;
-        line-height:0!important;
-        text-indent:-9999px!important;
-      }
-      .brand-apply-logo-box img{
-        width:88%!important;
-        height:88%!important;
-        object-fit:contain!important;
-        display:block!important;
-        text-indent:0!important;
-      }
-      .brand-apply-logo-wide{
-        background:#000!important;
-        border-radius:12px!important;
-        overflow:hidden!important;
-        display:flex!important;
-        align-items:center!important;
-        justify-content:center!important;
-      }
-      .brand-apply-logo-wide img{
-        width:92%!important;
-        height:92%!important;
-        object-fit:contain!important;
-        display:block!important;
-      }
-      .brand-apply-hide{
-        display:none!important;
-      }
-      .brand-apply-company-pill{
-        display:flex;
-        align-items:center;
-        gap:12px;
-        min-width:280px;
-        max-width:430px;
-        padding:10px 14px;
-        border-radius:18px;
-        background:#fff;
-        border:1px solid #dbe6f4;
-        box-shadow:0 8px 24px rgba(15,23,42,.05);
-      }
-      .brand-apply-company-logo{
-        width:42px;
-        height:42px;
-        flex:0 0 auto;
-      }
-      .brand-apply-company-pill b{
-        display:block;
-        color:#0f172a;
-        font-size:15px;
-        line-height:1.1;
-        font-weight:850;
-      }
-      .brand-apply-company-pill span{
-        display:block;
-        color:#64748b;
-        font-size:11px;
-        font-weight:750;
-        margin-top:3px;
-      }
-      body.brand-login-only-bg{
-        background:#000!important;
-      }
-      body.brand-login-only-bg:before{
-        content:"";
-        position:fixed;
-        inset:0;
-        z-index:-2;
-        background-image:var(--brand-login-bg);
-        background-size:cover;
-        background-position:center top;
-        background-repeat:no-repeat;
-        opacity:.36;
-        pointer-events:none;
-      }
-      body.brand-login-only-bg:after{
-        content:"";
-        position:fixed;
-        inset:0;
-        z-index:-1;
-        background:linear-gradient(180deg,rgba(0,0,0,.12),rgba(0,0,0,.55));
-        pointer-events:none;
-      }
-    `;
-    document.head.appendChild(s);
-  }
-
-  function loggedInAppExists(){
-    return !!(
-      q('#page-dashboard') ||
-      q('#page-settings') ||
-      q('[data-page="fleet"]') ||
-      q('[data-page="dashboard"]') ||
-      q('.nav[data-page="fleet"]') ||
-      q('.nav[data-page="settings"]')
-    );
-  }
-
-  function isLoginPage(){
-    if(loggedInAppExists()) return false;
-    const bodyText = txt(document.body).toLowerCase();
-    return !!q('input[type="password"], input[name*="password" i]') ||
-           bodyText.includes('enter operations dashboard') ||
-           bodyText.includes('login required') ||
-           bodyText.includes('live system health monitoring for labs');
-  }
-
-  function setLogo(el, logoUrl, wide){
+  function setLogoInto(el, logoUrl){
     if(!el) return;
-    el.classList.add(wide ? 'brand-apply-logo-wide' : 'brand-apply-logo-box');
-    el.innerHTML = '<img alt="Company logo" src="'+logoUrl+'">';
+    el.classList.add('brand-exact-logo-box');
+    el.innerHTML = '<img alt="Company logo" src="'+esc(logoUrl || DEFAULT_BRAND.companyLogoUrl)+'">';
   }
 
-  function applySidebarLogo(brand){
-    const sidebar = qa('aside, nav, .sidebar').find(el=>{
-      const t = txt(el);
-      return t.includes('Machine Fleet') || t.includes('Sagar Kerhalkar') || t.includes('System Health Monitor') || t.includes('SK');
-    });
-    if(!sidebar) return;
+  function applyExactBranding(){
+    try{
+      const b = getBrand();
+      const logo = b.companyLogoUrl || DEFAULT_BRAND.companyLogoUrl;
 
-    qa('*', sidebar).forEach(el=>{
-      const t = txt(el);
-      if(t === 'SK' || t === 'SK LIVE'){
-        setLogo(el, brand.companyLogoUrl, false);
-      }
-      if(t === 'Sagar Kerhalkar' || t === 'System Health Monitor'){
-        el.classList.add('brand-apply-hide');
-      }
-    });
+      document.title = (b.companyName || DEFAULT_BRAND.companyName) + ' System Monitor Tool';
 
-    const topBlock = qa('div,section,header,article', sidebar).find(el=>{
-      const t = txt(el);
-      return t.includes('Sagar Kerhalkar') || t.includes('System Health Monitor') || t === 'SK' || t === 'SK LIVE';
-    });
+      setLogoInto(q('#brandPulseLogo'), logo);
+      setLogoInto(q('#brandLoginLogo'), logo);
+      setLogoInto(q('#brandSidebarLogo'), logo);
 
-    if(topBlock){
-      let logoBox = qa('div,span', topBlock).find(el=>{
-        const t = txt(el);
-        return t === 'SK' || t === 'SK LIVE';
-      });
-      if(!logoBox){
-        logoBox = Array.from(topBlock.children).find(ch=>{
-          try{
-            const r = ch.getBoundingClientRect();
-            return r.width > 20 && r.width < 100 && r.height > 20 && r.height < 100;
-          }catch(e){ return false; }
-        }) || topBlock.firstElementChild;
-      }
-      if(logoBox) setLogo(logoBox, brand.companyLogoUrl, false);
-      Array.from(topBlock.children).forEach(ch=>{
-        if(ch !== logoBox) ch.classList.add('brand-apply-hide');
-      });
-    }
-  }
+      const sidebarName = q('#brandSidebarName');
+      if(sidebarName) sidebarName.textContent = b.companyName || DEFAULT_BRAND.companyName;
 
-  function applyTopCompanyPill(brand){
-    const search = qa('input').find(el => (el.placeholder || '').toLowerCase().includes('search machine'));
-    if(!search) return;
-
-    search.classList.add('brand-apply-hide');
-
-    // Remove old duplicate company pills created by earlier patches.
-    qa('#brandCompanyPill,#ntfixCompanyPill,#ubCompanyPill,#sgbrandCompanyPill,#loginRealCompanyPill,#brandApplyCompanyPill,.brand-company-pill,.ntfix-pill,.ub-company-pill,.sgbrand-pill,.login-real-pill,.brand-apply-company-pill').forEach(el=>el.remove());
-
-    const pill = document.createElement('div');
-    pill.id = 'brandApplyCompanyPill';
-    pill.className = 'brand-apply-company-pill';
-    pill.innerHTML = `
-      <div class="brand-apply-company-logo brand-apply-logo-wide">
-        <img alt="Company logo" src="${esc(brand.companyLogoUrl)}">
-      </div>
-      <div>
-        <b>${esc(brand.companyName)}</b>
-        <span>System Health Status</span>
-      </div>
-    `;
-
-    const holder = search.parentElement || search;
-    holder.insertAdjacentElement('beforebegin', pill);
-  }
-
-  function applyWebsiteButton(brand){
-    qa('button,a').forEach(el=>{
-      const t = txt(el);
-      if(t === 'Profile Website' || t === 'Company Website'){
-        el.textContent = 'Company Website';
-        el.onclick = function(e){
-          e.preventDefault();
-          let url = brand.companyWebsite || DEFAULT_BRAND.companyWebsite;
-          if(!/^https?:\/\//i.test(url)) url = 'https://' + url;
-          window.open(url, '_blank');
-        };
-      }
-    });
-  }
-
-  function applyLoginVisuals(brand){
-    if(!isLoginPage()){
-      document.body.classList.remove('brand-login-only-bg');
-      return;
-    }
-
-    document.documentElement.style.setProperty('--brand-login-bg', 'url("'+brand.loginBackgroundUrl+'")');
-    document.body.classList.add('brand-login-only-bg');
-
-    qa('*').forEach(el=>{
-      const t = txt(el);
-      if(t === 'SK' || t === 'SK LIVE'){
-        setLogo(el, brand.companyLogoUrl, false);
-      }
-      if(t.includes('Live system health monitoring for labs') || t === brand.loginTagline){
-        el.textContent = brand.loginTagline;
-        if(!el.dataset.brandOriginalFontPx){
-          const fs = parseFloat(getComputedStyle(el).fontSize || '0');
-          if(fs > 0) el.dataset.brandOriginalFontPx = String(fs);
+      const title = q('#brandLoginTagline');
+      if(title){
+        title.textContent = b.loginTagline || DEFAULT_BRAND.loginTagline;
+        if(!title.dataset.brandBaseFontPx){
+          const fs = parseFloat(getComputedStyle(title).fontSize || '0');
+          if(fs > 0) title.dataset.brandBaseFontPx = String(fs);
         }
-        const base = parseFloat(el.dataset.brandOriginalFontPx || getComputedStyle(el).fontSize || '0');
-        const pct = Math.max(20, Math.min(100, Number(brand.taglineFontPercent || 50)));
-        if(base > 0) el.style.fontSize = (base * pct / 100) + 'px';
-        el.style.lineHeight = '1.15';
+        const base = parseFloat(title.dataset.brandBaseFontPx || getComputedStyle(title).fontSize || '0');
+        const pct = Math.max(20, Math.min(100, Number(b.taglineFontPercent || 50)));
+        if(base > 0) title.style.fontSize = (base * pct / 100) + 'px';
+        title.style.lineHeight = '1.08';
       }
-    });
+
+      const loginScreen = q('#loginScreen');
+      const appShell = q('#appShell');
+      if(loginScreen){
+        loginScreen.style.setProperty('--company-login-bg', 'url("'+cleanUrlForCss(b.loginBackgroundUrl || DEFAULT_BRAND.loginBackgroundUrl)+'")');
+        if(!loginScreen.classList.contains('hidden') && (!appShell || appShell.classList.contains('locked'))){
+          loginScreen.classList.add('brand-login-bg-exact');
+        }else{
+          loginScreen.classList.remove('brand-login-bg-exact');
+        }
+      }
+
+      const topLogo = q('#brandTopPillLogo');
+      if(topLogo) setLogoInto(topLogo, logo);
+      const topName = q('#brandTopPillName');
+      if(topName) topName.textContent = b.companyName || DEFAULT_BRAND.companyName;
+
+      const website = q('#companyWebsiteBtn');
+      if(website){
+        let url = b.companyWebsite || DEFAULT_BRAND.companyWebsite;
+        if(!/^https?:\/\//i.test(url)) url = 'https://' + url;
+        website.textContent = 'Company Website';
+        website.href = url;
+      }
+
+      const search = q('#globalSearch');
+      if(search) search.classList.add('brand-hidden-search');
+
+      // Keep only one company pill if an older dynamic patch made duplicates.
+      const pills = qa('#brandCompanyPill,#ntfixCompanyPill,#ubCompanyPill,#sgbrandCompanyPill,#loginRealCompanyPill,#brandApplyCompanyPill');
+      pills.forEach(p=>p.remove());
+
+    }catch(e){
+      console.warn('Exact branding apply failed', e);
+    }
   }
 
-  function wireSettingsSaveApply(){
-    const btn = q('#brandFoundSave');
-    if(btn && !btn.dataset.brandApplyBound){
-      btn.dataset.brandApplyBound = '1';
-      btn.addEventListener('click', function(){
-        setTimeout(applyBrandingFromSettings, 350);
-        setTimeout(applyBrandingFromSettings, 900);
+  function bindSettingsButtons(){
+    const save = q('#brandFoundSave');
+    if(save && !save.dataset.exactBrandBound){
+      save.dataset.exactBrandBound = '1';
+      save.addEventListener('click', function(){
+        setTimeout(applyExactBranding, 350);
+        setTimeout(applyExactBranding, 1200);
+        setTimeout(applyExactBranding, 2500);
       });
     }
     const reset = q('#brandFoundReset');
-    if(reset && !reset.dataset.brandApplyBound){
-      reset.dataset.brandApplyBound = '1';
+    if(reset && !reset.dataset.exactBrandBound){
+      reset.dataset.exactBrandBound = '1';
       reset.addEventListener('click', function(){
-        setTimeout(applyBrandingFromSettings, 350);
-        setTimeout(applyBrandingFromSettings, 900);
+        setTimeout(applyExactBranding, 350);
+        setTimeout(applyExactBranding, 1200);
       });
     }
   }
 
-  function applyBrandingFromSettings(){
+  function run(){
+    applyExactBranding();
+    bindSettingsButtons();
+  }
+
+  window.applyExactCompanyBranding = run;
+
+  setTimeout(run, 100);
+  setTimeout(run, 500);
+  setTimeout(run, 1300);
+  setInterval(run, 3000);
+
+  // Also hook login/logout if those functions exist later.
+  const oldShow = window.showLogin;
+  if(typeof oldShow === 'function' && !window.__exactBrandShowLoginWrapped){
+    window.__exactBrandShowLoginWrapped = true;
+    window.showLogin = function(){
+      const out = oldShow.apply(this, arguments);
+      setTimeout(run, 80);
+      return out;
+    };
+  }
+  const oldHide = window.hideLogin;
+  if(typeof oldHide === 'function' && !window.__exactBrandHideLoginWrapped){
+    window.__exactBrandHideLoginWrapped = true;
+    window.hideLogin = function(){
+      const out = oldHide.apply(this, arguments);
+      setTimeout(run, 80);
+      return out;
+    };
+  }
+})();
+/* BRANDING_EXACT_STATIC_APPLY_ONLY_END */
+
+/* LOGIN_SPLIT_PHOTO_RIGHT_CARD_FIX_ONLY_START */
+(function(){
+  const BRAND_KEY = 'sk_company_branding_foundation_v1';
+  const DEFAULT_BRAND = {
+    companyName: 'Next Toppers',
+    companyWebsite: 'https://www.nexttoppers.com',
+    companyLogoUrl: '/branding/nexttoppers-logo.png',
+    loginBackgroundUrl: '/branding/nexttoppers-team-bg.png',
+    loginTagline: 'Live system health monitoring for labs, classrooms, offices and mixed Windows + Ubuntu fleets.',
+    taglineFontPercent: 50
+  };
+
+  function q(s,r){return (r||document).querySelector(s)}
+  function getBrand(){
     try{
-      addCss();
-      const brand = getBrand();
-      applySidebarLogo(brand);
-      applyTopCompanyPill(brand);
-      applyWebsiteButton(brand);
-      applyLoginVisuals(brand);
-      wireSettingsSaveApply();
-    }catch(e){
-      console.warn('apply branding from settings failed', e);
+      if(typeof window.getCompanyBranding === 'function') return Object.assign({}, DEFAULT_BRAND, window.getCompanyBranding() || {});
+      return Object.assign({}, DEFAULT_BRAND, JSON.parse(localStorage.getItem(BRAND_KEY) || '{}') || {});
+    }catch(e){ return Object.assign({}, DEFAULT_BRAND); }
+  }
+  function isLoginVisible(){
+    const login = q('#loginScreen');
+    const shell = q('#appShell');
+    return !!(login && !login.classList.contains('hidden') && (!shell || shell.classList.contains('locked')));
+  }
+  function setLogo(el, url){
+    if(!el) return;
+    el.classList.add('brand-exact-logo-box');
+    el.innerHTML = '<img alt="Company logo" src="'+url+'">';
+  }
+  function safeCssUrl(url){return String(url||'').replace(/"/g,'%22').replace(/\n/g,'');}
+
+  function applySplitLogin(){
+    const login = q('#loginScreen');
+    if(!login) return;
+
+    const brand = getBrand();
+
+    if(isLoginVisible()){
+      login.classList.add('login-split-photo-right-card');
+      login.style.setProperty('--company-login-bg', 'url("'+safeCssUrl(brand.loginBackgroundUrl || DEFAULT_BRAND.loginBackgroundUrl)+'")');
+    }else{
+      login.classList.remove('login-split-photo-right-card');
+    }
+
+    setLogo(q('#brandLoginLogo'), brand.companyLogoUrl || DEFAULT_BRAND.companyLogoUrl);
+    setLogo(q('#brandPulseLogo'), brand.companyLogoUrl || DEFAULT_BRAND.companyLogoUrl);
+
+    const title = q('#brandLoginTagline');
+    if(title){
+      title.textContent = brand.loginTagline || DEFAULT_BRAND.loginTagline;
+      const pct = Math.max(35, Math.min(100, Number(brand.taglineFontPercent || 50)));
+      const base = Math.min(58, Math.max(38, window.innerWidth * 0.040));
+      title.style.setProperty('font-size', Math.max(22, base * pct / 100) + 'px', 'important');
+      title.style.setProperty('line-height', '1.10', 'important');
+      title.style.setProperty('max-width', '640px', 'important');
+    }
+
+    const cardTitle = q('.industry-login-card h2') || q('.login-card h2');
+    if(cardTitle) cardTitle.textContent = 'Login to Dashboard';
+
+    const loginCopy = q('.login-copy');
+    if(loginCopy) loginCopy.textContent = 'Enter username and password to continue.';
+
+    const loginBtn = q('#loginBtn') || q('.industry-login-card .btn.wide') || q('.login-card .btn.wide');
+    if(loginBtn) loginBtn.textContent = 'Open Dashboard';
+  }
+
+  function bindSettings(){
+    const save = q('#brandFoundSave');
+    if(save && !save.dataset.splitPhotoBound){
+      save.dataset.splitPhotoBound = '1';
+      save.addEventListener('click', function(){
+        setTimeout(applySplitLogin, 250);
+        setTimeout(applySplitLogin, 1000);
+      });
     }
   }
 
-  window.applyCompanyBrandingFromSettings = applyBrandingFromSettings;
+  function run(){
+    applySplitLogin();
+    bindSettings();
+  }
 
-  setTimeout(applyBrandingFromSettings, 250);
-  setTimeout(applyBrandingFromSettings, 900);
-  setTimeout(applyBrandingFromSettings, 1800);
-  setInterval(applyBrandingFromSettings, 4000);
+  window.applySplitPhotoRightCardLogin = run;
+  setTimeout(run,100);
+  setTimeout(run,500);
+  setTimeout(run,1300);
+  setInterval(run,2500);
 })();
-/* BRANDING_APPLY_FROM_SETTINGS_SAFE_ONLY_END */
+/* LOGIN_SPLIT_PHOTO_RIGHT_CARD_FIX_ONLY_END */

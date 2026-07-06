@@ -1,3 +1,7 @@
+﻿
+
+---
+
 # Sagar Kerhalkar System Health Monitor Tool
 
 **Version target:** V8.4 / port `2278`  
@@ -1670,4 +1674,5 @@ Self-test before rollout.
 Do not fake hardware values.
 Roll out to clients only after server is stable.
 ```
+
 

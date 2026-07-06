@@ -5613,7 +5613,8 @@ if(typeof renderSoftware==='function' && !window.__skSoftwareCleanFixWrapped){
 })();
 /* BRANDING_EXACT_STATIC_APPLY_ONLY_END */
 
-/* LOGIN_SPLIT_PHOTO_RIGHT_CARD_FIX_ONLY_START */
+
+/* LOGIN_APPROVED_LAYOUT_ANIMATED_ONLY_START */
 (function(){
   const BRAND_KEY = 'sk_company_branding_foundation_v1';
   const DEFAULT_BRAND = {
@@ -5621,85 +5622,144 @@ if(typeof renderSoftware==='function' && !window.__skSoftwareCleanFixWrapped){
     companyWebsite: 'https://www.nexttoppers.com',
     companyLogoUrl: '/branding/nexttoppers-logo.png',
     loginBackgroundUrl: '/branding/nexttoppers-team-bg.png',
-    loginTagline: 'Live system health monitoring for labs, classrooms, offices and mixed Windows + Ubuntu fleets.',
-    taglineFontPercent: 50
+    loginTagline: 'Live system health monitoring for labs, classrooms, offices and mixed Windows + Ubuntu fleets.'
   };
 
-  function q(s,r){return (r||document).querySelector(s)}
+  function q(sel, root){ return (root || document).querySelector(sel); }
+  function qa(sel, root){ return Array.from((root || document).querySelectorAll(sel)); }
   function getBrand(){
     try{
-      if(typeof window.getCompanyBranding === 'function') return Object.assign({}, DEFAULT_BRAND, window.getCompanyBranding() || {});
+      if(typeof window.getCompanyBranding === 'function'){
+        return Object.assign({}, DEFAULT_BRAND, window.getCompanyBranding() || {});
+      }
       return Object.assign({}, DEFAULT_BRAND, JSON.parse(localStorage.getItem(BRAND_KEY) || '{}') || {});
     }catch(e){ return Object.assign({}, DEFAULT_BRAND); }
   }
-  function isLoginVisible(){
+  function loginVisible(){
     const login = q('#loginScreen');
     const shell = q('#appShell');
     return !!(login && !login.classList.contains('hidden') && (!shell || shell.classList.contains('locked')));
   }
-  function setLogo(el, url){
-    if(!el) return;
-    el.classList.add('brand-exact-logo-box');
-    el.innerHTML = '<img alt="Company logo" src="'+url+'">';
+  function findUsername(root){
+    return q('#username', root) || q('input[name="username"]', root) || q('input[type="text"]', root) || q('input[type="email"]', root);
   }
-  function safeCssUrl(url){return String(url||'').replace(/"/g,'%22').replace(/\n/g,'');}
+  function findPassword(root){
+    return q('#password', root) || q('input[name="password"]', root) || q('input[type="password"]', root);
+  }
+  function findButton(root){
+    return q('#loginBtn', root) || q('button[type="submit"]', root) || q('.btn.wide', root) || qa('button', root).find(Boolean);
+  }
 
-  function applySplitLogin(){
+  function build(){
     const login = q('#loginScreen');
     if(!login) return;
-
     const brand = getBrand();
+    login.classList.add('login-approved-animated-layout');
+    login.style.setProperty('--company-login-bg', 'url("' + String(brand.loginBackgroundUrl || DEFAULT_BRAND.loginBackgroundUrl).replace(/"/g,'%22') + '")');
 
-    if(isLoginVisible()){
-      login.classList.add('login-split-photo-right-card');
-      login.style.setProperty('--company-login-bg', 'url("'+safeCssUrl(brand.loginBackgroundUrl || DEFAULT_BRAND.loginBackgroundUrl)+'")');
-    }else{
-      login.classList.remove('login-split-photo-right-card');
+    let shell = q('#approvedLoginShell', login);
+    if(!shell){
+      const username = findUsername(login);
+      const password = findPassword(login);
+      const button = findButton(login);
+      const msg = q('#loginMsg', login) || document.createElement('div');
+      if(msg && !msg.id) msg.id = 'loginMsg';
+
+      const oldNodes = qa(':scope > *', login);
+      oldNodes.forEach(n => { if(n) n.remove(); });
+
+      shell = document.createElement('div');
+      shell.id = 'approvedLoginShell';
+      shell.innerHTML = `
+        <div class="approved-login-card">
+          <div class="approved-login-head">
+            <div class="approved-login-logo"><img alt="Company logo" src="${brand.companyLogoUrl || DEFAULT_BRAND.companyLogoUrl}"></div>
+            <div class="approved-login-kicker">SECURE ADMIN PORTAL</div>
+            <h2>System Health<br>Monitor Tool</h2>
+            <p class="approved-login-copy">Fast access to fleet status, alerts, software inventory, hardware health and deploy operations.</p>
+          </div>
+          <div class="approved-login-chips">
+            <span>Windows</span><span>Ubuntu</span><span>Real-time alerts</span>
+          </div>
+          <label class="approved-field-label">Username</label>
+          <div class="approved-field-slot approved-slot-user"></div>
+          <label class="approved-field-label">Password</label>
+          <div class="approved-field-slot approved-slot-pass"></div>
+          <div class="approved-button-slot"></div>
+          <div class="approved-login-foot">Viewer accounts can see live data only. Admin accounts can download reports, change settings and manage deploy commands.</div>
+          <div class="approved-msg-slot"></div>
+        </div>
+        <div class="approved-monitor-panel">
+          <div class="approved-monitor-kicker">INDUSTRIAL FLEET OBSERVABILITY</div>
+          <h1 class="approved-monitor-title">Live system health monitoring for labs, classrooms, offices and mixed Windows + Ubuntu fleets.</h1>
+          <p class="approved-monitor-copy">Monitor CPU, RAM, storage, GPU, internet, USB, software inventory, notifications and daily history from one operations console.</p>
+          <div class="approved-feature-grid">
+            <div class="approved-feature-card cpu"><div class="meta">CPU</div><div class="title">Live load</div><div class="sub">Usage + temperature</div><div class="icon chart"><span></span><span></span><span></span><span></span><span></span></div></div>
+            <div class="approved-feature-card network"><div class="meta">NETWORK</div><div class="title">ISP and latency</div><div class="sub">Current traffic + reachability</div><div class="icon globe"></div></div>
+            <div class="approved-feature-card hardware"><div class="meta">HARDWARE</div><div class="title">GPU / disk / RAM</div><div class="sub">Capacity + health view</div><div class="icon chip"></div></div>
+            <div class="approved-feature-card usb"><div class="meta">USB</div><div class="title">Peripheral watch</div><div class="sub">Human readable change tracking</div><div class="icon usb"></div></div>
+          </div>
+          <div class="approved-ops-panel">
+            <div class="approved-ops-head"><div><div class="meta">OPERATIONS OVERVIEW</div><div class="title">Real-time system pulse</div></div><div class="live-pill"><span class="dot"></span>Live heartbeat 5 sec</div></div>
+            <div class="approved-ops-body">
+              <div class="pulse-logo-wrap">
+                <div class="pulse-rings"></div>
+                <div class="pulse-logo"><img alt="Company logo" src="${brand.companyLogoUrl || DEFAULT_BRAND.companyLogoUrl}"></div>
+              </div>
+              <div class="bars-wrap">
+                <div class="bar b1"></div>
+                <div class="bar b2"></div>
+                <div class="bar b3"></div>
+                <div class="bar b4"></div>
+                <div class="bar b5"></div>
+                <div class="bar b6"></div>
+              </div>
+            </div>
+            <div class="approved-stats-grid">
+              <div class="stat-card"><div class="big">99.98%</div><div class="small">Visibility target</div></div>
+              <div class="stat-card"><div class="big">5 sec</div><div class="small">Dashboard poll</div></div>
+              <div class="stat-card"><div class="big">5-10 sec</div><div class="small">Client heartbeat</div></div>
+            </div>
+          </div>
+        </div>`;
+      login.appendChild(shell);
+
+      if(username){
+        username.classList.add('approved-login-input');
+        username.placeholder = username.placeholder || 'admin';
+        q('.approved-slot-user', shell)?.appendChild(username);
+      }
+      if(password){
+        password.classList.add('approved-login-input');
+        password.placeholder = password.placeholder || 'Enter password';
+        q('.approved-slot-pass', shell)?.appendChild(password);
+      }
+      if(button){
+        button.classList.add('approved-login-button');
+        if('textContent' in button) button.textContent = 'Enter Operations Dashboard';
+        q('.approved-button-slot', shell)?.appendChild(button);
+      }
+      q('.approved-msg-slot', shell)?.appendChild(msg);
+    } else {
+      const logo1 = q('.approved-login-logo img', shell);
+      const logo2 = q('.pulse-logo img', shell);
+      if(logo1) logo1.src = brand.companyLogoUrl || DEFAULT_BRAND.companyLogoUrl;
+      if(logo2) logo2.src = brand.companyLogoUrl || DEFAULT_BRAND.companyLogoUrl;
+      login.style.setProperty('--company-login-bg', 'url("' + String(brand.loginBackgroundUrl || DEFAULT_BRAND.loginBackgroundUrl).replace(/"/g,'%22') + '")');
     }
-
-    setLogo(q('#brandLoginLogo'), brand.companyLogoUrl || DEFAULT_BRAND.companyLogoUrl);
-    setLogo(q('#brandPulseLogo'), brand.companyLogoUrl || DEFAULT_BRAND.companyLogoUrl);
-
-    const title = q('#brandLoginTagline');
-    if(title){
-      title.textContent = brand.loginTagline || DEFAULT_BRAND.loginTagline;
-      const pct = Math.max(35, Math.min(100, Number(brand.taglineFontPercent || 50)));
-      const base = Math.min(58, Math.max(38, window.innerWidth * 0.040));
-      title.style.setProperty('font-size', Math.max(22, base * pct / 100) + 'px', 'important');
-      title.style.setProperty('line-height', '1.10', 'important');
-      title.style.setProperty('max-width', '640px', 'important');
-    }
-
-    const cardTitle = q('.industry-login-card h2') || q('.login-card h2');
-    if(cardTitle) cardTitle.textContent = 'Login to Dashboard';
-
-    const loginCopy = q('.login-copy');
-    if(loginCopy) loginCopy.textContent = 'Enter username and password to continue.';
-
-    const loginBtn = q('#loginBtn') || q('.industry-login-card .btn.wide') || q('.login-card .btn.wide');
-    if(loginBtn) loginBtn.textContent = 'Open Dashboard';
   }
 
-  function bindSettings(){
-    const save = q('#brandFoundSave');
-    if(save && !save.dataset.splitPhotoBound){
-      save.dataset.splitPhotoBound = '1';
-      save.addEventListener('click', function(){
-        setTimeout(applySplitLogin, 250);
-        setTimeout(applySplitLogin, 1000);
-      });
-    }
+  function apply(){
+    const login = q('#loginScreen');
+    if(!login) return;
+    if(loginVisible()) build();
   }
 
-  function run(){
-    applySplitLogin();
-    bindSettings();
-  }
-
-  window.applySplitPhotoRightCardLogin = run;
-  setTimeout(run,100);
-  setTimeout(run,500);
-  setTimeout(run,1300);
-  setInterval(run,2500);
+  window.applyApprovedAnimatedLoginLayout = apply;
+  setTimeout(apply,100);
+  setTimeout(apply,500);
+  setTimeout(apply,1200);
+  setInterval(apply,2000);
 })();
-/* LOGIN_SPLIT_PHOTO_RIGHT_CARD_FIX_ONLY_END */
+/* LOGIN_APPROVED_LAYOUT_ANIMATED_ONLY_END */
+

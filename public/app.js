@@ -2625,3 +2625,213 @@ if(typeof renderSoftware==='function' && !window.__skSoftwareCleanFixWrapped){
  /* USB_SOFTWARE_MINIMAL_SEARCH_FONT_FIX_END */
 
 
+/* USB_SOFTWARE_HIDE_DUPLICATE_TOP_ONLY_START */
+/*
+  ONLY USB + Software duplicate cleanup.
+  Does not change render logic.
+  Does not touch Human page.
+  Does not touch server.py.
+  It only hides the old duplicate top area/search before the working page shell.
+*/
+(function(){
+  function addStyle(){
+    if(document.getElementById('skHideDupUsbSwStyle')) return;
+    const s=document.createElement('style');
+    s.id='skHideDupUsbSwStyle';
+    s.textContent=`
+      #page-usb .sk-hide-duplicate-top-only,
+      #page-software .sk-hide-duplicate-top-only{
+        display:none!important;
+        visibility:hidden!important;
+        height:0!important;
+        min-height:0!important;
+        margin:0!important;
+        padding:0!important;
+        overflow:hidden!important;
+      }
+    `;
+    document.head.appendChild(s);
+  }
+
+  function isVisible(el){
+    if(!el) return false;
+    const st=getComputedStyle(el);
+    return st.display!=='none' && st.visibility!=='hidden' && el.offsetParent!==null;
+  }
+
+  function isSearchInput(el){
+    if(!el || el.tagName!=='INPUT') return false;
+    const text=[
+      el.type || '',
+      el.placeholder || '',
+      el.id || '',
+      el.name || '',
+      el.className || '',
+      el.getAttribute('aria-label') || ''
+    ].join(' ').toLowerCase();
+
+    return (el.type||'').toLowerCase()==='search' ||
+           text.includes('search') ||
+           text.includes('filter');
+  }
+
+  function isDownload(el){
+    if(!el) return false;
+    const text=[
+      el.textContent || '',
+      el.id || '',
+      el.className || '',
+      el.getAttribute('aria-label') || ''
+    ].join(' ').toLowerCase();
+    return (el.tagName==='BUTTON' || el.tagName==='A') && text.includes('download');
+  }
+
+  function hide(el){
+    if(!el) return;
+    el.classList.add('sk-hide-duplicate-top-only');
+    el.style.display='none';
+  }
+
+  function findShell(page, selectors){
+    for(const sel of selectors){
+      const e=page.querySelector(sel);
+      if(e) return e;
+    }
+    return null;
+  }
+
+  function hideBeforeShell(page, shell){
+    // Hide old duplicated header/controls that are before the working shell.
+    let child=shell;
+    while(child.parentElement && child.parentElement!==page){
+      child=child.parentElement;
+    }
+
+    if(child.parentElement===page){
+      let prev=child.previousElementSibling;
+      while(prev){
+        const p=prev;
+        prev=prev.previousElementSibling;
+        if(p.tagName==='SCRIPT' || p.tagName==='STYLE') continue;
+        hide(p);
+      }
+    }
+
+    // Also hide direct previous siblings of actual shell, if shell is directly placed after old header.
+    let prev=shell.previousElementSibling;
+    while(prev){
+      const p=prev;
+      prev=prev.previousElementSibling;
+      if(p.tagName==='SCRIPT' || p.tagName==='STYLE') continue;
+      hide(p);
+    }
+  }
+
+  function keepOneSearch(page, shell){
+    const searches=[...page.querySelectorAll('input')].filter(isSearchInput).filter(isVisible);
+    if(searches.length <= 1) return;
+
+    const inside=searches.filter(x=>shell.contains(x));
+    const keep=(inside.length ? inside[inside.length-1] : searches[searches.length-1]);
+
+    searches.forEach(x=>{
+      if(x!==keep) hide(x);
+    });
+  }
+
+  function keepOneMachineSelect(page, shell){
+    const selects=[...page.querySelectorAll('select')].filter(isVisible);
+    if(selects.length <= 1) return;
+
+    const inside=selects.filter(x=>shell.contains(x));
+    if(!inside.length) return;
+
+    // Hide only selects outside the working shell. Do not touch select boxes inside shell.
+    selects.forEach(x=>{
+      if(!shell.contains(x)) hide(x);
+    });
+  }
+
+  function keepOneDownload(page, shell){
+    const downloads=[...page.querySelectorAll('button,a')].filter(isDownload).filter(isVisible);
+    if(downloads.length <= 1) return;
+
+    const inside=downloads.filter(x=>shell.contains(x));
+    if(!inside.length) return;
+
+    // Hide only download buttons outside the working shell.
+    downloads.forEach(x=>{
+      if(!shell.contains(x)) hide(x);
+    });
+  }
+
+  function fixBrokenDot(page){
+    // Only text cleanup, no layout/design change.
+    const walker=document.createTreeWalker(page, NodeFilter.SHOW_TEXT);
+    const nodes=[];
+    while(walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(n=>{
+      const old=n.nodeValue;
+      const now=old.replace(/Â·/g,' - ').replace(/Â/g,'');
+      if(now!==old) n.nodeValue=now;
+    });
+  }
+
+  function cleanOne(pageSel, shellSelectors){
+    const page=document.querySelector(pageSel);
+    if(!page) return;
+
+    const shell=findShell(page, shellSelectors);
+    if(!shell) return;
+
+    hideBeforeShell(page, shell);
+    keepOneSearch(page, shell);
+    keepOneMachineSelect(page, shell);
+    keepOneDownload(page, shell);
+    fixBrokenDot(page);
+  }
+
+  function run(){
+    addStyle();
+
+    cleanOne('#page-usb', [
+      '.usb-simple-shell',
+      '.usbx-shell',
+      '.usb-shell',
+      '#usbCards',
+      '#usbTable',
+      '.usb-list'
+    ]);
+
+    cleanOne('#page-software', [
+      '.swf-shell',
+      '.swx-shell',
+      '.swa-shell',
+      '.swu-shell',
+      '.software-shell',
+      '#softwareCards',
+      '#softwareTable',
+      '.software-list'
+    ]);
+  }
+
+  ['renderUsb','renderUSB','renderSoftware'].forEach(fn=>{
+    if(typeof window[fn]==='function' && !window['__skHideDupUsbSwWrap_'+fn]){
+      window['__skHideDupUsbSwWrap_'+fn]=true;
+      const old=window[fn];
+      window[fn]=function(){
+        const out=old.apply(this,arguments);
+        setTimeout(run,80);
+        setTimeout(run,350);
+        return out;
+      };
+    }
+  });
+
+  setTimeout(run,500);
+  setTimeout(run,1200);
+  setInterval(run,2000);
+})();
+ /* USB_SOFTWARE_HIDE_DUPLICATE_TOP_ONLY_END */
+
+

@@ -3438,3 +3438,939 @@ if(typeof renderSoftware==='function' && !window.__skSoftwareCleanFixWrapped){
   };
 })();
 /* HISTORY_FAST_3D_ONLY_END */
+
+/* HW_INVENTORY_ONLY_START */
+(function(){
+  var HW_FIELDS = [
+    ['sr_no','Sr. N.'], ['tagname_hostname','Tagname / Hostname'], ['room_location','Room No / Location'], ['person_allocated_to','Person Name / Allocated To'], ['assets_type','Assets Type'], ['oem_name','OEM Name'], ['model_no','Model No'], ['serial_no','Sr. No'], ['configuration','Configuration'], ['vendor_name','Vendor Name'], ['po_invoice_bill_no','PO / Invoice / Bill No'], ['bill_path_google_drive_path','Bill Path / Google Drive Path'], ['purchase_date','Purchase Date'], ['warranty_start_date','Warranty Start Date'], ['warranty_end_date','Warranty End Date'], ['warranty_status','Warranty Status'], ['status','Status'], ['remark','Remark']
+  ];
+  var STATUS_VALUES = ['Working','Not Working','Standby','On Repair','Not Working'];
+  var WARRANTY_VALUES = ['Active','Expired','Unknown','Not Applicable'];
+  function qs(s,r){return (r||document).querySelector(s)}
+  function qsa(s,r){return Array.from((r||document).querySelectorAll(s))}
+  function esc(v){return String(v == null ? '' : v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function apiGet(url){ if(typeof api==='function') return api(url); return fetch(url,{cache:'no-store'}).then(function(r){return r.json()}); }
+  function apiPost(url,obj){
+    if(obj && Array.isArray(obj.rows)){
+      var saved=0,total=0;
+      var p=Promise.resolve();
+      obj.rows.forEach(function(row){
+        p=p.then(function(){ return apiPost(url,{row:row}); }).then(function(d){
+          if(!d.ok) throw new Error(d.error||'Save failed');
+          saved += Number(d.saved||0);
+          total = Number(d.total||total||0);
+        });
+      });
+      return p.then(function(){ return {ok:true,saved:saved,total:total}; });
+    }
+    var qs=new URLSearchParams();
+    qs.set('payload', JSON.stringify(obj||{}));
+    var full=url + (url.indexOf('?')>=0?'&':'?') + qs.toString();
+    if(typeof api==='function') return api(full);
+    return fetch(full,{cache:'no-store'}).then(function(r){return r.json()});
+  }
+  function addStyle(){
+    if(qs('#hwInventoryStyle')) return;
+    var s=document.createElement('style');
+    s.id='hwInventoryStyle';
+    s.textContent='\n#page-hardware .hw-inv-root{font-family:"Segoe UI",Arial,sans-serif;color:#0f172a}\n.hw-inv-hero{position:relative;overflow:hidden;border-radius:28px;padding:22px;background:radial-gradient(circle at 18% 20%,rgba(34,211,238,.30),transparent 26%),radial-gradient(circle at 86% 10%,rgba(99,102,241,.25),transparent 28%),linear-gradient(135deg,#020617,#0f172a 52%,#111827);color:#fff;box-shadow:0 28px 90px rgba(15,23,42,.34)}\n.hw-inv-hero h1{margin:0;font-size:30px;letter-spacing:-.7px}.hw-inv-hero p{margin:8px 0 0;color:#c7d2fe;font-weight:700}.hw-inv-actions{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0;padding:12px;border-radius:18px;background:#fff;border:1px solid #e2e8f0;box-shadow:0 12px 28px rgba(15,23,42,.08)}.hw-inv-actions input,.hw-inv-actions select{padding:10px 12px;border-radius:12px;border:1px solid #cbd5e1;font-weight:800;min-width:150px}.hw-inv-actions button,.hw-inv-file{padding:10px 13px;border-radius:12px;border:0;background:linear-gradient(135deg,#2563eb,#06b6d4);color:#fff;font-weight:900;cursor:pointer}.hw-inv-kpis{display:grid;grid-template-columns:repeat(5,minmax(130px,1fr));gap:12px;margin:14px 0}.hw-inv-kpi{background:#fff;border:1px solid #e2e8f0;border-radius:18px;padding:13px;box-shadow:0 10px 25px rgba(15,23,42,.07)}.hw-inv-kpi b{font-size:24px;display:block}.hw-inv-kpi span{font-size:12px;font-weight:900;color:#64748b;text-transform:uppercase}.hw-inv-table-wrap{overflow:auto;max-height:650px;background:#fff;border:1px solid #e2e8f0;border-radius:22px;box-shadow:0 18px 50px rgba(15,23,42,.09)}.hw-inv-table{border-collapse:separate;border-spacing:0;min-width:2450px;width:100%;font-size:12px}.hw-inv-table th{position:sticky;top:0;z-index:2;background:#f8fafc;color:#334155;text-align:left;padding:10px;border-bottom:1px solid #e2e8f0;text-transform:uppercase;font-size:11px}.hw-inv-table td{padding:8px;border-bottom:1px solid #edf2f7;vertical-align:top}.hw-inv-table td[contenteditable="true"]{background:#fff;border-left:1px solid #f1f5f9;min-width:90px}.hw-inv-table td[contenteditable="true"]:focus{outline:2px solid #38bdf8;background:#f0f9ff}.hw-inv-status{min-width:120px;padding:7px;border:1px solid #cbd5e1;border-radius:10px;font-weight:800}.hw-pill{display:inline-block;border-radius:999px;padding:5px 8px;font-size:11px;font-weight:900;margin:2px}.hw-pill.live{background:#dcfce7;color:#166534}.hw-pill.miss{background:#fee2e2;color:#991b1b}.hw-pill.dup{background:#fef3c7;color:#92400e}.hw-inv-small{font-size:11px;color:#64748b;font-weight:700}.hw-inv-report{margin:10px 0;color:#475569;font-weight:800}.hw-inv-hidden{display:none!important}@media(max-width:900px){.hw-inv-kpis{grid-template-columns:repeat(2,1fr)}.hw-inv-hero h1{font-size:24px}.hw-inv-actions input,.hw-inv-actions select{min-width:100%;box-sizing:border-box}.hw-inv-actions button,.hw-inv-file{width:100%;box-sizing:border-box;text-align:center}}';
+    document.head.appendChild(s);
+  }
+  function target(){ return qs('#hardwareCards') || qs('#page-hardware') || qs('#hardwareTable') || qs('.hardware-list'); }
+  function csvCell(v){ return '"'+String(v==null?'':v).replace(/"/g,'""')+'"'; }
+  function parseCsv(text){
+    var rows=[], row=[], cur='', quote=false;
+    for(var i=0;i<text.length;i++){
+      var c=text[i], n=text[i+1];
+      if(c==='"' && quote && n==='"'){cur+='"';i++;continue;}
+      if(c==='"'){quote=!quote;continue;}
+      if(c===',' && !quote){row.push(cur);cur='';continue;}
+      if((c==='\n'||c==='\r') && !quote){ if(c==='\r'&&n==='\n')i++; row.push(cur); if(row.some(function(x){return String(x).trim()})) rows.push(row); row=[]; cur=''; continue;}
+      cur+=c;
+    }
+    row.push(cur); if(row.some(function(x){return String(x).trim()})) rows.push(row);
+    return rows;
+  }
+  function headersToKeys(headers){
+    function clean(x){return String(x||'').toLowerCase().replace(/[^a-z0-9]/g,'');}
+    var map={};
+    HW_FIELDS.forEach(function(f){map[clean(f[1])]=f[0]; map[clean(f[0])]=f[0];});
+    map['tagnamehostname']='tagname_hostname'; map['roomnolocation']='room_location'; map['personnameallocatedto']='person_allocated_to'; map['assetstype']='assets_type'; map['oemname']='oem_name'; map['modelno']='model_no'; map['srno']='serial_no'; map['serialno']='serial_no'; map['configration']='configuration'; map['configuration']='configuration'; map['vendorname']='vendor_name'; map['poinvoicebillno']='po_invoice_bill_no'; map['billpathorgoogledrivepath']='bill_path_google_drive_path'; map['purchasedate']='purchase_date'; map['warrantystartdate']='warranty_start_date'; map['warrantyenddate']='warranty_end_date'; map['warrantystatus']='warranty_status';
+    return headers.map(function(h){return map[clean(h)] || '';});
+  }
+  function shell(){
+    var el=target(); if(!el) return null; addStyle();
+    el.innerHTML='<div class="hw-inv-root"><div class="hw-inv-hero"><h1>Hardware Inventory</h1><p>Editable hardware asset inventory synced with live monitoring data. Source loaded from your Nexttoppers Assets Detail workbook; duplicates are highlighted.</p></div><div class="hw-inv-actions"><input id="hwInvSearch" placeholder="Search tag, serial, person, room"><select id="hwInvType"><option value="">All Asset Types</option></select><select id="hwInvStatus"><option value="">All Status</option><option>Working</option><option>Not Working</option><option>Standby</option><option>On Repair</option></select><button id="hwInvRefresh">Refresh</button><button id="hwInvAdd">Add Row</button><button id="hwInvSave">Save Changes</button><button id="hwInvCsv">Download CSV</button><button id="hwInvSample">Sample CSV</button><label class="hw-inv-file">Upload CSV<input id="hwInvUpload" type="file" accept=".csv" class="hw-inv-hidden"></label></div><div id="hwInvReport" class="hw-inv-report">Loading inventory...</div><div id="hwInvKpis" class="hw-inv-kpis"></div><div class="hw-inv-table-wrap"><table class="hw-inv-table"><thead id="hwInvHead"></thead><tbody id="hwInvBody"></tbody></table></div></div>';
+    qs('#hwInvRefresh').onclick=function(){loadInventory()};
+    qs('#hwInvSearch').oninput=function(){clearTimeout(window.__hwInvTimer);window.__hwInvTimer=setTimeout(loadInventory,300)};
+    qs('#hwInvType').onchange=loadInventory; qs('#hwInvStatus').onchange=loadInventory;
+    qs('#hwInvAdd').onclick=addRow; qs('#hwInvSave').onclick=saveRows; qs('#hwInvCsv').onclick=downloadCsv; qs('#hwInvSample').onclick=downloadSample;
+    qs('#hwInvUpload').onchange=uploadCsv;
+    return el;
+  }
+  function renderHead(){
+    qs('#hwInvHead').innerHTML='<tr><th>ID</th>'+HW_FIELDS.map(function(f){return '<th>'+esc(f[1])+'</th>';}).join('')+'<th>Live Sync</th><th>Duplicate</th></tr>';
+  }
+  function statusSelect(v){ return '<select class="hw-inv-status" data-key="status">'+STATUS_VALUES.map(function(x){return '<option '+(String(v||'').toLowerCase()===x.toLowerCase()?'selected':'')+'>'+esc(x)+'</option>';}).join('')+'</select>'; }
+  function warrantySelect(v){ return '<select class="hw-inv-status" data-key="warranty_status">'+WARRANTY_VALUES.map(function(x){return '<option '+(String(v||'').toLowerCase()===x.toLowerCase()?'selected':'')+'>'+esc(x)+'</option>';}).join('')+'</select>'; }
+  function renderRows(rows){
+    renderHead();
+    qs('#hwInvBody').innerHTML=rows.map(function(r){return rowHtml(r)}).join('');
+    renderKpis(rows);
+    updateTypeOptions(rows);
+  }
+  function rowHtml(r){
+    var dup=[]; if(r.duplicate_tag) dup.push('Tag'); if(r.duplicate_serial) dup.push('Serial');
+    var live = r.live_sync_status==='Live matched';
+    var html='<tr data-id="'+esc(r.id||'')+'"><td class="hw-inv-small">'+esc(r.id||'new')+'</td>';
+    HW_FIELDS.forEach(function(f){
+      var k=f[0], v=r[k]||'';
+      if(k==='status') html+='<td>'+statusSelect(v)+'</td>';
+      else if(k==='warranty_status') html+='<td>'+warrantySelect(v)+'</td>';
+      else html+='<td contenteditable="true" data-key="'+esc(k)+'">'+esc(v)+'</td>';
+    });
+    html+='<td><span class="hw-pill '+(live?'live':'miss')+'">'+esc(r.live_sync_status||'Not matched')+'</span><div class="hw-inv-small">'+esc(r.live_machine||'')+' '+esc(r.live_ip||'')+'</div></td>';
+    html+='<td>'+(dup.length?'<span class="hw-pill dup">Duplicate '+esc(dup.join(' + '))+'</span>':'<span class="hw-inv-small">OK</span>')+'</td></tr>';
+    return html;
+  }
+  function renderKpis(rows){
+    var dup=rows.filter(function(r){return r.duplicate_tag||r.duplicate_serial}).length;
+    var live=rows.filter(function(r){return r.live_sync_status==='Live matched'}).length;
+    var working=rows.filter(function(r){return String(r.status||'').toLowerCase().indexOf('working')>=0 && String(r.status||'').toLowerCase().indexOf('not')<0}).length;
+    var types={}; rows.forEach(function(r){if(r.assets_type) types[r.assets_type]=1;});
+    qs('#hwInvKpis').innerHTML='<div class="hw-inv-kpi"><span>Shown</span><b>'+rows.length+'</b></div><div class="hw-inv-kpi"><span>Working</span><b>'+working+'</b></div><div class="hw-inv-kpi"><span>Live Matched</span><b>'+live+'</b></div><div class="hw-inv-kpi"><span>Duplicate Rows</span><b>'+dup+'</b></div><div class="hw-inv-kpi"><span>Asset Types</span><b>'+Object.keys(types).length+'</b></div>';
+  }
+  function updateTypeOptions(rows){
+    var sel=qs('#hwInvType'), cur=sel.value, types={}; rows.forEach(function(r){if(r.assets_type)types[r.assets_type]=1;});
+    var list=Object.keys(types).sort();
+    sel.innerHTML='<option value="">All Asset Types</option>'+list.map(function(x){return '<option '+(x===cur?'selected':'')+'>'+esc(x)+'</option>';}).join('');
+    if(cur) sel.value=cur;
+  }
+  async function loadInventory(){
+    if(!qs('#hwInvBody')) shell();
+    var p=new URLSearchParams();
+    var q=qs('#hwInvSearch')?qs('#hwInvSearch').value:''; var t=qs('#hwInvType')?qs('#hwInvType').value:''; var s=qs('#hwInvStatus')?qs('#hwInvStatus').value:'';
+    if(q)p.set('q',q); if(t)p.set('asset_type',t); if(s)p.set('status',s); p.set('limit','5000');
+    qs('#hwInvReport').textContent='Loading hardware inventory from DB...';
+    try{ var d=await apiGet('/api/hardware-inventory?'+p.toString()); if(!d.ok) throw new Error(d.error||'API error'); window.__hwInvRows=d.rows||[]; renderRows(window.__hwInvRows); qs('#hwInvReport').textContent='Loaded '+d.count+' row(s), total DB '+d.total+'. You can edit cells and click Save Changes.'; }
+    catch(e){ qs('#hwInvReport').textContent='Hardware inventory error: '+(e.message||e); }
+  }
+  function collectRows(){ return qsa('#hwInvBody tr').map(function(tr){ var r={id:tr.dataset.id||''}; HW_FIELDS.forEach(function(f){ var k=f[0]; var el=qs('[data-key="'+k+'"]',tr); r[k]=el?('value' in el?el.value:el.innerText.trim()):''; }); return r; }); }
+  async function saveRows(){
+    var rows=collectRows(); qs('#hwInvReport').textContent='Saving '+rows.length+' inventory row(s)...';
+    try{ var d=await apiPost('/api/hardware-inventory-save',{rows:rows}); if(!d.ok) throw new Error(d.error||'Save failed'); qs('#hwInvReport').textContent='Saved '+d.saved+' row(s). Refreshing...'; await loadInventory(); }
+    catch(e){ qs('#hwInvReport').textContent='Save error: '+(e.message||e); }
+  }
+  function addRow(){
+    var r={id:''}; HW_FIELDS.forEach(function(f){r[f[0]]=''}); r.sr_no=(qsa('#hwInvBody tr').length+1); r.status='Working'; r.warranty_status='Unknown'; r.live_sync_status='Not matched';
+    qs('#hwInvBody').insertAdjacentHTML('beforeend',rowHtml(r));
+  }
+  function rowsToCsv(rows){ return [HW_FIELDS.map(function(f){return f[1];})].concat(rows.map(function(r){return HW_FIELDS.map(function(f){return r[f[0]]||'';});})).map(function(row){return row.map(csvCell).join(',');}).join('\r\n'); }
+  function downloadCsv(){ var rows=collectRows(); var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([rowsToCsv(rows)],{type:'text/csv;charset=utf-8;'})); a.download='hardware_inventory.csv'; document.body.appendChild(a); a.click(); a.remove(); }
+  function downloadSample(){ var sample={}; HW_FIELDS.forEach(function(f){sample[f[0]]=''}); sample.sr_no='1'; sample.tagname_hostname='STU1_PC'; sample.room_location='Studio 1'; sample.person_allocated_to='Sagar'; sample.assets_type='CPU'; sample.oem_name='Dell'; sample.model_no='Optiplex'; sample.serial_no='SERIAL123'; sample.configuration='i5 / 16GB RAM / 512GB SSD'; sample.vendor_name='Vendor Name'; sample.po_invoice_bill_no='INV-001'; sample.bill_path_google_drive_path='https://drive.google.com/...'; sample.purchase_date='2026-01-01'; sample.warranty_start_date='2026-01-01'; sample.warranty_end_date='2029-01-01'; sample.warranty_status='Active'; sample.status='Working'; sample.remark='Sample row'; var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([rowsToCsv([sample])],{type:'text/csv;charset=utf-8;'})); a.download='hardware_inventory_sample.csv'; document.body.appendChild(a); a.click(); a.remove(); }
+  async function uploadCsv(ev){
+    var file=ev.target.files[0]; if(!file)return; var text=await file.text(); var data=parseCsv(text); if(data.length<2){qs('#hwInvReport').textContent='CSV has no rows.';return;}
+    var keys=headersToKeys(data[0]); var rows=[];
+    data.slice(1).forEach(function(line){ var r={}; keys.forEach(function(k,i){ if(k) r[k]=line[i]||''; }); if(Object.keys(r).length) rows.push(r); });
+    if(!rows.length){qs('#hwInvReport').textContent='CSV headers not matched. Download sample CSV and use same headers.';return;}
+    qs('#hwInvReport').textContent='Uploading '+rows.length+' CSV row(s)...';
+    try{ var d=await apiPost('/api/hardware-inventory-save',{rows:rows}); if(!d.ok) throw new Error(d.error||'Upload failed'); qs('#hwInvReport').textContent='Uploaded '+d.saved+' row(s). Refreshing...'; await loadInventory(); }
+    catch(e){ qs('#hwInvReport').textContent='CSV upload error: '+(e.message||e); }
+    ev.target.value='';
+  }
+  window.renderHardware = function(){ shell(); loadInventory(); };
+})();
+/* HW_INVENTORY_ONLY_END */
+
+/* ASSETS_INVENTORY_V9_FAST_TABLE_ONLY_START */
+(function(){
+  function q(s,r){return (r||document).querySelector(s)}
+  function qa(s,r){return Array.from((r||document).querySelectorAll(s))}
+  function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+  function txt(el){return (el && (el.innerText || el.textContent) || '').trim()}
+  function apiGet(url){ if(typeof api==='function') return api(url); return fetch(url,{cache:'no-store'}).then(r=>r.json()) }
+  function csvCell(v){return '"' + String(v==null?'':v).replace(/"/g,'""') + '"'}
+  function getPage(){ return q('#page-hardware') || q('#hardwareCards')?.closest('.page') || q('#hardwareTable')?.closest('.page') }
+
+  const FIELDS=[
+    ['tagname_hostname','Tagname / Hostname'],
+    ['room_location','Room No / Location'],
+    ['person_allocated_to','Allocated To'],
+    ['assets_type','Assets Type'],
+    ['oem_name','OEM Name'],
+    ['model_no','Model No'],
+    ['serial_no','Serial No'],
+    ['configuration','Configuration'],
+    ['vendor_name','Vendor Name'],
+    ['po_invoice_bill_no','PO / Invoice / Bill No'],
+    ['bill_path_google_drive_path','Bill / Drive Path'],
+    ['purchase_date','Purchase Date'],
+    ['warranty_start_date','Warranty Start Date'],
+    ['warranty_end_date','Warranty End Date'],
+    ['warranty_status','Warranty Status'],
+    ['status','Status'],
+    ['remark','Remark']
+  ];
+  const STATUS=['Working','Not Working','Standby','On Repair','Scrap','Missing','Unknown'];
+  const PAGE_SIZE_OPTIONS=[25,50,100,200];
+
+  function st(){
+    window.__assetInvV9 = window.__assetInvV9 || {rows:[],loaded:false,search:'',status:'',type:'',sync:'',page:1,pageSize:50};
+    return window.__assetInvV9;
+  }
+
+  function renameNav(){
+    qa('[data-page="hardware"],.nav').forEach(function(el){
+      if((el.dataset && el.dataset.page==='hardware') || txt(el)==='Hardware'){
+        if(el.textContent.indexOf('Hardware')>=0 && el.textContent.indexOf('Assets Inventory')<0){
+          el.innerHTML = el.innerHTML.replace(/Hardware/g,'Assets Inventory');
+        }
+      }
+    });
+  }
+
+  function addCss(){
+    if(q('#assetsInvV9Css')) return;
+    const s=document.createElement('style');
+    s.id='assetsInvV9Css';
+    s.textContent=`
+      #page-hardware.assets-inv-v9{
+        position:relative; overflow:hidden; min-height:calc(100vh - 120px); padding:18px!important;
+        background:
+          radial-gradient(circle at 8% 4%, rgba(14,165,233,.14), transparent 28%),
+          radial-gradient(circle at 92% 8%, rgba(99,102,241,.12), transparent 26%),
+          linear-gradient(180deg,#f6f9ff 0%,#edf3fb 100%)!important;
+        color:#10233f; font-family:"Inter","Segoe UI",Arial,sans-serif;
+      }
+      #page-hardware.assets-inv-v9:before{
+        content:""; position:absolute; inset:0; pointer-events:none; opacity:.50;
+        background:
+          linear-gradient(135deg, rgba(255,255,255,.72), transparent 26%),
+          linear-gradient(315deg, rgba(255,255,255,.32), transparent 28%);
+      }
+      @keyframes ai9Float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+      @keyframes ai9Shine{0%{background-position:-220px 0}100%{background-position:calc(100% + 220px) 0}}
+      .ai9-root{position:relative;z-index:1}
+      .ai9-hero{
+        display:grid; grid-template-columns:76px 1fr auto; gap:16px; align-items:center;
+        padding:18px 22px; border-radius:28px;
+        background:linear-gradient(135deg,#0b1220 0%,#172554 56%,#0f766e 138%);
+        color:#fff; box-shadow:0 20px 60px rgba(15,23,42,.18); animation:ai9Float 7s ease-in-out infinite;
+      }
+      .ai9-cube{
+        width:72px;height:72px;border-radius:22px;position:relative;
+        background:linear-gradient(135deg,#67e8f9 0%,#3b82f6 52%,#8b5cf6 100%);
+        box-shadow:0 16px 34px rgba(59,130,246,.34), inset -14px -14px 28px rgba(15,23,42,.25);
+        transform:rotate(-8deg);
+      }
+      .ai9-cube:before{content:"";position:absolute;inset:12px;border-radius:17px;border:1.5px solid rgba(255,255,255,.45)}
+      .ai9-hero h1{margin:0;font-size:32px;letter-spacing:-.9px}
+      .ai9-hero p{margin:7px 0 0;color:#dbeafe;font-weight:650;font-size:14px}
+      .ai9-hero-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+      .ai9-btn{
+        border:0;border-radius:14px;padding:11px 15px;font-weight:850;font-size:13px;cursor:pointer;
+        background:linear-gradient(135deg,#06b6d4,#22c55e);color:#062033;box-shadow:0 10px 30px rgba(34,197,94,.18);
+      }
+      .ai9-btn.secondary{background:#fff;color:#0f172a;border:1px solid #dbe6f4;box-shadow:0 8px 24px rgba(15,23,42,.06)}
+      .ai9-btn.danger{background:linear-gradient(135deg,#fb7185,#f97316);color:#fff}
+      .ai9-card,.ai9-toolbar,.ai9-stat,.ai9-section,.ai9-modal-card{
+        background:rgba(255,255,255,.88); backdrop-filter:blur(14px); border:1px solid rgba(215,227,245,.95);
+        box-shadow:0 10px 30px rgba(15,23,42,.06);
+      }
+      .ai9-toolbar{
+        margin-top:16px; padding:14px; border-radius:22px;
+        display:grid; grid-template-columns:minmax(260px,1fr) 165px 165px 155px auto; gap:10px; align-items:center;
+      }
+      .ai9-toolbar input,.ai9-toolbar select{
+        border:1px solid #d7e3f5;background:#fff;color:#0f172a;border-radius:13px;padding:10px 12px;font-weight:750;outline:none;
+      }
+      .ai9-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+      .ai9-stats{display:grid;grid-template-columns:repeat(6,minmax(120px,1fr));gap:14px;margin-top:16px}
+      .ai9-stat{padding:16px;border-radius:22px;position:relative;overflow:hidden}
+      .ai9-stat:before{content:"";position:absolute;inset:0;opacity:.7;background:linear-gradient(110deg,transparent 0%,rgba(255,255,255,.5) 40%,transparent 80%);background-size:220px 100%;animation:ai9Shine 5.5s linear infinite}
+      .ai9-stat span{position:relative;display:block;color:#5b708d;font-size:12px;font-weight:850;text-transform:uppercase;letter-spacing:.55px}
+      .ai9-stat b{position:relative;display:block;margin-top:5px;font-size:28px;color:#10233f}
+      .ai9-section{border-radius:24px;overflow:hidden;margin-top:16px}
+      .ai9-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid #e8eef8}
+      .ai9-head h2{margin:0;font-size:20px;color:#10233f}
+      .ai9-sub{color:#5b708d;font-size:12px;font-weight:750}
+      .ai9-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:#f1f7ff;border:1px solid #dbe6f4;color:#0f4c81;font-size:12px;font-weight:850}
+      .ai9-sync-board{display:grid;grid-template-columns:repeat(4,minmax(170px,1fr));gap:14px;padding:16px}
+      .ai9-sync-tile{border-radius:20px;padding:14px;background:#f8fbff;border:1px solid #e4edf9}
+      .ai9-sync-tile span{display:block;color:#5b708d;font-size:12px;font-weight:850;text-transform:uppercase}
+      .ai9-sync-tile b{display:block;color:#10233f;font-size:24px;margin-top:5px}
+      .ai9-live{display:inline-flex;align-items:center;gap:7px;color:#15803d;font-weight:900}
+      .ai9-dot{width:9px;height:9px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 6px rgba(34,197,94,.13)}
+      .ai9-quality{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;padding:16px}
+      .ai9-issues{display:flex;gap:8px;flex-wrap:wrap}
+      .ai9-issue{border-radius:999px;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa;padding:7px 10px;font-size:12px;font-weight:850}
+      .ai9-issue.ok{background:#ecfdf5;color:#15803d;border-color:#bbf7d0}
+      .ai9-table-wrap{overflow:auto;max-height:650px}
+      .ai9-table{width:100%;border-collapse:separate;border-spacing:0;min-width:1180px;font-size:14px}
+      .ai9-table th{
+        position:sticky;top:0;z-index:2;padding:13px 11px;background:#f8fbff;color:#43617f;text-align:left;
+        border-bottom:1px solid #dbe6f4;font-weight:900;white-space:nowrap;
+      }
+      .ai9-table td{padding:13px 11px;border-bottom:1px solid #edf2fa;color:#122033;vertical-align:middle}
+      .ai9-table tr:hover td{background:#f9fcff}
+      .ai9-main b{display:block;font-size:15px;color:#0f172a}
+      .ai9-main small{display:block;color:#64748b;margin-top:3px;font-weight:750}
+      .ai9-muted{color:#64748b;font-weight:700}
+      .ai9-link{color:#0ea5e9;font-weight:850;text-decoration:none}
+      .ai9-status,.ai9-sync{
+        display:inline-flex;align-items:center;gap:7px;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:900;border:1px solid transparent;white-space:nowrap;
+      }
+      .ai9-status .dot,.ai9-sync .dot{width:8px;height:8px;border-radius:50%}
+      .ai9-sync.online{background:#ecfdf5;color:#15803d;border-color:#bbf7d0}
+      .ai9-sync.matched{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe}
+      .ai9-sync.nomatch{background:#f8fafc;color:#64748b;border-color:#e2e8f0}
+      .ai9-pager{display:flex;gap:10px;justify-content:space-between;align-items:center;padding:14px 16px;border-top:1px solid #e8eef8;flex-wrap:wrap}
+      .ai9-pager-left,.ai9-pager-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+      .ai9-dup-wrap{padding:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:12px;max-height:520px;overflow:auto}
+      .ai9-dup-card{border-radius:20px;background:#fff;border:1px solid #dfe9f7;border-left:5px solid var(--dup);overflow:hidden}
+      .ai9-dup-top{padding:12px 14px;background:linear-gradient(90deg,var(--dup-soft),#fff);font-weight:900;color:#0f172a}
+      .ai9-dup-top small{display:block;color:#64748b;font-weight:750;font-size:12px;margin-top:3px}
+      .ai9-dup-row{display:flex;justify-content:space-between;gap:10px;padding:12px 14px;border-top:1px solid #eef3fb}
+      .ai9-dup-row b{display:block;color:#0f172a}.ai9-dup-row small{display:block;color:#64748b;margin-top:3px;font-weight:700}
+      .ai9-mini-btn{border:1px solid #d7e3f5;background:#fff;border-radius:11px;padding:8px 10px;font-size:12px;font-weight:850;cursor:pointer;color:#0f172a}
+      .ai9-mini-btn.red{background:#fff1f2;color:#be123c;border-color:#fecdd3}
+      .ai9-analytics{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;padding:16px}
+      .ai9-analytic{border-radius:20px;padding:14px;background:#f8fbff;border:1px solid #e4edf9}
+      .ai9-analytic span{display:block;color:#64748b;font-size:12px;font-weight:850;text-transform:uppercase}
+      .ai9-analytic b{display:block;color:#10233f;font-size:21px;margin-top:5px}
+      .ai9-modal{position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.38);backdrop-filter:blur(7px);display:flex;justify-content:center;align-items:center;padding:18px}
+      .ai9-modal-card{width:min(1120px,96vw);max-height:92vh;overflow:auto;border-radius:28px}
+      .ai9-modal-head{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid #e8eef8}
+      .ai9-modal-head h3{margin:0;font-size:22px;color:#10233f}
+      .ai9-form{display:grid;grid-template-columns:repeat(3,minmax(220px,1fr));gap:14px;padding:18px}
+      .ai9-form label{font-size:12px;font-weight:850;color:#60758f}
+      .ai9-form input,.ai9-form select,.ai9-form textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:10px 12px;border-radius:13px;border:1px solid #d7e3f5;background:#fff;color:#0f172a;font-weight:700}
+      .ai9-form textarea{min-height:80px;resize:vertical}
+      .ai9-modal-foot{display:flex;justify-content:flex-end;gap:10px;padding:18px;border-top:1px solid #e8eef8}
+      .ai9-empty{padding:18px;color:#5d728f;font-weight:850}
+      .ai9-loading{padding:24px;color:#5d728f;font-weight:850}
+      .ai9-skeleton{height:14px;border-radius:999px;background:linear-gradient(90deg,#eef4fb,#ffffff,#eef4fb);background-size:220px 100%;animation:ai9Shine 1.2s linear infinite;margin:10px 0}
+      @media(max-width:1200px){
+        .ai9-toolbar{grid-template-columns:1fr 1fr}.ai9-actions{grid-column:1/-1;justify-content:flex-start}
+        .ai9-stats,.ai9-sync-board{grid-template-columns:repeat(3,1fr)}
+      }
+      @media(max-width:800px){
+        .ai9-hero{grid-template-columns:1fr}.ai9-cube{display:none}.ai9-toolbar{grid-template-columns:1fr}
+        .ai9-stats,.ai9-sync-board{grid-template-columns:repeat(2,1fr)}.ai9-quality{grid-template-columns:1fr}.ai9-form{grid-template-columns:1fr}
+      }
+      @media(max-width:560px){
+        #page-hardware.assets-inv-v9{padding:10px!important}.ai9-stats,.ai9-sync-board{grid-template-columns:1fr}.ai9-hero h1{font-size:26px}
+      }
+    `;
+    document.head.appendChild(s);
+  }
+
+  function normal(s){return String(s||'').trim().toLowerCase()}
+  function liveMachines(){try{return state.machines||[]}catch(e){return[]}}
+  function hostName(m){try{return (typeof host==='function')?host(m):(m.hostname||m.host||m.machine_id||'')}catch(e){return m.hostname||m.host||m.machine_id||''}}
+  function isOnline(m){try{return String(m.status||'').toLowerCase()==='online'||!!m.online||(Date.now()-new Date(m.last_seen||m.updated_at||0).getTime()<90000)}catch(e){return false}}
+  function liveIndex(){
+    const idx=new Map();
+    liveMachines().forEach(function(m){
+      [hostName(m),m.hostname,m.host,m.machine_id,m.serial,m.serial_no,m.asset_tag,m.tagname_hostname].filter(Boolean).forEach(function(v){
+        const k=normal(v); if(k) idx.set(k,m);
+      });
+    });
+    return idx;
+  }
+  function syncFor(row,idx){
+    idx=idx||liveIndex();
+    const keys=[row.tagname_hostname,row.serial_no].filter(Boolean).map(normal);
+    let m=null;
+    for(const k of keys){ if(idx.has(k)){m=idx.get(k);break;} }
+    if(!m){
+      const tag=normal(row.tagname_hostname);
+      if(tag && tag.length>3){
+        for(const [k,v] of idx.entries()){ if(k.length>3 && (k.includes(tag)||tag.includes(k))){m=v;break;} }
+      }
+    }
+    if(!m) return {state:'nomatch',label:'No Live Match',machine:null};
+    return {state:isOnline(m)?'online':'matched',label:isOnline(m)?'Live Online':'Live Matched',machine:m};
+  }
+
+  function statusBadge(v){
+    const s=String(v||'Unknown'), low=s.toLowerCase();
+    let bg='#eff6ff',bd='#bfdbfe',fg='#1d4ed8',dot='#3b82f6';
+    if(low.includes('work')&&!low.includes('not')){bg='#ecfdf5';bd='#bbf7d0';fg='#15803d';dot='#22c55e'}
+    else if(low.includes('repair')){bg='#fffbeb';bd='#fde68a';fg='#a16207';dot='#f59e0b'}
+    else if(low.includes('not')){bg='#fff1f2';bd='#fecdd3';fg='#be123c';dot='#fb7185'}
+    else if(low.includes('stand')){bg='#f5f3ff';bd='#ddd6fe';fg='#6d28d9';dot='#8b5cf6'}
+    return `<span class="ai9-status" style="background:${bg};border-color:${bd};color:${fg}"><span class="dot" style="background:${dot}"></span>${esc(s)}</span>`;
+  }
+  function syncBadge(s){return `<span class="ai9-sync ${esc(s.state)}"><span class="dot"></span>${esc(s.label)}</span>`}
+
+  async function loadRows(force){
+    const x=st();
+    if(x.loaded && !force) return x.rows;
+    const d=await apiGet('/api/hardware-inventory?limit=20000');
+    if(!d || d.ok===false) throw new Error((d&&d.error)||'Inventory API error');
+    x.rows=d.rows || d.inventory || [];
+    x.loaded=true;
+    return x.rows;
+  }
+
+  async function savePayload(obj){
+    const p=new URLSearchParams(); p.set('payload', JSON.stringify(obj||{}));
+    const d=await apiGet('/api/hardware-inventory-save?'+p.toString());
+    if(!d || d.ok===false) throw new Error((d&&d.error)||'Save failed');
+    st().loaded=false;
+    return d;
+  }
+  async function deleteIds(ids){
+    if(!ids.length) return;
+    if(!confirm('Delete selected asset(s)?')) return;
+    const d=await apiGet('/api/hardware-inventory-delete?ids='+encodeURIComponent(ids.join(',')));
+    if(!d || d.ok===false) throw new Error((d&&d.error)||'Delete failed');
+    st().loaded=false;
+    return d;
+  }
+
+  function assetTypes(rows){return Array.from(new Set(rows.map(r=>String(r.assets_type||'Unknown').trim()||'Unknown'))).sort();}
+  function filterRows(){
+    const x=st(), s=normal(x.search), idx=liveIndex();
+    return (x.rows||[]).filter(r=>{
+      if(x.status && normal(r.status)!==normal(x.status)) return false;
+      if(x.type && normal(r.assets_type)!==normal(x.type)) return false;
+      if(x.sync && syncFor(r,idx).state!==x.sync) return false;
+      if(s){
+        const blob=[r.id,r.tagname_hostname,r.room_location,r.person_allocated_to,r.assets_type,r.oem_name,r.model_no,r.serial_no,r.configuration,r.vendor_name,r.status,r.remark].join(' ').toLowerCase();
+        if(!blob.includes(s)) return false;
+      }
+      return true;
+    });
+  }
+  function pageRows(rows){
+    const x=st();
+    const totalPages=Math.max(1,Math.ceil(rows.length/x.pageSize));
+    if(x.page>totalPages) x.page=totalPages;
+    if(x.page<1) x.page=1;
+    const start=(x.page-1)*x.pageSize;
+    return rows.slice(start,start+x.pageSize);
+  }
+
+  function duplicateGroups(rows){
+    const map={};
+    function push(kind,key,row){key=normal(key);if(!key||['na','n/a','none','unknown','nil','-'].includes(key))return;const id=kind+':'+key;map[id]=map[id]||{kind:kind,key:key,rows:[]};map[id].rows.push(row)}
+    rows.forEach(r=>{push('Tag / Hostname',r.tagname_hostname,r);push('Serial No',r.serial_no,r)});
+    return Object.values(map).filter(g=>g.rows.length>1).sort((a,b)=>b.rows.length-a.rows.length);
+  }
+  function quality(rows){
+    const dups=duplicateGroups(rows);
+    const missingTag=rows.filter(r=>!String(r.tagname_hostname||'').trim()).length;
+    const missingSerial=rows.filter(r=>!String(r.serial_no||'').trim()).length;
+    const unknownStatus=rows.filter(r=>!String(r.status||'').trim()||normal(r.status)==='unknown').length;
+    let fixable=0; rows.forEach(r=>{const n=normalizeRow(r); if(JSON.stringify(n)!==JSON.stringify(pickFields(r))) fixable++});
+    return {dups,missingTag,missingSerial,unknownStatus,fixable};
+  }
+  function pickFields(r){const o={id:r.id};FIELDS.forEach(f=>o[f[0]]=r[f[0]]||'');return o}
+  function capWords(s){return String(s||'').toLowerCase().replace(/\b\w/g,m=>m.toUpperCase())}
+  function normStatus(s){
+    const x=normal(s); if(!x) return 'Unknown';
+    if(x.includes('stand'))return'Standby'; if(x.includes('repair'))return'On Repair'; if(x.includes('not')||x.includes('dead')||x.includes('fault'))return'Not Working'; if(x.includes('work')||x==='ok'||x==='active')return'Working'; if(x.includes('scrap'))return'Scrap'; if(x.includes('miss'))return'Missing';
+    return capWords(s);
+  }
+  function normalizeRow(r){
+    const o=pickFields(r);
+    Object.keys(o).forEach(k=>{if(k!=='id')o[k]=String(o[k]||'').trim().replace(/\s+/g,' ')});
+    o.status=normStatus(o.status);
+    if(o.tagname_hostname && /^[a-z0-9_-]+$/i.test(o.tagname_hostname)) o.tagname_hostname=o.tagname_hostname.toUpperCase();
+    if(o.serial_no && /^[a-z0-9_-]+$/i.test(o.serial_no)) o.serial_no=o.serial_no.toUpperCase();
+    if(o.warranty_end_date){const d=new Date(o.warranty_end_date);if(!isNaN(d))o.warranty_status=d.getTime()>=new Date().setHours(0,0,0,0)?'In Warranty':'Expired'}
+    if(!o.warranty_status)o.warranty_status='Unknown';
+    return o;
+  }
+  async function autoCorrect(){
+    const rows=filterRows();
+    const changed=rows.map(r=>normalizeRow(r)).filter((n,i)=>JSON.stringify(n)!==JSON.stringify(pickFields(rows[i])));
+    if(!changed.length){alert('No auto-correctable data found.');return}
+    if(!confirm('Auto-correct '+changed.length+' rows? It fixes spacing, status spelling, warranty status, tag/serial case. It will not delete duplicates.'))return;
+    for(const row of changed){await savePayload({row})}
+    alert('Auto-correct completed: '+changed.length+' rows updated.');
+    await window.renderHardware(true);
+  }
+
+  function toolbar(){
+    const x=st(), types=assetTypes(x.rows||[]);
+    return `<div class="ai9-toolbar">
+      <input id="ai9Search" placeholder="Search asset, serial, room, person, configuration..." value="${esc(x.search)}">
+      <select id="ai9Status"><option value="">All Status</option>${STATUS.map(s=>`<option ${x.status===s?'selected':''}>${esc(s)}</option>`).join('')}</select>
+      <select id="ai9Type"><option value="">All Asset Types</option>${types.map(t=>`<option ${x.type===t?'selected':''}>${esc(t)}</option>`).join('')}</select>
+      <select id="ai9Sync"><option value="">All Live Sync</option><option value="online" ${x.sync==='online'?'selected':''}>Live Online</option><option value="matched" ${x.sync==='matched'?'selected':''}>Live Matched</option><option value="nomatch" ${x.sync==='nomatch'?'selected':''}>No Live Match</option></select>
+      <div class="ai9-actions">
+        <button class="ai9-btn secondary" id="ai9Refresh">Refresh</button>
+        <button class="ai9-btn" id="ai9Add">Add Asset</button>
+        <button class="ai9-btn secondary" id="ai9AutoFix">Auto Correct</button>
+        <button class="ai9-btn secondary" id="ai9Sample">Sample CSV</button>
+        <label class="ai9-btn secondary" style="cursor:pointer">Upload CSV<input id="ai9Upload" type="file" accept=".csv" style="display:none"></label>
+        <button class="ai9-btn secondary" id="ai9Download">Download CSV</button>
+      </div>
+    </div>`;
+  }
+
+  function stats(rows){
+    const idx=liveIndex(), syncs=rows.map(r=>syncFor(r,idx)), q=quality(rows);
+    const working=rows.filter(r=>normal(r.status).includes('work')&&!normal(r.status).includes('not')).length;
+    return `<div class="ai9-stats">
+      ${[['Total Assets',rows.length],['Working',working],['Live Online',syncs.filter(s=>s.state==='online').length],['Live Matched',syncs.filter(s=>s.state==='matched').length],['No Live Match',syncs.filter(s=>s.state==='nomatch').length],['Duplicate Groups',q.dups.length]].map(m=>`<div class="ai9-stat"><span>${esc(m[0])}</span><b>${esc(m[1])}</b></div>`).join('')}
+    </div>`;
+  }
+
+  function liveSyncSummary(rows){
+    const syncs=rows.map(r=>syncFor(r,liveIndex()));
+    return `<div class="ai9-section"><div class="ai9-head"><div><h2>Asset-wise Live Sync</h2><div class="ai9-sub">Each row below shows live sync status. Matching is by tag / hostname or serial number.</div></div><span class="ai9-live"><span class="ai9-dot"></span>Live Sync Active</span></div>
+      <div class="ai9-sync-board">
+        <div class="ai9-sync-tile"><span>Live Machines</span><b>${esc(liveMachines().length)}</b></div>
+        <div class="ai9-sync-tile"><span>Live Online Assets</span><b>${esc(syncs.filter(s=>s.state==='online').length)}</b></div>
+        <div class="ai9-sync-tile"><span>Live Matched Assets</span><b>${esc(syncs.filter(s=>s.state==='matched').length)}</b></div>
+        <div class="ai9-sync-tile"><span>No Live Match</span><b>${esc(syncs.filter(s=>s.state==='nomatch').length)}</b></div>
+      </div>
+    </div>`;
+  }
+
+  function qualitySection(rows){
+    const x=quality(rows);
+    return `<div class="ai9-section"><div class="ai9-head"><div><h2>Data Quality & Auto Correct</h2><div class="ai9-sub">Simple checks for wrong/missing data. Auto Correct does not delete duplicates.</div></div><button class="ai9-btn" id="ai9AutoFix2">Auto Correct Data</button></div>
+      <div class="ai9-quality"><div class="ai9-issues">
+        <span class="ai9-issue ${x.missingTag?'':'ok'}">Missing Tag: ${esc(x.missingTag)}</span>
+        <span class="ai9-issue ${x.missingSerial?'':'ok'}">Missing Serial: ${esc(x.missingSerial)}</span>
+        <span class="ai9-issue ${x.unknownStatus?'':'ok'}">Unknown Status: ${esc(x.unknownStatus)}</span>
+        <span class="ai9-issue ${x.dups.length?'':'ok'}">Duplicate Groups: ${esc(x.dups.length)}</span>
+        <span class="ai9-issue ${x.fixable?'':'ok'}">Auto-fixable Rows: ${esc(x.fixable)}</span>
+      </div><div class="ai9-sub">For duplicates, review below and delete only the wrong rows.</div></div>
+    </div>`;
+  }
+
+  function tableSection(rows){
+    const idx=liveIndex(), x=st(), visible=pageRows(rows), totalPages=Math.max(1,Math.ceil(rows.length/x.pageSize)), start=rows.length?((x.page-1)*x.pageSize+1):0, end=Math.min(rows.length,x.page*x.pageSize);
+    const body=visible.map(r=>{
+      const s=syncFor(r,idx);
+      return `<tr>
+        <td><b>${esc(r.id||'')}</b></td>
+        <td><div class="ai9-main"><b>${esc(r.tagname_hostname||'No Tag')}</b><small>${esc(r.assets_type||'Unknown Type')} · ${esc(r.oem_name||'')}</small></div></td>
+        <td>${esc(r.room_location||'—')}</td>
+        <td>${esc(r.person_allocated_to||'—')}</td>
+        <td>${esc(r.serial_no||'—')}</td>
+        <td>${syncBadge(s)}${s.machine?`<div class="ai9-muted" style="font-size:12px;margin-top:4px">${esc(hostName(s.machine))}</div>`:''}</td>
+        <td>${statusBadge(r.status)}</td>
+        <td>${esc(r.warranty_status||'Unknown')}</td>
+        <td>${esc(r.configuration||'—')}</td>
+        <td><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="ai9-mini-btn" onclick="assetInvV9Edit('${esc(r.id)}')">Edit</button><button class="ai9-mini-btn" onclick="assetInvV9Details('${esc(r.id)}')">Details</button><button class="ai9-mini-btn red" onclick="assetInvV9Delete('${esc(r.id)}')">Delete</button></div></td>
+      </tr>`;
+    }).join('');
+    return `<div class="ai9-section"><div class="ai9-head"><div><h2>Assets Inventory Table</h2><div class="ai9-sub">Fast tabular view. Only ${esc(x.pageSize)} rows render at a time for speed.</div></div><span class="ai9-pill">${esc(rows.length)} filtered rows</span></div>
+      <div class="ai9-table-wrap"><table class="ai9-table"><thead><tr>
+        <th>ID</th><th>Asset / Type</th><th>Location</th><th>Allocated To</th><th>Serial No</th><th>Live Sync</th><th>Status</th><th>Warranty</th><th>Configuration</th><th>Action</th>
+      </tr></thead><tbody>${body || '<tr><td colspan="10"><div class="ai9-empty">No assets found for this filter.</div></td></tr>'}</tbody></table></div>
+      <div class="ai9-pager"><div class="ai9-pager-left"><span class="ai9-sub">Showing ${esc(start)}-${esc(end)} of ${esc(rows.length)}</span><select id="ai9PageSize">${PAGE_SIZE_OPTIONS.map(n=>`<option ${x.pageSize===n?'selected':''}>${n}</option>`).join('')}</select></div><div class="ai9-pager-right"><button class="ai9-mini-btn" id="ai9Prev">Previous</button><span class="ai9-pill">Page ${esc(x.page)} / ${esc(totalPages)}</span><button class="ai9-mini-btn" id="ai9Next">Next</button></div></div>
+    </div>`;
+  }
+
+  function duplicateSection(rows){
+    const groups=duplicateGroups(rows).slice(0,60);
+    if(!groups.length)return `<div class="ai9-section"><div class="ai9-head"><div><h2>Duplicate Review</h2><div class="ai9-sub">Below table. Same-color groups appear here.</div></div><span class="ai9-pill">0 group</span></div><div class="ai9-empty">No duplicate groups found.</div></div>`;
+    return `<div class="ai9-section"><div class="ai9-head"><div><h2>Duplicate Review</h2><div class="ai9-sub">Below table. Review same-color groups, then delete wrong rows only.</div></div><span class="ai9-pill">${esc(groups.length)} shown</span></div>
+      <div class="ai9-dup-wrap">${groups.map((g,i)=>`<div class="ai9-dup-card" style="--dup:${['#0ea5e9','#8b5cf6','#10b981','#f59e0b','#ec4899','#2563eb','#14b8a6','#ef4444'][i%8]};--dup-soft:${['#e0f2fe','#f3e8ff','#dcfce7','#fef3c7','#fce7f3','#dbeafe','#ccfbf1','#fee2e2'][i%8]}"><div class="ai9-dup-top">${esc(g.kind)} duplicate: ${esc(g.key)} <small>${g.rows.length} rows found</small></div>${g.rows.slice(0,5).map(r=>`<div class="ai9-dup-row"><div><b>${esc(r.tagname_hostname||'No Tag')}</b><small>ID ${esc(r.id||'')} · ${esc(r.assets_type||'')} · ${esc(r.room_location||'')}</small><small>Serial: ${esc(r.serial_no||'')} · Allocated: ${esc(r.person_allocated_to||'')}</small></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="ai9-mini-btn" onclick="assetInvV9Edit('${esc(r.id)}')">Review</button><button class="ai9-mini-btn red" onclick="assetInvV9Delete('${esc(r.id)}')">Delete</button></div></div>`).join('')}${g.rows.length>5?`<div class="ai9-empty">+ ${esc(g.rows.length-5)} more rows in this duplicate group.</div>`:''}</div>`).join('')}</div>
+    </div>`;
+  }
+
+  function analyticsSection(rows){
+    const typeMap={}, locMap={};
+    rows.forEach(r=>{const t=String(r.assets_type||'Unknown').trim()||'Unknown';const l=String(r.room_location||'Unknown').trim()||'Unknown';typeMap[t]=(typeMap[t]||0)+1;locMap[l]=(locMap[l]||0)+1});
+    const items=Object.entries(typeMap).sort((a,b)=>b[1]-a[1]).slice(0,6).map(x=>['Type: '+x[0],x[1]]).concat(Object.entries(locMap).sort((a,b)=>b[1]-a[1]).slice(0,6).map(x=>['Location: '+x[0],x[1]]));
+    return `<div class="ai9-section"><div class="ai9-head"><div><h2>Inventory Analytics</h2><div class="ai9-sub">Future Hardware Analytics is now Inventory Analytics.</div></div><span class="ai9-pill">Analytics</span></div><div class="ai9-analytics">${items.map(x=>`<div class="ai9-analytic"><span>${esc(x[0])}</span><b>${esc(x[1])}</b></div>`).join('')}</div></div>`;
+  }
+
+  function shell(rows){
+    const filtered=filterRows();
+    return `<div class="ai9-root"><div class="ai9-hero"><div class="ai9-cube"></div><div><h1>Assets Inventory</h1><p>International tabular inventory view designed for simple reading, fast loading, asset-wise live sync, duplicate review and data correction.</p></div><div class="ai9-hero-actions"><button class="ai9-btn" id="ai9HeroAdd">+ Add Asset</button><button class="ai9-btn secondary" id="ai9HeroRefresh">Refresh</button></div></div>
+      ${toolbar()}${stats(filtered)}${liveSyncSummary(filtered)}${qualitySection(filtered)}${tableSection(filtered)}${duplicateSection(filtered)}${analyticsSection(filtered)}
+    </div>`;
+  }
+
+  function bind(){
+    q('#ai9Search')?.addEventListener('input',function(){st().search=this.value;st().page=1;clearTimeout(window.__ai9search);window.__ai9search=setTimeout(()=>window.renderHardware(false),200)});
+    q('#ai9Status')?.addEventListener('change',function(){st().status=this.value;st().page=1;window.renderHardware(false)});
+    q('#ai9Type')?.addEventListener('change',function(){st().type=this.value;st().page=1;window.renderHardware(false)});
+    q('#ai9Sync')?.addEventListener('change',function(){st().sync=this.value;st().page=1;window.renderHardware(false)});
+    q('#ai9Refresh')?.addEventListener('click',()=>window.renderHardware(true));
+    q('#ai9HeroRefresh')?.addEventListener('click',()=>window.renderHardware(true));
+    q('#ai9Add')?.addEventListener('click',()=>openModal({}));
+    q('#ai9HeroAdd')?.addEventListener('click',()=>openModal({}));
+    q('#ai9AutoFix')?.addEventListener('click',()=>autoCorrect().catch(e=>alert('Auto correct failed: '+(e.message||e))));
+    q('#ai9AutoFix2')?.addEventListener('click',()=>autoCorrect().catch(e=>alert('Auto correct failed: '+(e.message||e))));
+    q('#ai9Download')?.addEventListener('click',downloadCurrent);
+    q('#ai9Sample')?.addEventListener('click',downloadSample);
+    q('#ai9Upload')?.addEventListener('change',uploadCsv);
+    q('#ai9PageSize')?.addEventListener('change',function(){st().pageSize=parseInt(this.value,10)||50;st().page=1;window.renderHardware(false)});
+    q('#ai9Prev')?.addEventListener('click',function(){st().page=Math.max(1,st().page-1);window.renderHardware(false)});
+    q('#ai9Next')?.addEventListener('click',function(){const total=Math.max(1,Math.ceil(filterRows().length/st().pageSize));st().page=Math.min(total,st().page+1);window.renderHardware(false)});
+  }
+
+  function fieldInput(k,label,row){
+    const val=row[k]||'';
+    if(k==='status')return `<label>${esc(label)}<select name="${esc(k)}">${STATUS.map(s=>`<option ${normal(val)===normal(s)?'selected':''}>${esc(s)}</option>`).join('')}</select></label>`;
+    if(k==='remark'||k==='configuration')return `<label>${esc(label)}<textarea name="${esc(k)}">${esc(val)}</textarea></label>`;
+    const type=(k.includes('date')?'date':'text');
+    return `<label>${esc(label)}<input type="${type}" name="${esc(k)}" value="${esc(val)}"></label>`;
+  }
+  function openModal(row){
+    row=row||{};
+    const modal=document.createElement('div');
+    modal.className='ai9-modal';
+    modal.innerHTML=`<div class="ai9-modal-card"><div class="ai9-modal-head"><h3>${row.id?'Asset Details / Edit':'Add New Asset'}</h3><button class="ai9-mini-btn" id="ai9Close">Close</button></div><form id="ai9Form"><input type="hidden" name="id" value="${esc(row.id||'')}"><div class="ai9-form">${FIELDS.map(f=>fieldInput(f[0],f[1],row)).join('')}</div><div class="ai9-modal-foot"><button type="button" class="ai9-btn secondary" id="ai9Cancel">Cancel</button><button class="ai9-btn" type="submit">Save Asset</button></div></form></div>`;
+    document.body.appendChild(modal);
+    function close(){modal.remove()}
+    q('#ai9Close',modal).onclick=close;q('#ai9Cancel',modal).onclick=close;
+    q('#ai9Form',modal).onsubmit=async function(ev){ev.preventDefault();const data={};new FormData(ev.target).forEach((v,k)=>data[k]=v);try{await savePayload({row:data});close();await window.renderHardware(true)}catch(e){alert('Save failed: '+(e.message||e))}};
+  }
+  window.assetInvV9Edit=function(id){const r=(st().rows||[]).find(x=>String(x.id)===String(id));if(r)openModal(r)};
+  window.assetInvV9Details=function(id){const r=(st().rows||[]).find(x=>String(x.id)===String(id));if(r)openModal(r)};
+  window.assetInvV9Delete=function(id){deleteIds([id]).then(()=>window.renderHardware(true)).catch(e=>alert('Delete failed: '+(e.message||e)))};
+
+  function downloadCurrent(){
+    const rows=filterRows(), headers=['ID'].concat(FIELDS.map(f=>f[1])), keys=['id'].concat(FIELDS.map(f=>f[0]));
+    const csv=[headers].concat(rows.map(r=>keys.map(k=>r[k]||''))).map(r=>r.map(csvCell).join(',')).join('\r\n');
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));a.download='assets_inventory_current.csv';document.body.appendChild(a);a.click();a.remove();
+  }
+  function downloadSample(){
+    const headers=FIELDS.map(f=>f[1]);
+    const sample=['NXT-PC-001','Studio 1','Sagar','Desktop','Dell','OptiPlex','ABC12345','i5 / 16GB / 512 SSD','Vendor Name','INV-001','https://drive.google.com/...','2026-01-01','2026-01-01','2027-01-01','In Warranty','Working','Sample remark'];
+    const csv=[headers,sample].map(r=>r.map(csvCell).join(',')).join('\r\n');
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));a.download='assets_inventory_sample_upload.csv';document.body.appendChild(a);a.click();a.remove();
+  }
+  function parseCsv(text){
+    const rows=[];let row=[],cur='',inQ=false;
+    for(let i=0;i<text.length;i++){const ch=text[i],nx=text[i+1];if(ch==='"'&&inQ&&nx==='"'){cur+='"';i++;continue}if(ch==='"'){inQ=!inQ;continue}if(ch===','&&!inQ){row.push(cur);cur='';continue}if((ch==='\n'||ch==='\r')&&!inQ){if(ch==='\r'&&nx==='\n')i++;row.push(cur);if(row.some(x=>String(x).trim()))rows.push(row);row=[];cur='';continue}cur+=ch}
+    row.push(cur);if(row.some(x=>String(x).trim()))rows.push(row);return rows;
+  }
+  function normHeader(h){return String(h||'').toLowerCase().replace(/[^a-z0-9]/g,'')}
+  const MAP={tagnamehostname:'tagname_hostname',taghostname:'tagname_hostname',hostname:'tagname_hostname',tagname:'tagname_hostname',roomnolocation:'room_location',roomlocation:'room_location',roomno:'room_location',location:'room_location',room:'room_location',allocatedto:'person_allocated_to',personallocatedto:'person_allocated_to',personnameallocatedto:'person_allocated_to',personname:'person_allocated_to',assetstype:'assets_type',assettype:'assets_type',oemname:'oem_name',oem:'oem_name',modelno:'model_no',modleno:'model_no',model:'model_no',serialno:'serial_no',serialnumber:'serial_no',srno:'serial_no',configuration:'configuration',configration:'configuration',vendorname:'vendor_name',vendor:'vendor_name',poinvoicebillno:'po_invoice_bill_no',poinvicebillno:'po_invoice_bill_no',billno:'po_invoice_bill_no',invoice:'po_invoice_bill_no',billpathgoogledrivepath:'bill_path_google_drive_path',billpathorgoogledrivepath:'bill_path_google_drive_path',billpath:'bill_path_google_drive_path',purchasedate:'purchase_date',purchessdate:'purchase_date',warrantystartdate:'warranty_start_date',warntystartdate:'warranty_start_date',warrantyenddate:'warranty_end_date',warrentyenddate:'warranty_end_date',warrantystatus:'warranty_status',warrentystaus:'warranty_status',status:'status',remark:'remark'};
+  async function uploadCsv(ev){
+    const file=ev.target.files&&ev.target.files[0];if(!file)return;
+    const grid=parseCsv(await file.text());if(grid.length<2){alert('CSV has no data');return}
+    const headers=grid[0].map(h=>MAP[normHeader(h)]||'');
+    const rows=grid.slice(1).map(r=>{const o={};headers.forEach((k,i)=>{if(k)o[k]=r[i]||''});return o}).filter(o=>Object.values(o).some(v=>String(v||'').trim()));
+    if(!rows.length){alert('No valid rows found in CSV');return}
+    if(!confirm('Upload '+rows.length+' asset rows?'))return;
+    for(const row of rows){await savePayload({row})}
+    alert('CSV upload complete: '+rows.length+' row(s)');await window.renderHardware(true);
+  }
+
+  window.renderHardware=async function(force){
+    renameNav();
+    const page=getPage(); if(!page)return;
+    addCss(); page.classList.add('assets-inv-v9');
+    if(!st().loaded || force) page.innerHTML='<div class="ai9-root"><div class="ai9-hero"><div class="ai9-cube"></div><div><h1>Assets Inventory</h1><p>Loading fast tabular inventory...</p><div class="ai9-skeleton"></div><div class="ai9-skeleton" style="width:70%"></div></div></div></div>';
+    try{await loadRows(force);page.innerHTML=shell(st().rows);bind();renameNav();}
+    catch(e){page.innerHTML='<div class="ai9-root"><div class="ai9-empty">Assets Inventory error: '+esc(e.message||e)+'</div></div>'}
+  };
+  setTimeout(renameNav,500);setInterval(renameNav,2500);
+})();
+/* ASSETS_INVENTORY_V9_FAST_TABLE_ONLY_END */
+
+/* SW_INVENTORY_NEW_TAB_ONLY_START */
+(function(){
+  function q(s,r){return (r||document).querySelector(s)}
+  function qa(s,r){return Array.from((r||document).querySelectorAll(s))}
+  function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+  function text(el){return (el && (el.innerText || el.textContent) || '').trim()}
+  function apiGet(url){ if(typeof api==='function') return api(url); return fetch(url,{cache:'no-store'}).then(r=>r.json()) }
+  function csvCell(v){return '"' + String(v==null?'':v).replace(/"/g,'""') + '"'}
+  const FIELDS=[
+    ['software_name','Software Name'],
+    ['category','Category'],
+    ['login_url','Login / Website URL'],
+    ['username','User ID / Email'],
+    ['password_value','Password'],
+    ['license_key','License Key'],
+    ['mfa_recovery','MFA / Recovery Info'],
+    ['machine_asset','Machine / Asset Tag'],
+    ['allocated_to','Allocated To'],
+    ['vendor_name','Vendor Name'],
+    ['po_invoice_bill_no','PO / Invoice / Bill No'],
+    ['bill_path_google_drive_path','Bill / Google Drive Path'],
+    ['purchase_date','Purchase Date'],
+    ['renewal_expiry_date','Renewal / Expiry Date'],
+    ['status','Status'],
+    ['notes','Notes']
+  ];
+  const STATUS=['Active','Expired','Trial','Free','Disabled','Shared','Unknown'];
+  const CATS=['OS','Productivity','Design','Development','Security','Education','Cloud','Communication','Utility','Other'];
+  function st(){
+    window.__swInv = window.__swInv || {rows:[],loaded:false,search:'',status:'',category:'',page:1,pageSize:50,showPasswords:{}};
+    return window.__swInv;
+  }
+  function ensureTab(){
+    let page=q('#page-sw-inventory');
+    if(!page){
+      const ref=q('#page-software') || q('.page:last-of-type');
+      page=document.createElement('section');
+      page.id='page-sw-inventory';
+      page.className='page';
+      if(ref && ref.parentElement) ref.insertAdjacentElement('afterend',page); else document.body.appendChild(page);
+    }
+    let nav=q('[data-page="sw-inventory"]');
+    if(!nav){
+      const ref=q('[data-page="software"]') || qa('.nav').find(n=>text(n).toLowerCase().includes('software'));
+      if(ref){
+        nav=ref.cloneNode(true);
+        nav.dataset.page='sw-inventory';
+        nav.textContent='S/W Inventory';
+        nav.classList.remove('active');
+        ref.insertAdjacentElement('afterend',nav);
+      }else{
+        nav=document.createElement('button');
+        nav.className='nav';
+        nav.dataset.page='sw-inventory';
+        nav.textContent='S/W Inventory';
+        const side=q('aside')||q('.sidebar')||document.body;
+        side.appendChild(nav);
+      }
+    }
+    if(!nav.dataset.swInvBound){
+      nav.dataset.swInvBound='1';
+      nav.addEventListener('click',function(ev){ev.preventDefault(); goSwInventory();});
+    }
+  }
+  function goSwInventory(){
+    ensureTab();
+    try{ if(window.state) state.page='sw-inventory'; }catch(e){}
+    qa('.page').forEach(p=>p.classList.remove('active'));
+    q('#page-sw-inventory')?.classList.add('active');
+    qa('.nav,[data-page]').forEach(n=>{ if(n.dataset && n.dataset.page) n.classList.toggle('active',n.dataset.page==='sw-inventory'); });
+    renderSoftwareInventory(true);
+  }
+  function addCss(){
+    if(q('#swInvCss')) return;
+    const s=document.createElement('style');
+    s.id='swInvCss';
+    s.textContent=`
+      #page-sw-inventory.sw-inv-page{position:relative;min-height:calc(100vh - 120px);padding:18px!important;background:radial-gradient(circle at 10% 5%,rgba(14,165,233,.13),transparent 28%),radial-gradient(circle at 90% 8%,rgba(16,185,129,.12),transparent 28%),linear-gradient(180deg,#f7fbff,#eef4fb)!important;color:#10233f;font-family:"Inter","Segoe UI",Arial,sans-serif}
+      #page-sw-inventory.sw-inv-page:before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.45;background:linear-gradient(135deg,rgba(255,255,255,.7),transparent 28%)}
+      @keyframes swFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}} @keyframes swShine{0%{background-position:-220px 0}100%{background-position:calc(100% + 220px) 0}}
+      .sw-root{position:relative;z-index:1}.sw-hero{display:grid;grid-template-columns:72px 1fr auto;gap:16px;align-items:center;padding:18px 22px;border-radius:28px;background:linear-gradient(135deg,#0b1220,#172554 56%,#065f46 135%);color:#fff;box-shadow:0 20px 60px rgba(15,23,42,.18);animation:swFloat 7s ease-in-out infinite}
+      .sw-cube{width:70px;height:70px;border-radius:22px;background:linear-gradient(135deg,#34d399,#3b82f6,#8b5cf6);box-shadow:0 16px 34px rgba(59,130,246,.32),inset -14px -14px 28px rgba(15,23,42,.25);transform:rotate(-8deg)}
+      .sw-hero h1{margin:0;font-size:32px;letter-spacing:-.9px}.sw-hero p{margin:7px 0 0;color:#dbeafe;font-weight:650;font-size:14px}.sw-hero-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+      .sw-btn{border:0;border-radius:14px;padding:11px 15px;font-weight:850;font-size:13px;cursor:pointer;background:linear-gradient(135deg,#06b6d4,#22c55e);color:#062033;box-shadow:0 10px 30px rgba(34,197,94,.18)}
+      .sw-btn.secondary{background:#fff;color:#0f172a;border:1px solid #dbe6f4;box-shadow:0 8px 24px rgba(15,23,42,.06)}.sw-btn.danger{background:linear-gradient(135deg,#fb7185,#f97316);color:#fff}
+      .sw-toolbar,.sw-stat,.sw-section,.sw-modal-card{background:rgba(255,255,255,.88);backdrop-filter:blur(14px);border:1px solid rgba(215,227,245,.95);box-shadow:0 10px 30px rgba(15,23,42,.06)}
+      .sw-toolbar{margin-top:16px;padding:14px;border-radius:22px;display:grid;grid-template-columns:minmax(260px,1fr) 160px 160px auto;gap:10px;align-items:center}.sw-toolbar input,.sw-toolbar select{border:1px solid #d7e3f5;background:#fff;color:#0f172a;border-radius:13px;padding:10px 12px;font-weight:750;outline:none}.sw-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+      .sw-stats{display:grid;grid-template-columns:repeat(5,minmax(120px,1fr));gap:14px;margin-top:16px}.sw-stat{padding:16px;border-radius:22px;position:relative;overflow:hidden}.sw-stat:before{content:"";position:absolute;inset:0;opacity:.7;background:linear-gradient(110deg,transparent 0%,rgba(255,255,255,.5) 40%,transparent 80%);background-size:220px 100%;animation:swShine 5.5s linear infinite}.sw-stat span{position:relative;display:block;color:#5b708d;font-size:12px;font-weight:850;text-transform:uppercase}.sw-stat b{position:relative;display:block;margin-top:5px;font-size:28px;color:#10233f}
+      .sw-section{border-radius:24px;overflow:hidden;margin-top:16px}.sw-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid #e8eef8}.sw-head h2{margin:0;font-size:20px;color:#10233f}.sw-sub{color:#5b708d;font-size:12px;font-weight:750}.sw-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:#f1f7ff;border:1px solid #dbe6f4;color:#0f4c81;font-size:12px;font-weight:850}
+      .sw-table-wrap{overflow:auto;max-height:650px}.sw-table{width:100%;border-collapse:separate;border-spacing:0;min-width:1260px;font-size:14px}.sw-table th{position:sticky;top:0;z-index:2;padding:13px 11px;background:#f8fbff;color:#43617f;text-align:left;border-bottom:1px solid #dbe6f4;font-weight:900;white-space:nowrap}.sw-table td{padding:13px 11px;border-bottom:1px solid #edf2fa;color:#122033;vertical-align:middle}.sw-table tr:hover td{background:#f9fcff}
+      .sw-main b{display:block;font-size:15px;color:#0f172a}.sw-main small{display:block;color:#64748b;margin-top:3px;font-weight:750}.sw-status{display:inline-flex;align-items:center;gap:7px;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:900;border:1px solid transparent;white-space:nowrap}.sw-status .dot{width:8px;height:8px;border-radius:50%}
+      .sw-live.installed{background:#ecfdf5;color:#15803d;border-color:#bbf7d0}.sw-live.notfound{background:#f8fafc;color:#64748b;border-color:#e2e8f0}.sw-password{font-family:ui-monospace,Consolas,monospace;font-weight:850}.sw-mini-btn{border:1px solid #d7e3f5;background:#fff;border-radius:11px;padding:8px 10px;font-size:12px;font-weight:850;cursor:pointer;color:#0f172a}.sw-mini-btn.red{background:#fff1f2;color:#be123c;border-color:#fecdd3}
+      .sw-pager{display:flex;gap:10px;justify-content:space-between;align-items:center;padding:14px 16px;border-top:1px solid #e8eef8;flex-wrap:wrap}.sw-pager-left,.sw-pager-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+      .sw-dup-wrap,.sw-analytics{padding:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}.sw-card{border-radius:20px;background:#fff;border:1px solid #dfe9f7;border-left:5px solid #0ea5e9;overflow:hidden;padding:14px}.sw-card b{display:block;color:#0f172a}.sw-card small{display:block;color:#64748b;margin-top:4px;font-weight:700}
+      .sw-modal{position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.38);backdrop-filter:blur(7px);display:flex;justify-content:center;align-items:center;padding:18px}.sw-modal-card{width:min(1120px,96vw);max-height:92vh;overflow:auto;border-radius:28px}.sw-modal-head{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid #e8eef8}.sw-modal-head h3{margin:0;font-size:22px;color:#10233f}.sw-form{display:grid;grid-template-columns:repeat(3,minmax(220px,1fr));gap:14px;padding:18px}.sw-form label{font-size:12px;font-weight:850;color:#60758f}.sw-form input,.sw-form select,.sw-form textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:10px 12px;border-radius:13px;border:1px solid #d7e3f5;background:#fff;color:#0f172a;font-weight:700}.sw-form textarea{min-height:80px;resize:vertical}.sw-modal-foot{display:flex;justify-content:flex-end;gap:10px;padding:18px;border-top:1px solid #e8eef8}.sw-empty{padding:18px;color:#5d728f;font-weight:850}
+      @media(max-width:1100px){.sw-toolbar{grid-template-columns:1fr 1fr}.sw-actions{grid-column:1/-1;justify-content:flex-start}.sw-stats{grid-template-columns:repeat(2,1fr)}.sw-hero{grid-template-columns:1fr}.sw-cube{display:none}.sw-form{grid-template-columns:1fr}}`;
+    document.head.appendChild(s);
+  }
+  function installedSoftwareNames(){
+    const out=new Set();
+    function add(v){v=String(v||'').trim(); if(v && v.length<120) out.add(v.toLowerCase())}
+    function scan(x,depth){
+      if(!x || depth>4 || out.size>5000) return;
+      if(Array.isArray(x)){x.slice(0,1000).forEach(v=>scan(v,depth+1));return}
+      if(typeof x==='object'){
+        const name=x.name||x.display_name||x.displayName||x.app_name||x.Software||x.software_name||x.title;
+        if(name) add(name);
+        Object.keys(x).forEach(k=>{ if(/software|installed|apps|applications|programs/i.test(k)) scan(x[k],depth+1); });
+      }else if(typeof x==='string' && depth>1){ add(x); }
+    }
+    try{(state.machines||[]).forEach(m=>scan(m,0));}catch(e){}
+    return out;
+  }
+  function isInstalled(row,set){
+    const name=String(row.software_name||'').trim().toLowerCase();
+    if(!name) return false;
+    if(set.has(name)) return true;
+    for(const x of set){ if(x.includes(name)||name.includes(x)) return true; }
+    return false;
+  }
+  function statusBadge(v){
+    const s=String(v||'Unknown'), low=s.toLowerCase();
+    let bg='#eff6ff',bd='#bfdbfe',fg='#1d4ed8',dot='#3b82f6';
+    if(low.includes('active')||low.includes('free')){bg='#ecfdf5';bd='#bbf7d0';fg='#15803d';dot='#22c55e'}
+    else if(low.includes('expire')||low.includes('disable')){bg='#fff1f2';bd='#fecdd3';fg='#be123c';dot='#fb7185'}
+    else if(low.includes('trial')){bg='#fffbeb';bd='#fde68a';fg='#a16207';dot='#f59e0b'}
+    return `<span class="sw-status" style="background:${bg};border-color:${bd};color:${fg}"><span class="dot" style="background:${dot}"></span>${esc(s)}</span>`;
+  }
+  function loadRows(force){
+    const x=st();
+    if(x.loaded && !force) return Promise.resolve(x.rows);
+    return apiGet('/api/software-inventory?limit=20000').then(d=>{ if(!d||d.ok===false) throw new Error((d&&d.error)||'Software Inventory API error'); x.rows=d.rows||[]; x.loaded=true; return x.rows; });
+  }
+  function savePayload(obj){const p=new URLSearchParams();p.set('payload',JSON.stringify(obj||{}));return apiGet('/api/software-inventory-save?'+p.toString()).then(d=>{if(!d||d.ok===false)throw new Error((d&&d.error)||'Save failed');st().loaded=false;return d})}
+  function deleteIds(ids){if(!ids.length)return Promise.resolve(); if(!confirm('Delete selected software entry?'))return Promise.resolve(); return apiGet('/api/software-inventory-delete?ids='+encodeURIComponent(ids.join(','))).then(d=>{if(!d||d.ok===false)throw new Error((d&&d.error)||'Delete failed');st().loaded=false;return d})}
+  function categories(){return Array.from(new Set((st().rows||[]).map(r=>String(r.category||'Other').trim()||'Other').concat(CATS))).sort()}
+  function filterRows(){
+    const x=st(), s=String(x.search||'').toLowerCase();
+    return (x.rows||[]).filter(r=>{
+      if(x.status && r.status!==x.status) return false;
+      if(x.category && r.category!==x.category) return false;
+      if(s){
+        const blob=[r.software_name,r.category,r.login_url,r.username,r.license_key,r.machine_asset,r.allocated_to,r.vendor_name,r.notes].join(' ').toLowerCase();
+        if(!blob.includes(s)) return false;
+      }
+      return true;
+    });
+  }
+  function duplicateGroups(rows){
+    const map={};
+    rows.forEach(r=>{
+      const key=[String(r.software_name||'').trim().toLowerCase(),String(r.username||'').trim().toLowerCase(),String(r.login_url||'').trim().toLowerCase()].join('|');
+      if(key.replace(/\|/g,'')){
+        map[key]=map[key]||[];
+        map[key].push(r);
+      }
+    });
+    return Object.entries(map).filter(x=>x[1].length>1).map(x=>({key:x[0],rows:x[1]}));
+  }
+  function pageRows(rows){
+    const x=st(), total=Math.max(1,Math.ceil(rows.length/x.pageSize));
+    if(x.page>total)x.page=total;if(x.page<1)x.page=1;
+    return rows.slice((x.page-1)*x.pageSize,x.page*x.pageSize);
+  }
+  function toolbar(){
+    const x=st();
+    return `<div class="sw-toolbar"><input id="swSearch" placeholder="Search software, user, URL, license, machine..." value="${esc(x.search)}"><select id="swStatus"><option value="">All Status</option>${STATUS.map(s=>`<option ${x.status===s?'selected':''}>${esc(s)}</option>`).join('')}</select><select id="swCategory"><option value="">All Category</option>${categories().map(c=>`<option ${x.category===c?'selected':''}>${esc(c)}</option>`).join('')}</select><div class="sw-actions"><button class="sw-btn secondary" id="swRefresh">Refresh</button><button class="sw-btn" id="swAdd">Add Software</button><button class="sw-btn secondary" id="swSample">Sample CSV</button><label class="sw-btn secondary" style="cursor:pointer">Upload CSV<input id="swUpload" type="file" accept=".csv" style="display:none"></label><button class="sw-btn secondary" id="swDownload">Download CSV</button></div></div>`;
+  }
+  function stats(rows){
+    const installed=installedSoftwareNames(), match=rows.filter(r=>isInstalled(r,installed)).length, dups=duplicateGroups(rows).length, active=rows.filter(r=>String(r.status||'').toLowerCase().includes('active')).length, expired=rows.filter(r=>String(r.status||'').toLowerCase().includes('expire')).length;
+    return `<div class="sw-stats">${[['Total Software',rows.length],['Active',active],['Expired',expired],['Live Installed Match',match],['Duplicate Groups',dups]].map(m=>`<div class="sw-stat"><span>${esc(m[0])}</span><b>${esc(m[1])}</b></div>`).join('')}</div>`;
+  }
+  function table(rows){
+    const x=st(), visible=pageRows(rows), totalPages=Math.max(1,Math.ceil(rows.length/x.pageSize)), installed=installedSoftwareNames();
+    return `<div class="sw-section"><div class="sw-head"><div><h2>S/W Inventory Table</h2><div class="sw-sub">Fast tabular software inventory with password show/hide and live installed match.</div></div><span class="sw-pill">${esc(rows.length)} rows</span></div><div class="sw-table-wrap"><table class="sw-table"><thead><tr><th>ID</th><th>Software</th><th>Login / URL</th><th>User ID</th><th>Password</th><th>License</th><th>Machine / Asset</th><th>Allocated To</th><th>Live Match</th><th>Status</th><th>Expiry</th><th>Action</th></tr></thead><tbody>${visible.map(r=>{
+      const show=!!st().showPasswords[r.id], live=isInstalled(r,installed);
+      return `<tr><td><b>${esc(r.id||'')}</b></td><td><div class="sw-main"><b>${esc(r.software_name||'No Name')}</b><small>${esc(r.category||'Other')} · ${esc(r.vendor_name||'')}</small></div></td><td>${r.login_url?`<a class="sw-link" target="_blank" href="${esc(r.login_url)}">${esc(r.login_url)}</a>`:'—'}</td><td>${esc(r.username||'—')}</td><td><span class="sw-password">${esc(show?(r.password_value||r.password||''):'••••••••')}</span> <button class="sw-mini-btn" onclick="swInvTogglePass('${esc(r.id)}')">${show?'Hide':'Show'}</button></td><td>${esc(r.license_key||'—')}</td><td>${esc(r.machine_asset||'—')}</td><td>${esc(r.allocated_to||'—')}</td><td><span class="sw-status sw-live ${live?'installed':'notfound'}"><span class="dot"></span>${live?'Installed':'Not Found'}</span></td><td>${statusBadge(r.status)}</td><td>${esc(r.renewal_expiry_date||'—')}</td><td><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="sw-mini-btn" onclick="swInvEdit('${esc(r.id)}')">Edit</button><button class="sw-mini-btn red" onclick="swInvDelete('${esc(r.id)}')">Delete</button></div></td></tr>`;
+    }).join('') || '<tr><td colspan="12"><div class="sw-empty">No software inventory rows found.</div></td></tr>'}</tbody></table></div><div class="sw-pager"><div class="sw-pager-left"><span class="sw-sub">Page ${esc(x.page)} / ${esc(totalPages)}</span><select id="swPageSize">${[25,50,100,200].map(n=>`<option ${x.pageSize===n?'selected':''}>${n}</option>`).join('')}</select></div><div class="sw-pager-right"><button class="sw-mini-btn" id="swPrev">Previous</button><button class="sw-mini-btn" id="swNext">Next</button></div></div></div>`;
+  }
+  function duplicateSection(rows){
+    const d=duplicateGroups(rows);
+    return `<div class="sw-section"><div class="sw-head"><div><h2>Duplicate Review</h2><div class="sw-sub">Same software + same user + same URL duplicates.</div></div><span class="sw-pill">${esc(d.length)} groups</span></div><div class="sw-dup-wrap">${d.length?d.slice(0,80).map(g=>`<div class="sw-card"><b>${esc(g.rows[0].software_name||'Software')}</b><small>${esc(g.rows.length)} duplicate rows · User: ${esc(g.rows[0].username||'')}</small>${g.rows.map(r=>`<small>ID ${esc(r.id)} · ${esc(r.machine_asset||'')} <button class="sw-mini-btn" onclick="swInvEdit('${esc(r.id)}')">Review</button> <button class="sw-mini-btn red" onclick="swInvDelete('${esc(r.id)}')">Delete</button></small>`).join('')}</div>`).join(''):'<div class="sw-empty">No duplicate software entries found.</div>'}</div></div>`;
+  }
+  function analytics(rows){
+    const byCat={}; rows.forEach(r=>{const k=r.category||'Other';byCat[k]=(byCat[k]||0)+1});
+    return `<div class="sw-section"><div class="sw-head"><div><h2>S/W Inventory Analytics</h2><div class="sw-sub">Category-wise software inventory summary.</div></div><span class="sw-pill">Analytics</span></div><div class="sw-analytics">${Object.entries(byCat).sort((a,b)=>b[1]-a[1]).slice(0,12).map(x=>`<div class="sw-card"><span>${esc(x[0])}</span><b style="font-size:22px">${esc(x[1])}</b></div>`).join('') || '<div class="sw-empty">No analytics data.</div>'}</div></div>`;
+  }
+  function shell(rows){
+    const filtered=filterRows();
+    return `<div class="sw-root"><div class="sw-hero"><div class="sw-cube"></div><div><h1>S/W Inventory</h1><p>Software credentials, license, renewal, password and live installed-software match in one secure inventory tab.</p></div><div class="sw-hero-actions"><button class="sw-btn" id="swHeroAdd">+ Add Software</button><button class="sw-btn secondary" id="swHeroRefresh">Refresh</button></div></div>${toolbar()}${stats(filtered)}${table(filtered)}${duplicateSection(filtered)}${analytics(filtered)}</div>`;
+  }
+  function bind(){
+    q('#swSearch')?.addEventListener('input',function(){st().search=this.value;st().page=1;clearTimeout(window.__swSearch);window.__swSearch=setTimeout(()=>renderSoftwareInventory(false),200)});
+    q('#swStatus')?.addEventListener('change',function(){st().status=this.value;st().page=1;renderSoftwareInventory(false)});
+    q('#swCategory')?.addEventListener('change',function(){st().category=this.value;st().page=1;renderSoftwareInventory(false)});
+    q('#swRefresh')?.addEventListener('click',()=>renderSoftwareInventory(true)); q('#swHeroRefresh')?.addEventListener('click',()=>renderSoftwareInventory(true));
+    q('#swAdd')?.addEventListener('click',()=>openModal({})); q('#swHeroAdd')?.addEventListener('click',()=>openModal({}));
+    q('#swDownload')?.addEventListener('click',downloadCsv); q('#swSample')?.addEventListener('click',downloadSample); q('#swUpload')?.addEventListener('change',uploadCsv);
+    q('#swPageSize')?.addEventListener('change',function(){st().pageSize=parseInt(this.value,10)||50;st().page=1;renderSoftwareInventory(false)});
+    q('#swPrev')?.addEventListener('click',function(){st().page=Math.max(1,st().page-1);renderSoftwareInventory(false)});
+    q('#swNext')?.addEventListener('click',function(){const total=Math.max(1,Math.ceil(filterRows().length/st().pageSize));st().page=Math.min(total,st().page+1);renderSoftwareInventory(false)});
+  }
+  function fieldInput(k,label,row){
+    const val=row[k]||'';
+    if(k==='status') return `<label>${esc(label)}<select name="${esc(k)}">${STATUS.map(s=>`<option ${String(val).toLowerCase()===s.toLowerCase()?'selected':''}>${esc(s)}</option>`).join('')}</select></label>`;
+    if(k==='category') return `<label>${esc(label)}<select name="${esc(k)}">${CATS.map(s=>`<option ${String(val).toLowerCase()===s.toLowerCase()?'selected':''}>${esc(s)}</option>`).join('')}</select></label>`;
+    if(k==='notes'||k==='mfa_recovery') return `<label>${esc(label)}<textarea name="${esc(k)}">${esc(val)}</textarea></label>`;
+    const type=(k==='password_value'?'password':(k.includes('date')?'date':'text'));
+    return `<label>${esc(label)}<input type="${type}" name="${esc(k)}" value="${esc(val)}"></label>`;
+  }
+  function openModal(row){
+    row=row||{};
+    const modal=document.createElement('div');
+    modal.className='sw-modal';
+    modal.innerHTML=`<div class="sw-modal-card"><div class="sw-modal-head"><h3>${row.id?'Edit Software':'Add Software'}</h3><button class="sw-mini-btn" id="swClose">Close</button></div><form id="swForm"><input type="hidden" name="id" value="${esc(row.id||'')}"><div class="sw-form">${FIELDS.map(f=>fieldInput(f[0],f[1],row)).join('')}</div><div class="sw-modal-foot"><button type="button" class="sw-btn secondary" id="swCancel">Cancel</button><button class="sw-btn" type="submit">Save Software</button></div></form></div>`;
+    document.body.appendChild(modal);
+    function close(){modal.remove()}
+    q('#swClose',modal).onclick=close; q('#swCancel',modal).onclick=close;
+    q('#swForm',modal).onsubmit=function(ev){ev.preventDefault();const data={};new FormData(ev.target).forEach((v,k)=>data[k]=v);savePayload({row:data}).then(()=>{close();return renderSoftwareInventory(true)}).catch(e=>alert('Save failed: '+(e.message||e)))};
+  }
+  window.swInvEdit=function(id){const r=(st().rows||[]).find(x=>String(x.id)===String(id));if(r)openModal(r)};
+  window.swInvDelete=function(id){deleteIds([id]).then(()=>renderSoftwareInventory(true)).catch(e=>alert('Delete failed: '+(e.message||e)))};
+  window.swInvTogglePass=function(id){st().showPasswords[id]=!st().showPasswords[id];renderSoftwareInventory(false)};
+  function downloadCsv(){
+    const headers=['ID'].concat(FIELDS.map(f=>f[1])), keys=['id'].concat(FIELDS.map(f=>f[0])), rows=filterRows();
+    const csv=[headers].concat(rows.map(r=>keys.map(k=>r[k]||''))).map(r=>r.map(csvCell).join(',')).join('\r\n');
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));a.download='software_inventory_with_passwords.csv';document.body.appendChild(a);a.click();a.remove();
+  }
+  function downloadSample(){
+    const headers=FIELDS.map(f=>f[1]);
+    const sample=['Adobe Photoshop','Design','https://account.adobe.com','user@example.com','Password123','LIC-KEY-001','Recovery code here','STU5_PC','Sagar','Adobe','INV-001','https://drive.google.com/...','2026-01-01','2027-01-01','Active','Sample only'];
+    const csv=[headers,sample].map(r=>r.map(csvCell).join(',')).join('\r\n');
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));a.download='software_inventory_sample.csv';document.body.appendChild(a);a.click();a.remove();
+  }
+  function parseCsv(text){
+    const rows=[];let row=[],cur='',inQ=false;
+    for(let i=0;i<text.length;i++){const ch=text[i],nx=text[i+1];if(ch==='"'&&inQ&&nx==='"'){cur+='"';i++;continue}if(ch==='"'){inQ=!inQ;continue}if(ch===','&&!inQ){row.push(cur);cur='';continue}if((ch==='\n'||ch==='\r')&&!inQ){if(ch==='\r'&&nx==='\n')i++;row.push(cur);if(row.some(x=>String(x).trim()))rows.push(row);row=[];cur='';continue}cur+=ch}
+    row.push(cur);if(row.some(x=>String(x).trim()))rows.push(row);return rows;
+  }
+  function norm(h){return String(h||'').toLowerCase().replace(/[^a-z0-9]/g,'')}
+  const MAP={softwarename:'software_name',software:'software_name',appname:'software_name',category:'category',loginwebsiteurl:'login_url',loginurl:'login_url',website:'login_url',url:'login_url',useridemail:'username',userid:'username',username:'username',email:'username',password:'password_value',licensekey:'license_key',license:'license_key',mfarecoveryinfo:'mfa_recovery',mfa:'mfa_recovery',machineassettag:'machine_asset',machineasset:'machine_asset',asset:'machine_asset',allocatedto:'allocated_to',person:'allocated_to',vendorname:'vendor_name',vendor:'vendor_name',poinvoicebillno:'po_invoice_bill_no',billno:'po_invoice_bill_no',billgoogledrivepath:'bill_path_google_drive_path',billpath:'bill_path_google_drive_path',purchasedate:'purchase_date',renewalexpirydate:'renewal_expiry_date',expirydate:'renewal_expiry_date',status:'status',notes:'notes',remark:'notes'};
+  async function uploadCsv(ev){
+    const file=ev.target.files&&ev.target.files[0];if(!file)return;
+    const grid=parseCsv(await file.text()); if(grid.length<2){alert('CSV has no data');return}
+    const headers=grid[0].map(h=>MAP[norm(h)]||'');
+    const rows=grid.slice(1).map(r=>{const o={};headers.forEach((k,i)=>{if(k)o[k]=r[i]||''});return o}).filter(o=>Object.values(o).some(v=>String(v||'').trim()));
+    if(!rows.length){alert('No valid rows found');return}
+    if(!confirm('Upload '+rows.length+' software rows?'))return;
+    for(const row of rows){await savePayload({row})}
+    alert('CSV upload complete: '+rows.length+' row(s)'); await renderSoftwareInventory(true);
+  }
+  window.renderSoftwareInventory=function(force){
+    ensureTab(); addCss();
+    const page=q('#page-sw-inventory'); if(!page)return;
+    page.classList.add('sw-inv-page');
+    if(!st().loaded || force) page.innerHTML='<div class="sw-root"><div class="sw-hero"><div class="sw-cube"></div><div><h1>S/W Inventory</h1><p>Loading software inventory...</p></div></div></div>';
+    return loadRows(force).then(rows=>{page.innerHTML=shell(rows);bind();}).catch(e=>{page.innerHTML='<div class="sw-root"><div class="sw-empty">S/W Inventory error: '+esc(e.message||e)+'</div></div>'});
+  };
+  if(typeof window.switchPage==='function' && !window.__swInvSwitchWrap){
+    window.__swInvSwitchWrap=true;
+    const old=window.switchPage;
+    window.switchPage=function(page){ if(page==='sw-inventory'){goSwInventory();return;} return old.apply(this,arguments); };
+  }
+  setTimeout(ensureTab,600);
+  setInterval(ensureTab,2500);
+})();
+/* SW_INVENTORY_NEW_TAB_ONLY_END */
+
+/* FULL_NAME_LABELS_ONLY_START */
+(function(){
+  function replaceText(root){
+    if(!root) return;
+    const map = {
+      'Command Center': 'System Health Monitoring Command Center',
+      'S/W Inventory': 'Software Inventory',
+      'S/W Inventory Table': 'Software Inventory Table',
+      'S/W Inventory Analytics': 'Software Inventory Analytics'
+    };
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    while(walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(n=>{
+      const raw = n.nodeValue || '';
+      const t = raw.trim();
+      if(map[t]) n.nodeValue = raw.replace(t, map[t]);
+    });
+    document.querySelectorAll('[placeholder],[title],[aria-label]').forEach(el=>{
+      ['placeholder','title','aria-label'].forEach(a=>{
+        const v = el.getAttribute(a);
+        if(v && v.includes('S/W')) el.setAttribute(a, v.replace(/S\/W/g, 'Software'));
+        if(v === 'Command Center') el.setAttribute(a, 'System Health Monitoring Command Center');
+      });
+    });
+  }
+  function run(){ replaceText(document.body); }
+  setTimeout(run,200);
+  setTimeout(run,900);
+  setTimeout(run,1800);
+  setInterval(run,2500);
+})();
+/* FULL_NAME_LABELS_ONLY_END */

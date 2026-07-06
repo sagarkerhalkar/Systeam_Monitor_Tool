@@ -2502,129 +2502,6 @@ if(typeof renderSoftware==='function' && !window.__skSoftwareCleanFixWrapped){
 /* USB_SOFTWARE_CLEAN_DOWNLOAD_AND_CHANGES_FIX_END */
 
 
-/* USB_SOFTWARE_MINIMAL_SEARCH_FONT_FIX_START */
-/*
-  Minimal fix only:
-  - USB + Software pages keep original page design.
-  - Hide duplicate search boxes only.
-  - Normal readable font only.
-  - Replace broken mojibake text like Â· with normal dash.
-  - Does not touch Human Change Log.
-*/
-(function(){
-  function addStyle(){
-    const old=document.getElementById('skMinSearchFontStyle');
-    if(old) old.remove();
-    const s=document.createElement('style');
-    s.id='skMinSearchFontStyle';
-    s.textContent=`
-      #page-usb, #page-software,
-      #page-usb *, #page-software *{
-        font-family:"Segoe UI", Arial, sans-serif !important;
-        letter-spacing:normal !important;
-      }
-      #page-usb .sk-min-hidden-duplicate,
-      #page-software .sk-min-hidden-duplicate{
-        display:none !important;
-        visibility:hidden !important;
-      }
-    `;
-    document.head.appendChild(s);
-  }
-
-  function isVisible(el){
-    if(!el) return false;
-    const st=getComputedStyle(el);
-    return st.display!=='none' && st.visibility!=='hidden' && el.offsetParent!==null;
-  }
-
-  function isSearchInput(el){
-    if(!el || el.tagName!=='INPUT') return false;
-    const text=[
-      el.type || '',
-      el.placeholder || '',
-      el.id || '',
-      el.name || '',
-      el.className || '',
-      el.getAttribute('aria-label') || ''
-    ].join(' ').toLowerCase();
-
-    return (el.type||'').toLowerCase()==='search' ||
-           text.includes('search') ||
-           text.includes('filter');
-  }
-
-  function cleanBrokenText(page){
-    if(!page) return;
-    const walker=document.createTreeWalker(page, NodeFilter.SHOW_TEXT, null);
-    const nodes=[];
-    while(walker.nextNode()) nodes.push(walker.currentNode);
-    nodes.forEach(n=>{
-      let t=n.nodeValue;
-      const nt=t
-        .replace(/Â·/g,' - ')
-        .replace(/âŒ¨ï¸/g,'')
-        .replace(/â€”/g,'-')
-        .replace(/â€“/g,'-')
-        .replace(/Â/g,'');
-      if(nt!==t) n.nodeValue=nt;
-    });
-  }
-
-  function keepOnlyOneSearch(pageSel){
-    const page=document.querySelector(pageSel);
-    if(!page) return;
-
-    cleanBrokenText(page);
-
-    const searches=[...page.querySelectorAll('input')].filter(isSearchInput);
-
-    searches.forEach(x=>{
-      x.classList.remove('sk-min-hidden-duplicate');
-      x.style.display='';
-      x.style.visibility='';
-    });
-
-    const visible=searches.filter(isVisible);
-    if(visible.length <= 1) return;
-
-    // User said one search is not working and second is working.
-    // So keep the last visible search box and hide only earlier duplicate search boxes.
-    const keep=visible[visible.length-1];
-
-    visible.forEach(x=>{
-      if(x!==keep){
-        x.classList.add('sk-min-hidden-duplicate');
-        x.style.display='none';
-      }
-    });
-  }
-
-  function run(){
-    addStyle();
-    keepOnlyOneSearch('#page-usb');
-    keepOnlyOneSearch('#page-software');
-  }
-
-  ['renderUsb','renderUSB','renderSoftware'].forEach(fn=>{
-    if(typeof window[fn]==='function' && !window['__skMinSearchFontWrap_'+fn]){
-      window['__skMinSearchFontWrap_'+fn]=true;
-      const old=window[fn];
-      window[fn]=function(){
-        const out=old.apply(this,arguments);
-        setTimeout(run,100);
-        setTimeout(run,400);
-        return out;
-      };
-    }
-  });
-
-  setTimeout(run,500);
-  setInterval(run,1500);
-})();
- /* USB_SOFTWARE_MINIMAL_SEARCH_FONT_FIX_END */
-
-
 /* USB_SOFTWARE_HIDE_DUPLICATE_TOP_ONLY_START */
 /*
   ONLY USB + Software duplicate cleanup.
@@ -2835,3 +2712,339 @@ if(typeof renderSoftware==='function' && !window.__skSoftwareCleanFixWrapped){
  /* USB_SOFTWARE_HIDE_DUPLICATE_TOP_ONLY_END */
 
 
+/* USB_SOFTWARE_MINIMAL_SEARCH_FONT_FIX_START */
+/*
+  Minimal fix only:
+  - USB + Software pages keep original page design.
+  - Hide duplicate search boxes only.
+  - Normal readable font only.
+  - Replace broken mojibake text like Â· with normal dash.
+  - Does not touch Human Change Log.
+*/
+(function(){
+  function addStyle(){
+    const old=document.getElementById('skMinSearchFontStyle');
+    if(old) old.remove();
+    const s=document.createElement('style');
+    s.id='skMinSearchFontStyle';
+    s.textContent=`
+      #page-usb, #page-software,
+      #page-usb *, #page-software *{
+        font-family:"Segoe UI", Arial, sans-serif !important;
+        letter-spacing:normal !important;
+      }
+      #page-usb .sk-min-hidden-duplicate,
+      #page-software .sk-min-hidden-duplicate{
+        display:none !important;
+        visibility:hidden !important;
+      }
+    `;
+    document.head.appendChild(s);
+  }
+
+  function isVisible(el){
+    if(!el) return false;
+    const st=getComputedStyle(el);
+    return st.display!=='none' && st.visibility!=='hidden' && el.offsetParent!==null;
+  }
+
+  function isSearchInput(el){
+    if(!el || el.tagName!=='INPUT') return false;
+    const text=[
+      el.type || '',
+      el.placeholder || '',
+      el.id || '',
+      el.name || '',
+      el.className || '',
+      el.getAttribute('aria-label') || ''
+    ].join(' ').toLowerCase();
+
+    return (el.type||'').toLowerCase()==='search' ||
+           text.includes('search') ||
+           text.includes('filter');
+  }
+
+  function cleanBrokenText(page){
+    if(!page) return;
+    const walker=document.createTreeWalker(page, NodeFilter.SHOW_TEXT, null);
+    const nodes=[];
+    while(walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(n=>{
+      let t=n.nodeValue;
+      const nt=t
+        .replace(/Â·/g,' - ')
+        .replace(/âŒ¨ï¸/g,'')
+        .replace(/â€”/g,'-')
+        .replace(/â€“/g,'-')
+        .replace(/Â/g,'');
+      if(nt!==t) n.nodeValue=nt;
+    });
+  }
+
+  function keepOnlyOneSearch(pageSel){
+    const page=document.querySelector(pageSel);
+    if(!page) return;
+
+    cleanBrokenText(page);
+
+    const searches=[...page.querySelectorAll('input')].filter(isSearchInput);
+
+    searches.forEach(x=>{
+      x.classList.remove('sk-min-hidden-duplicate');
+      x.style.display='';
+      x.style.visibility='';
+    });
+
+    const visible=searches.filter(isVisible);
+    if(visible.length <= 1) return;
+
+    // User said one search is not working and second is working.
+    // So keep the last visible search box and hide only earlier duplicate search boxes.
+    const keep=visible[visible.length-1];
+
+    visible.forEach(x=>{
+      if(x!==keep){
+        x.classList.add('sk-min-hidden-duplicate');
+        x.style.display='none';
+      }
+    });
+  }
+
+  function run(){
+    addStyle();
+    keepOnlyOneSearch('#page-usb');
+    keepOnlyOneSearch('#page-software');
+  }
+
+  ['renderUsb','renderUSB','renderSoftware'].forEach(fn=>{
+    if(typeof window[fn]==='function' && !window['__skMinSearchFontWrap_'+fn]){
+      window['__skMinSearchFontWrap_'+fn]=true;
+      const old=window[fn];
+      window[fn]=function(){
+        const out=old.apply(this,arguments);
+        setTimeout(run,100);
+        setTimeout(run,400);
+        return out;
+      };
+    }
+  });
+
+  setTimeout(run,500);
+  setInterval(run,1500);
+})();
+ /* USB_SOFTWARE_MINIMAL_SEARCH_FONT_FIX_END */
+
+/* HRCL_SAFE_HUMAN_ONLY_START */
+(function(){
+  function $(s,r){return (r||document).querySelector(s)}
+  function $all(s,r){return Array.from((r||document).querySelectorAll(s))}
+  function text(el){return (el && (el.innerText || el.textContent) || '').trim()}
+  function escHtml(v){
+    return String(v == null ? '' : v).replace(/[&<>"']/g,function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  function getApi(url){
+    if (typeof api === 'function') return api(url);
+    return fetch(url,{cache:'no-store'}).then(function(r){ return r.json(); });
+  }
+  function fmtDate(v){
+    if(!v) return 'N/A';
+    try { return new Date(v).toLocaleString(); } catch(e) { return String(v); }
+  }
+  function arrText(v){
+    if(!v) return '';
+    if(Array.isArray(v)) return v.map(function(x){return String(x)}).join(' | ');
+    return String(v);
+  }
+  function titleOf(r){ return r.human_title || r.title || r.change_type || r.type || 'Change'; }
+  function msgOf(r){ return r.human_message || r.summary || r.message || r.title || 'Change recorded'; }
+  function csvCell(v){ return '"' + String(v == null ? '' : v).replace(/"/g,'""') + '"'; }
+
+  function findHumanPage(){
+    var p = $('#page-changes') || $('#page-history') || $('#page-change-log') || $('#page-changelog');
+    if(p) return p;
+    return $all('.page,[id^="page-"],main,section').find(function(x){
+      var t = text(x).toLowerCase();
+      return t.indexOf('human readable change log') >= 0 || (t.indexOf('refresh log') >= 0 && t.indexOf('download all change csv') >= 0);
+    }) || document;
+  }
+
+  function findRefreshButton(page){
+    return $all('button,a',page).find(function(b){
+      return text(b).toLowerCase().indexOf('refresh log') >= 0;
+    });
+  }
+
+  function addDateControls(){
+    var page = findHumanPage();
+    var refresh = findRefreshButton(page);
+    if(!refresh) return;
+
+    $all('#hrclSafeDateBox').forEach(function(x,i){ if(i>0) x.remove(); });
+    if($('#hrclSafeDateBox')) return;
+
+    var box = document.createElement('span');
+    box.id = 'hrclSafeDateBox';
+    box.style.display = 'inline-flex';
+    box.style.alignItems = 'center';
+    box.style.gap = '8px';
+    box.style.flexWrap = 'wrap';
+    box.style.marginLeft = '8px';
+    box.innerHTML =
+      '<label style="font-size:12px;font-weight:800;color:#64748b">From <input id="hrclSafeFrom" type="date" style="padding:7px;border-radius:8px;border:1px solid #cbd5e1;font-weight:700"></label>' +
+      '<label style="font-size:12px;font-weight:800;color:#64748b">To <input id="hrclSafeTo" type="date" style="padding:7px;border-radius:8px;border:1px solid #cbd5e1;font-weight:700"></label>' +
+      '<select id="hrclSafeLimit" style="padding:7px;border-radius:8px;border:1px solid #cbd5e1;font-weight:700"><option>500</option><option>1000</option><option selected>5000</option><option>10000</option></select>';
+
+    refresh.insertAdjacentElement('afterend', box);
+
+    $('#hrclSafeFrom').addEventListener('change', function(){ renderChanges(true); });
+    $('#hrclSafeTo').addEventListener('change', function(){ renderChanges(true); });
+    $('#hrclSafeLimit').addEventListener('change', function(){ renderChanges(true); });
+  }
+
+  function selectedMachineId(){
+    var el = $('#changeMachine');
+    if(el) return el.value || '';
+    var page = findHumanPage();
+    var sel = $all('select',page).find(function(s){ return s.id !== 'hrclSafeLimit'; });
+    return sel ? (sel.value || '') : '';
+  }
+
+  function buildUrl(){
+    var p = new URLSearchParams();
+    var mid = selectedMachineId();
+    var f = ($('#hrclSafeFrom') || {}).value || '';
+    var t = ($('#hrclSafeTo') || {}).value || '';
+    var lim = ($('#hrclSafeLimit') || {}).value || '5000';
+    p.set('limit', lim);
+    if(mid) p.set('machine_id', mid);
+    if(f) p.set('from', f);
+    if(t) p.set('to', t);
+    return '/api/changes-range?' + p.toString();
+  }
+
+  function downloadRows(selectedOnly){
+    var rows = window.__hrclSafeRows || [];
+    if(selectedOnly){
+      var ids = $all('.hrclSafeCheck:checked').map(function(x){ return String(x.value); });
+      rows = ids.length ? rows.filter(function(r){ return ids.indexOf(String(r.id)) >= 0; }) : [];
+    }
+
+    var lines = [['ID','Created At','Machine ID','Hostname','Type','Title','Message','Added','Removed']];
+    rows.forEach(function(r){
+      lines.push([
+        r.id,
+        r.created_at,
+        r.machine_id,
+        r.hostname,
+        r.change_type || r.type,
+        titleOf(r),
+        msgOf(r),
+        arrText(r.added_items || r.added),
+        arrText(r.removed_items || r.removed)
+      ]);
+    });
+
+    var csv = lines.map(function(row){ return row.map(csvCell).join(','); }).join('\r\n');
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
+    a.download = (selectedOnly ? 'selected_' : 'all_') + 'human_change_log.csv';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
+  function hookDownloads(){
+    var page = findHumanPage();
+    $all('button,a',page).forEach(function(btn){
+      var t = text(btn).toLowerCase();
+      if(t.indexOf('download selected change csv') < 0 && t.indexOf('download all change csv') < 0) return;
+      if(btn.dataset.hrclSafeDownload === '1') return;
+      btn.dataset.hrclSafeDownload = '1';
+      btn.addEventListener('click', function(ev){
+        ev.preventDefault();
+        ev.stopPropagation();
+        ev.stopImmediatePropagation();
+        downloadRows(t.indexOf('selected') >= 0);
+      }, true);
+    });
+  }
+
+  function details(r){
+    var a = arrText(r.added_items || r.added);
+    var rm = arrText(r.removed_items || r.removed);
+    var out = '';
+    if(a) out += '<div><b>Added:</b> ' + escHtml(a) + '</div>';
+    if(rm) out += '<div><b>Removed:</b> ' + escHtml(rm) + '</div>';
+    return out || '<span style="color:#64748b;font-size:12px">No extra details</span>';
+  }
+
+  function renderTable(rows){
+    if(!rows.length){
+      return '<div style="padding:14px;border:1px dashed #94a3b8;border-radius:12px;color:#64748b;font-weight:800;background:#fff">No real DB records found for selected machine/date range.</div>';
+    }
+
+    var html = '';
+    html += '<div style="max-height:650px;overflow:auto;border:1px solid rgba(148,163,184,.25);border-radius:14px;background:#fff">';
+    html += '<table style="width:100%;border-collapse:separate;border-spacing:0;min-width:1050px;font-size:13px">';
+    html += '<thead><tr>';
+    html += '<th style="position:sticky;top:0;background:#f8fbff;padding:10px;text-align:left"><input type="checkbox" id="hrclSafeAll"></th>';
+    html += '<th style="position:sticky;top:0;background:#f8fbff;padding:10px;text-align:left">Time</th>';
+    html += '<th style="position:sticky;top:0;background:#f8fbff;padding:10px;text-align:left">Machine</th>';
+    html += '<th style="position:sticky;top:0;background:#f8fbff;padding:10px;text-align:left">Type</th>';
+    html += '<th style="position:sticky;top:0;background:#f8fbff;padding:10px;text-align:left">Human Message</th>';
+    html += '<th style="position:sticky;top:0;background:#f8fbff;padding:10px;text-align:left">Details</th>';
+    html += '</tr></thead><tbody>';
+
+    rows.forEach(function(r){
+      html += '<tr>';
+      html += '<td style="padding:10px;border-top:1px solid #e2e8f0"><input class="hrclSafeCheck" type="checkbox" value="' + escHtml(r.id) + '"></td>';
+      html += '<td style="padding:10px;border-top:1px solid #e2e8f0">' + escHtml(fmtDate(r.created_at)) + '<div style="color:#64748b;font-size:12px">' + escHtml(r.created_at || '') + '</div></td>';
+      html += '<td style="padding:10px;border-top:1px solid #e2e8f0"><b>' + escHtml(r.hostname || '') + '</b><div style="color:#64748b;font-size:12px">' + escHtml(r.machine_id || '') + '</div></td>';
+      html += '<td style="padding:10px;border-top:1px solid #e2e8f0">' + escHtml(r.change_type || r.type || '') + '</td>';
+      html += '<td style="padding:10px;border-top:1px solid #e2e8f0"><b>' + escHtml(titleOf(r)) + '</b><div>' + escHtml(msgOf(r)) + '</div></td>';
+      html += '<td style="padding:10px;border-top:1px solid #e2e8f0">' + details(r) + '</td>';
+      html += '</tr>';
+    });
+
+    html += '</tbody></table></div>';
+    return html;
+  }
+
+  window.renderChanges = async function(force){
+    addDateControls();
+    hookDownloads();
+
+    var el = $('#changeHistory');
+    if(!el) return;
+
+    el.innerHTML = '<div style="padding:12px;color:#64748b;font-weight:800">Loading real Human Change Log from DB...</div>';
+
+    try{
+      var d = await getApi(buildUrl());
+      if(!d || d.ok === false) throw new Error((d && d.error) || 'API error');
+      var rows = d.changes || [];
+      window.__hrclSafeRows = rows;
+      try{ if(window.state) state.changes = rows; }catch(e){}
+
+      var f = ($('#hrclSafeFrom') || {}).value || '';
+      var t = ($('#hrclSafeTo') || {}).value || '';
+      var note = (f || t) ? ('Date range: ' + (f || 'start') + ' to ' + (t || 'end')) : 'Latest records';
+
+      el.innerHTML = '<div style="margin:8px 0 10px;color:#64748b;font-size:13px;font-weight:800">Showing ' + rows.length + ' real DB record(s). ' + escHtml(note) + '</div>' + renderTable(rows);
+
+      var all = $('#hrclSafeAll');
+      if(all){
+        all.addEventListener('change', function(){
+          $all('.hrclSafeCheck').forEach(function(x){ x.checked = all.checked; });
+        });
+      }
+    }catch(err){
+      el.innerHTML = '<div style="padding:14px;border:1px solid #fecaca;border-radius:12px;background:#fff1f2;color:#991b1b;font-weight:800">Human Change Log error: ' + escHtml(err.message || err) + '</div>';
+    }
+  };
+
+  setTimeout(function(){ addDateControls(); hookDownloads(); }, 700);
+})();
+/* HRCL_SAFE_HUMAN_ONLY_END */

@@ -5180,375 +5180,320 @@ if(typeof renderSoftware==='function' && !window.__skSoftwareCleanFixWrapped){
 })();
 /* NOTIFICATION_SIMPLE_PAGED_HISTORY_UI_ONLY_END */
 
-/* UNIVERSAL_BRANDING_SAFE_V4_ONLY_START */
+/* BRANDING_SETTINGS_FOUNDATION_ONLY_START */
 (function(){
-  const KEY = 'sk_branding_safe_v4';
-  const DEFAULTS = {
+  const BRAND_KEY = 'sk_company_branding_foundation_v1';
+  const DEFAULT_BRAND = {
     companyName: 'Next Toppers',
-    website: 'https://www.nexttoppers.com',
-    logoUrl: '/branding/nexttoppers-logo.png',
-    teamBgUrl: '/branding/nexttoppers-team-bg.png',
-    statusText: 'System Health Status',
-    sidebarSubtitle: '',
-    tagline: 'Live system health monitoring for labs, classrooms, offices and mixed Windows + Ubuntu fleets.'
+    companyWebsite: 'https://www.nexttoppers.com',
+    companyLogoUrl: '/branding/nexttoppers-logo.png',
+    loginBackgroundUrl: '/branding/nexttoppers-team-bg.png',
+    loginTagline: 'Live system health monitoring for labs, classrooms, offices and mixed Windows + Ubuntu fleets.',
+    taglineFontPercent: 50
   };
 
   function q(s,r){return (r||document).querySelector(s)}
   function qa(s,r){return Array.from((r||document).querySelectorAll(s))}
-  function text(el){return (el && (el.innerText || el.textContent) || '').trim()}
   function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+  function text(el){return (el && (el.innerText || el.textContent) || '').trim()}
 
-  function getBrand(){
+  window.getCompanyBranding = function(){
     try{
-      return Object.assign({}, DEFAULTS, JSON.parse(localStorage.getItem(KEY) || '{}') || {});
+      return Object.assign({}, DEFAULT_BRAND, JSON.parse(localStorage.getItem(BRAND_KEY) || '{}') || {});
     }catch(e){
-      return Object.assign({}, DEFAULTS);
+      return Object.assign({}, DEFAULT_BRAND);
     }
-  }
-  function saveBrand(b){
-    localStorage.setItem(KEY, JSON.stringify(Object.assign({}, DEFAULTS, b || {})));
-  }
+  };
+
+  window.saveCompanyBranding = function(next){
+    const clean = Object.assign({}, DEFAULT_BRAND, next || {});
+    localStorage.setItem(BRAND_KEY, JSON.stringify(clean));
+    return clean;
+  };
 
   function addCss(){
-    if(q('#brandSafeV4Css')) return;
+    if(q('#brandingFoundationCss')) return;
     const s=document.createElement('style');
-    s.id='brandSafeV4Css';
+    s.id='brandingFoundationCss';
     s.textContent = `
-      .brand-logo-box{
-        background:#000!important;
-        border-radius:14px!important;
-        overflow:hidden!important;
-        display:flex!important;
-        align-items:center!important;
-        justify-content:center!important;
-        color:transparent!important;
-        font-size:0!important;
-        line-height:0!important;
-      }
-      .brand-logo-box img{
-        width:88%!important;
-        height:88%!important;
-        object-fit:contain!important;
-        display:block!important;
-      }
-      .brand-logo-wide{
-        background:#000!important;
-        border-radius:12px!important;
-        overflow:hidden!important;
-        display:flex!important;
-        align-items:center!important;
-        justify-content:center!important;
-      }
-      .brand-logo-wide img{
-        width:92%!important;
-        height:92%!important;
-        object-fit:contain!important;
-        display:block!important;
-      }
-      .brand-hide{display:none!important}
-      .brand-company-pill{
-        display:flex;align-items:center;gap:12px;
-        min-width:280px;max-width:430px;
-        padding:10px 14px;border-radius:18px;
-        background:#fff;border:1px solid #dbe6f4;
+      .brand-found-card{
+        margin-top:16px;
+        padding:18px;
+        border-radius:18px;
+        background:#fff;
+        border:1px solid #dbe6f4;
         box-shadow:0 8px 24px rgba(15,23,42,.05);
       }
-      .brand-company-pill-logo{width:42px;height:42px;flex:0 0 auto}
-      .brand-company-pill b{display:block;color:#0f172a;font-size:15px;line-height:1.1;font-weight:850}
-      .brand-company-pill span{display:block;color:#64748b;font-size:11px;font-weight:750;margin-top:3px}
-      .brand-login-bg{
-        background:#000!important;
-        position:relative!important;
-        overflow:hidden!important;
+      .brand-found-card h3{
+        margin:0 0 5px;
+        color:#0f172a;
+        font-size:22px;
+        font-weight:850;
       }
-      .brand-login-bg:before{
-        content:"";
-        position:absolute;inset:0;
-        background-image:var(--brand-team-bg);
-        background-size:cover;background-position:center top;background-repeat:no-repeat;
-        opacity:.36;pointer-events:none;
+      .brand-found-card p{
+        margin:0 0 14px;
+        color:#64748b;
+        font-size:13px;
+        font-weight:650;
       }
-      .brand-login-bg:after{
-        content:"";
-        position:absolute;inset:0;
-        background:linear-gradient(180deg,rgba(0,0,0,.12),rgba(0,0,0,.55));
-        pointer-events:none;
+      .brand-found-grid{
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+        gap:14px;
       }
-      .brand-login-bg > *{position:relative;z-index:1}
-      .brand-small-tagline{font-size:50%!important;line-height:1.2!important}
-      .brand-settings-card{
-        margin-top:16px;padding:18px;border-radius:18px;
-        background:#fff;border:1px solid #dbe6f4;
-        box-shadow:0 8px 24px rgba(15,23,42,.05);
+      .brand-found-field label{
+        display:block;
+        font-size:12px;
+        font-weight:850;
+        color:#0f172a;
+        margin-bottom:6px;
       }
-      .brand-settings-card h3{margin:0 0 6px;color:#0f172a;font-size:22px;font-weight:850}
-      .brand-settings-card p{margin:0 0 14px;color:#64748b;font-size:13px;font-weight:650}
-      .brand-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
-      .brand-field label{display:block;font-size:12px;font-weight:850;color:#0f172a;margin-bottom:6px}
-      .brand-field input{
-        width:100%;box-sizing:border-box;
-        padding:10px 12px;border-radius:12px;
-        border:1px solid #cbd5e1;background:#fff;color:#0f172a;
-        font-size:14px;font-weight:650;
+      .brand-found-field input{
+        width:100%;
+        box-sizing:border-box;
+        padding:10px 12px;
+        border-radius:12px;
+        border:1px solid #cbd5e1;
+        background:#fff;
+        color:#0f172a;
+        font-size:14px;
+        font-weight:650;
       }
-      .brand-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center}
-      .brand-btn{padding:10px 14px;border-radius:12px;border:1px solid #dbe6f4;background:#fff;color:#0f172a;font-weight:850;cursor:pointer}
-      .brand-btn.primary{background:linear-gradient(135deg,#06b6d4,#22c55e);border-color:transparent;color:#062033}
-      .brand-preview{display:flex;gap:10px;align-items:center;margin-top:8px}
-      .brand-preview-logo{width:86px;height:58px}
-      .brand-preview-bg{width:130px;height:78px;border-radius:14px;overflow:hidden;background:#000;border:1px solid #dbe6f4}
-      .brand-preview-bg img{width:100%;height:100%;object-fit:cover}
-      .brand-status{font-size:12px;font-weight:850;color:#15803d}
+      .brand-found-preview-row{
+        display:flex;
+        gap:10px;
+        align-items:center;
+        flex-wrap:wrap;
+        margin-top:8px;
+      }
+      .brand-found-logo-preview{
+        width:100px;
+        height:66px;
+        background:#000;
+        border-radius:14px;
+        border:1px solid #dbe6f4;
+        overflow:hidden;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+      }
+      .brand-found-logo-preview img{
+        width:90%;
+        height:90%;
+        object-fit:contain;
+        display:block;
+      }
+      .brand-found-bg-preview{
+        width:150px;
+        height:90px;
+        background:#000;
+        border-radius:14px;
+        border:1px solid #dbe6f4;
+        overflow:hidden;
+      }
+      .brand-found-bg-preview img{
+        width:100%;
+        height:100%;
+        object-fit:cover;
+        display:block;
+      }
+      .brand-found-actions{
+        margin-top:14px;
+        display:flex;
+        gap:10px;
+        align-items:center;
+        flex-wrap:wrap;
+      }
+      .brand-found-btn{
+        padding:10px 14px;
+        border-radius:12px;
+        border:1px solid #dbe6f4;
+        background:#fff;
+        color:#0f172a;
+        font-weight:850;
+        cursor:pointer;
+      }
+      .brand-found-btn.primary{
+        background:linear-gradient(135deg,#06b6d4,#22c55e);
+        border-color:transparent;
+        color:#062033;
+      }
+      .brand-found-status{
+        color:#15803d;
+        font-size:12px;
+        font-weight:850;
+      }
     `;
     document.head.appendChild(s);
   }
 
-  function setLogo(el, url, wide){
-    if(!el) return;
-    el.classList.add(wide ? 'brand-logo-wide' : 'brand-logo-box');
-    el.innerHTML = '<img alt="Company logo" src="'+url+'">';
-  }
-
-  function fixSidebar(brand){
-    const sidebar = qa('aside, nav, .sidebar').find(el => {
-      const t=text(el);
-      return t.includes('Machine Fleet') || t.includes('System Health Monitor') || t.includes('Sagar Kerhalkar') || t.includes('SK');
-    });
-    if(!sidebar) return;
-
-    // Replace SK / SK LIVE boxes with logo
-    qa('*', sidebar).forEach(el => {
-      const t=text(el);
-      if(t === 'SK' || t === 'SK LIVE'){
-        setLogo(el, brand.logoUrl, false);
-      }
-      if(t === 'Sagar Kerhalkar' || t === 'System Health Monitor'){
-        el.classList.add('brand-hide');
-      }
-    });
-
-    // Hide parent text area beside top logo, keep only logo box
-    const brandBlock = qa('div,section,header,article', sidebar).find(el => {
-      const t=text(el);
-      return t.includes('Sagar Kerhalkar') || t.includes('System Health Monitor');
-    });
-    if(brandBlock){
-      let logoBox = qa('div,span', brandBlock).find(el => text(el)==='SK' || text(el)==='SK LIVE' || (el.clientWidth>20 && el.clientWidth<90 && el.clientHeight>20 && el.clientHeight<90));
-      if(!logoBox) logoBox = brandBlock.firstElementChild;
-      if(logoBox) setLogo(logoBox, brand.logoUrl, false);
-      Array.from(brandBlock.children).forEach(ch => {
-        if(ch !== logoBox) ch.classList.add('brand-hide');
-      });
-    }
-  }
-
-  function replaceSearchWithCompany(brand){
-    const search = qa('input').find(el => (el.placeholder||'').toLowerCase().includes('search machine'));
-    if(!search) return;
-
-    search.classList.add('brand-hide');
-    const holder = search.parentElement || search;
-    if(!q('#brandCompanyPill')){
-      const pill=document.createElement('div');
-      pill.id='brandCompanyPill';
-      pill.className='brand-company-pill';
-      pill.innerHTML = `
-        <div class="brand-company-pill-logo brand-logo-wide"><img alt="Company logo" src="${brand.logoUrl}"></div>
-        <div>
-          <b>${esc(brand.companyName)}</b>
-          <span>${esc(brand.statusText)}</span>
-        </div>
-      `;
-      holder.insertAdjacentElement('beforebegin', pill);
-    }else{
-      const pill=q('#brandCompanyPill');
-      const img=q('img',pill); if(img) img.src = brand.logoUrl;
-      const b=q('b',pill); if(b) b.textContent = brand.companyName;
-      const span=q('span',pill); if(span) span.textContent = brand.statusText;
-    }
-  }
-
-  function fixWebsiteButton(brand){
-    qa('button,a').forEach(el => {
-      const t=text(el);
-      if(t === 'Profile Website' || t === 'Company Website'){
-        el.textContent='Company Website';
-        el.onclick=function(e){
-          e.preventDefault();
-          let url=brand.website || DEFAULTS.website;
-          if(!/^https?:\/\//i.test(url)) url='https://' + url;
-          window.open(url,'_blank');
-        };
-      }
-    });
-  }
-
-  function fixLoginPage(brand){
-    const hasSidebar = !!qa('aside, nav, .sidebar').find(el => text(el).includes('Machine Fleet'));
-    const hasPassword = !!qa('input[type="password"], input[name*="password" i]').length;
-    if(!hasPassword || hasSidebar) return;
-
-    document.documentElement.style.setProperty('--brand-team-bg', 'url("'+brand.teamBgUrl+'")');
-    const wrap = q('main') || q('#root') || document.body;
-    wrap.classList.add('brand-login-bg');
-
-    qa('*', wrap).forEach(el => {
-      const t=text(el);
-      if(t === 'SK' || t === 'SK LIVE'){
-        setLogo(el, brand.logoUrl, false);
-      }
-      if(t.includes('Live system health monitoring for labs') || t === brand.tagline){
-        el.textContent = brand.tagline;
-        el.classList.add('brand-small-tagline');
-      }
-    });
-  }
-
-  function addSettingsCard(brand){
-    const page = qa('.page,[id^="page-"],main section,section,div').find(el => {
+  function findSettingsPage(){
+    return q('#page-settings') || qa('.page,[id^="page-"],section,div').find(el=>{
       const t=text(el);
       return t.includes('Settings') && (t.includes('Users') || t.includes('password') || t.includes('refresh'));
-    });
-    if(!page) return;
-    if(q('#brandSettingsCard', page)) return;
+    }) || null;
+  }
 
-    const card=document.createElement('div');
-    card.id='brandSettingsCard';
-    card.className='brand-settings-card';
+  function readFileAsDataUrl(input, cb){
+    const f = input && input.files && input.files[0];
+    if(!f) return cb('');
+    const r = new FileReader();
+    r.onload = function(){ cb(String(r.result || '')); };
+    r.readAsDataURL(f);
+  }
+
+  function ensureBrandingSettings(){
+    addCss();
+    const page = findSettingsPage();
+    if(!page) return;
+    if(q('#brandFoundationCard', page)) return;
+
+    const b = window.getCompanyBranding();
+    const card = document.createElement('div');
+    card.id = 'brandFoundationCard';
+    card.className = 'brand-found-card';
     card.innerHTML = `
       <h3>Company Branding Settings</h3>
-      <p>Change company name, logo, website and login background.</p>
-      <div class="brand-grid">
-        <div class="brand-field">
+      <p>Safe foundation only. Save company name, website, logo, login background and tagline here.</p>
+      <div class="brand-found-grid">
+        <div class="brand-found-field">
           <label>Company Name</label>
-          <input id="brandCompanyName" type="text" value="${esc(brand.companyName)}">
+          <input id="brandFoundCompanyName" type="text" value="${esc(b.companyName)}">
         </div>
-        <div class="brand-field">
+        <div class="brand-found-field">
           <label>Company Website</label>
-          <input id="brandWebsite" type="url" value="${esc(brand.website)}">
+          <input id="brandFoundWebsite" type="url" value="${esc(b.companyWebsite)}">
         </div>
-        <div class="brand-field">
-          <label>Status Text</label>
-          <input id="brandStatusText" type="text" value="${esc(brand.statusText)}">
-        </div>
-        <div class="brand-field">
+        <div class="brand-found-field">
           <label>Login Tagline</label>
-          <input id="brandTagline" type="text" value="${esc(brand.tagline)}">
+          <input id="brandFoundTagline" type="text" value="${esc(b.loginTagline)}">
         </div>
-        <div class="brand-field">
+        <div class="brand-found-field">
+          <label>Tagline Font Size Percent</label>
+          <input id="brandFoundTaglineSize" type="number" min="20" max="100" value="${esc(b.taglineFontPercent)}">
+        </div>
+        <div class="brand-found-field">
           <label>Company Logo</label>
-          <input id="brandLogoFile" type="file" accept="image/*">
-          <div class="brand-preview">
-            <div class="brand-preview-logo brand-logo-wide"><img src="${brand.logoUrl}" alt="logo"></div>
+          <input id="brandFoundLogoFile" type="file" accept="image/*">
+          <div class="brand-found-preview-row">
+            <div class="brand-found-logo-preview"><img id="brandFoundLogoPreview" src="${esc(b.companyLogoUrl)}" alt="logo"></div>
           </div>
         </div>
-        <div class="brand-field">
+        <div class="brand-found-field">
           <label>Login Background Image</label>
-          <input id="brandBgFile" type="file" accept="image/*">
-          <div class="brand-preview">
-            <div class="brand-preview-bg"><img src="${brand.teamBgUrl}" alt="background"></div>
+          <input id="brandFoundBgFile" type="file" accept="image/*">
+          <div class="brand-found-preview-row">
+            <div class="brand-found-bg-preview"><img id="brandFoundBgPreview" src="${esc(b.loginBackgroundUrl)}" alt="login background"></div>
           </div>
         </div>
       </div>
-      <div class="brand-actions">
-        <button type="button" class="brand-btn primary" id="brandSaveBtn">Save Branding</button>
-        <button type="button" class="brand-btn" id="brandResetBtn">Reset Default</button>
-        <span class="brand-status" id="brandSaveStatus">Ready</span>
+      <div class="brand-found-actions">
+        <button type="button" class="brand-found-btn primary" id="brandFoundSave">Save Branding</button>
+        <button type="button" class="brand-found-btn" id="brandFoundReset">Reset Default</button>
+        <span class="brand-found-status" id="brandFoundStatus">Ready</span>
       </div>
     `;
+
     page.appendChild(card);
 
-    function readFile(input, cb){
-      const f=input && input.files && input.files[0];
-      if(!f) return cb('');
-      const r=new FileReader();
-      r.onload=function(){cb(String(r.result||''))};
-      r.readAsDataURL(f);
-    }
-
-    q('#brandSaveBtn',card).onclick=function(){
-      const next=Object.assign({}, getBrand(), {
-        companyName: q('#brandCompanyName',card).value || DEFAULTS.companyName,
-        website: q('#brandWebsite',card).value || DEFAULTS.website,
-        statusText: q('#brandStatusText',card).value || DEFAULTS.statusText,
-        tagline: q('#brandTagline',card).value || DEFAULTS.tagline
+    q('#brandFoundLogoFile',card).addEventListener('change', function(){
+      readFileAsDataUrl(this, function(url){
+        if(url) q('#brandFoundLogoPreview',card).src = url;
       });
-      const status=q('#brandSaveStatus',card);
-      status.textContent='Saving...';
+    });
+    q('#brandFoundBgFile',card).addEventListener('change', function(){
+      readFileAsDataUrl(this, function(url){
+        if(url) q('#brandFoundBgPreview',card).src = url;
+      });
+    });
 
-      readFile(q('#brandLogoFile',card), function(logo){
-        if(logo) next.logoUrl=logo;
-        readFile(q('#brandBgFile',card), function(bg){
-          if(bg) next.teamBgUrl=bg;
-          saveBrand(next);
-          status.textContent='Saved';
-          apply();
-          setTimeout(()=>status.textContent='Ready',1500);
+    q('#brandFoundSave',card).onclick = function(){
+      const status = q('#brandFoundStatus',card);
+      status.textContent = 'Saving...';
+      const old = window.getCompanyBranding();
+      const next = Object.assign({}, old, {
+        companyName: q('#brandFoundCompanyName',card).value || DEFAULT_BRAND.companyName,
+        companyWebsite: q('#brandFoundWebsite',card).value || DEFAULT_BRAND.companyWebsite,
+        loginTagline: q('#brandFoundTagline',card).value || DEFAULT_BRAND.loginTagline,
+        taglineFontPercent: Number(q('#brandFoundTaglineSize',card).value || DEFAULT_BRAND.taglineFontPercent)
+      });
+
+      readFileAsDataUrl(q('#brandFoundLogoFile',card), function(logoUrl){
+        if(logoUrl) next.companyLogoUrl = logoUrl;
+        readFileAsDataUrl(q('#brandFoundBgFile',card), function(bgUrl){
+          if(bgUrl) next.loginBackgroundUrl = bgUrl;
+          window.saveCompanyBranding(next);
+          status.textContent = 'Saved';
+          setTimeout(function(){status.textContent='Ready';},1500);
         });
       });
     };
 
-    q('#brandResetBtn',card).onclick=function(){
-      saveBrand(DEFAULTS);
-      location.reload();
+    q('#brandFoundReset',card).onclick = function(){
+      window.saveCompanyBranding(DEFAULT_BRAND);
+      q('#brandFoundCompanyName',card).value = DEFAULT_BRAND.companyName;
+      q('#brandFoundWebsite',card).value = DEFAULT_BRAND.companyWebsite;
+      q('#brandFoundTagline',card).value = DEFAULT_BRAND.loginTagline;
+      q('#brandFoundTaglineSize',card).value = DEFAULT_BRAND.taglineFontPercent;
+      q('#brandFoundLogoPreview',card).src = DEFAULT_BRAND.companyLogoUrl;
+      q('#brandFoundBgPreview',card).src = DEFAULT_BRAND.loginBackgroundUrl;
+      q('#brandFoundStatus',card).textContent='Default restored';
+      setTimeout(function(){q('#brandFoundStatus',card).textContent='Ready';},1500);
     };
   }
 
-  function apply(){
-    try{
-      addCss();
-      const brand=getBrand();
-      fixSidebar(brand);
-      replaceSearchWithCompany(brand);
-      fixWebsiteButton(brand);
-      fixLoginPage(brand);
-      addSettingsCard(brand);
-    }catch(e){
-      console.warn('branding safe v4 error', e);
-    }
+  // Wrap switchPage safely so Settings card appears when Settings tab opens.
+  if(typeof window.switchPage === 'function' && !window.__brandFoundationSwitchWrapped){
+    window.__brandFoundationSwitchWrapped = true;
+    const oldSwitch = window.switchPage;
+    window.switchPage = function(page){
+      const out = oldSwitch.apply(this, arguments);
+      if(page === 'settings') setTimeout(ensureBrandingSettings, 120);
+      return out;
+    };
   }
 
-  setTimeout(apply,250);
-  setTimeout(apply,900);
-  setTimeout(apply,1800);
-  setInterval(apply,3500);
+  setTimeout(ensureBrandingSettings, 500);
+  setInterval(function(){
+    try{
+      if((window.state && state.page === 'settings') || q('#page-settings.active')) ensureBrandingSettings();
+    }catch(e){}
+  }, 2500);
 })();
-/* UNIVERSAL_BRANDING_SAFE_V4_ONLY_END */
+/* BRANDING_SETTINGS_FOUNDATION_ONLY_END */
 
-/* BRANDING_LOGO_TAGLINE_LOGINBG_FIX_ONLY_START */
+/* BRANDING_APPLY_FROM_SETTINGS_SAFE_ONLY_START */
 (function(){
-  const BRAND = {
+  const BRAND_KEY = 'sk_company_branding_foundation_v1';
+  const DEFAULT_BRAND = {
     companyName: 'Next Toppers',
-    website: 'https://www.nexttoppers.com',
-    logoUrl: '/branding/nexttoppers-logo.png',
-    teamBgUrl: '/branding/nexttoppers-team-bg.png',
-    statusText: 'System Health Status',
-    tagline: 'Live system health monitoring for labs, classrooms, offices and mixed Windows + Ubuntu fleets.'
+    companyWebsite: 'https://www.nexttoppers.com',
+    companyLogoUrl: '/branding/nexttoppers-logo.png',
+    loginBackgroundUrl: '/branding/nexttoppers-team-bg.png',
+    loginTagline: 'Live system health monitoring for labs, classrooms, offices and mixed Windows + Ubuntu fleets.',
+    taglineFontPercent: 50
   };
 
   function q(s,r){return (r||document).querySelector(s)}
   function qa(s,r){return Array.from((r||document).querySelectorAll(s))}
   function txt(el){return (el && (el.innerText || el.textContent) || '').trim()}
+  function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 
-  function saveBrandDefaults(){
-    const keys=['sk_branding_safe_v4','sk_universal_branding_settings_v1'];
-    keys.forEach(k=>{
-      try{
-        const old = JSON.parse(localStorage.getItem(k) || '{}') || {};
-        const next = Object.assign({}, old, BRAND);
-        localStorage.setItem(k, JSON.stringify(next));
-      }catch(e){
-        localStorage.setItem(k, JSON.stringify(BRAND));
-      }
-    });
+  function getBrand(){
+    try{
+      const saved = JSON.parse(localStorage.getItem(BRAND_KEY) || '{}') || {};
+      return Object.assign({}, DEFAULT_BRAND, saved);
+    }catch(e){
+      return Object.assign({}, DEFAULT_BRAND);
+    }
   }
 
   function addCss(){
-    if(q('#brandingLogoTaglineFixCss')) return;
+    if(q('#brandingApplySafeCss')) return;
     const s=document.createElement('style');
-    s.id='brandingLogoTaglineFixCss';
+    s.id='brandingApplySafeCss';
     s.textContent = `
-      .ntfix-logo-box{
+      .brand-apply-logo-box{
         background:#000!important;
         border-radius:14px!important;
         overflow:hidden!important;
@@ -5558,14 +5503,16 @@ if(typeof renderSoftware==='function' && !window.__skSoftwareCleanFixWrapped){
         color:transparent!important;
         font-size:0!important;
         line-height:0!important;
+        text-indent:-9999px!important;
       }
-      .ntfix-logo-box img{
+      .brand-apply-logo-box img{
         width:88%!important;
         height:88%!important;
         object-fit:contain!important;
         display:block!important;
+        text-indent:0!important;
       }
-      .ntfix-logo-wide{
+      .brand-apply-logo-wide{
         background:#000!important;
         border-radius:12px!important;
         overflow:hidden!important;
@@ -5573,369 +5520,248 @@ if(typeof renderSoftware==='function' && !window.__skSoftwareCleanFixWrapped){
         align-items:center!important;
         justify-content:center!important;
       }
-      .ntfix-logo-wide img{
+      .brand-apply-logo-wide img{
         width:92%!important;
         height:92%!important;
         object-fit:contain!important;
         display:block!important;
       }
-      .ntfix-hide{display:none!important}
-      .ntfix-pill{
-        display:flex;align-items:center;gap:12px;
-        min-width:280px;max-width:430px;
-        padding:10px 14px;border-radius:18px;
-        background:#fff;border:1px solid #dbe6f4;
+      .brand-apply-hide{
+        display:none!important;
+      }
+      .brand-apply-company-pill{
+        display:flex;
+        align-items:center;
+        gap:12px;
+        min-width:280px;
+        max-width:430px;
+        padding:10px 14px;
+        border-radius:18px;
+        background:#fff;
+        border:1px solid #dbe6f4;
         box-shadow:0 8px 24px rgba(15,23,42,.05);
       }
-      .ntfix-pill-logo{width:42px;height:42px;flex:0 0 auto}
-      .ntfix-pill b{display:block;color:#0f172a;font-size:15px;line-height:1.1;font-weight:850}
-      .ntfix-pill span{display:block;color:#64748b;font-size:11px;font-weight:750;margin-top:3px}
-      .ntfix-login-bg{
+      .brand-apply-company-logo{
+        width:42px;
+        height:42px;
+        flex:0 0 auto;
+      }
+      .brand-apply-company-pill b{
+        display:block;
+        color:#0f172a;
+        font-size:15px;
+        line-height:1.1;
+        font-weight:850;
+      }
+      .brand-apply-company-pill span{
+        display:block;
+        color:#64748b;
+        font-size:11px;
+        font-weight:750;
+        margin-top:3px;
+      }
+      body.brand-login-only-bg{
         background:#000!important;
-        position:relative!important;
-        overflow:hidden!important;
       }
-      .ntfix-login-bg:before{
+      body.brand-login-only-bg:before{
         content:"";
-        position:absolute;inset:0;
-        background-image:url('/branding/nexttoppers-team-bg.png');
-        background-size:cover;background-position:center top;background-repeat:no-repeat;
-        opacity:.36;pointer-events:none;
+        position:fixed;
+        inset:0;
+        z-index:-2;
+        background-image:var(--brand-login-bg);
+        background-size:cover;
+        background-position:center top;
+        background-repeat:no-repeat;
+        opacity:.36;
+        pointer-events:none;
       }
-      .ntfix-login-bg:after{
+      body.brand-login-only-bg:after{
         content:"";
-        position:absolute;inset:0;
+        position:fixed;
+        inset:0;
+        z-index:-1;
         background:linear-gradient(180deg,rgba(0,0,0,.12),rgba(0,0,0,.55));
         pointer-events:none;
       }
-      .ntfix-login-bg > *{position:relative;z-index:1}
-      .ntfix-small-tagline{font-size:50%!important;line-height:1.2!important}
     `;
     document.head.appendChild(s);
   }
 
-  function setLogo(el, wide){
-    if(!el) return;
-    el.classList.add(wide ? 'ntfix-logo-wide' : 'ntfix-logo-box');
-    el.innerHTML = '<img alt="Next Toppers logo" src="'+BRAND.logoUrl+'">';
+  function loggedInAppExists(){
+    return !!(
+      q('#page-dashboard') ||
+      q('#page-settings') ||
+      q('[data-page="fleet"]') ||
+      q('[data-page="dashboard"]') ||
+      q('.nav[data-page="fleet"]') ||
+      q('.nav[data-page="settings"]')
+    );
   }
 
-  function replaceSidebarBrand(){
+  function isLoginPage(){
+    if(loggedInAppExists()) return false;
+    const bodyText = txt(document.body).toLowerCase();
+    return !!q('input[type="password"], input[name*="password" i]') ||
+           bodyText.includes('enter operations dashboard') ||
+           bodyText.includes('login required') ||
+           bodyText.includes('live system health monitoring for labs');
+  }
+
+  function setLogo(el, logoUrl, wide){
+    if(!el) return;
+    el.classList.add(wide ? 'brand-apply-logo-wide' : 'brand-apply-logo-box');
+    el.innerHTML = '<img alt="Company logo" src="'+logoUrl+'">';
+  }
+
+  function applySidebarLogo(brand){
     const sidebar = qa('aside, nav, .sidebar').find(el=>{
-      const t=txt(el);
+      const t = txt(el);
       return t.includes('Machine Fleet') || t.includes('Sagar Kerhalkar') || t.includes('System Health Monitor') || t.includes('SK');
     });
     if(!sidebar) return;
 
     qa('*', sidebar).forEach(el=>{
-      const t=txt(el);
-      if(t==='SK' || t==='SK LIVE'){ setLogo(el, false); }
-      if(t==='Sagar Kerhalkar' || t==='System Health Monitor'){ el.classList.add('ntfix-hide'); }
+      const t = txt(el);
+      if(t === 'SK' || t === 'SK LIVE'){
+        setLogo(el, brand.companyLogoUrl, false);
+      }
+      if(t === 'Sagar Kerhalkar' || t === 'System Health Monitor'){
+        el.classList.add('brand-apply-hide');
+      }
     });
 
     const topBlock = qa('div,section,header,article', sidebar).find(el=>{
-      const t=txt(el);
-      return t.includes('Sagar Kerhalkar') || t.includes('System Health Monitor');
+      const t = txt(el);
+      return t.includes('Sagar Kerhalkar') || t.includes('System Health Monitor') || t === 'SK' || t === 'SK LIVE';
     });
+
     if(topBlock){
-      let logoBox = qa('div,span', topBlock).find(el=> txt(el)==='SK' || txt(el)==='SK LIVE');
-      if(!logoBox) logoBox = topBlock.firstElementChild;
-      if(logoBox) setLogo(logoBox, false);
+      let logoBox = qa('div,span', topBlock).find(el=>{
+        const t = txt(el);
+        return t === 'SK' || t === 'SK LIVE';
+      });
+      if(!logoBox){
+        logoBox = Array.from(topBlock.children).find(ch=>{
+          try{
+            const r = ch.getBoundingClientRect();
+            return r.width > 20 && r.width < 100 && r.height > 20 && r.height < 100;
+          }catch(e){ return false; }
+        }) || topBlock.firstElementChild;
+      }
+      if(logoBox) setLogo(logoBox, brand.companyLogoUrl, false);
       Array.from(topBlock.children).forEach(ch=>{
-        if(ch!==logoBox) ch.classList.add('ntfix-hide');
+        if(ch !== logoBox) ch.classList.add('brand-apply-hide');
       });
     }
   }
 
-  function replaceSearchWithCompanyPill(){
-    const search = qa('input').find(el=> (el.placeholder||'').toLowerCase().includes('search machine'));
+  function applyTopCompanyPill(brand){
+    const search = qa('input').find(el => (el.placeholder || '').toLowerCase().includes('search machine'));
     if(!search) return;
-    search.classList.add('ntfix-hide');
 
-    if(!q('#ntfixCompanyPill')){
-      const pill=document.createElement('div');
-      pill.id='ntfixCompanyPill';
-      pill.className='ntfix-pill';
-      pill.innerHTML = `
-        <div class="ntfix-pill-logo ntfix-logo-wide"><img alt="logo" src="${BRAND.logoUrl}"></div>
-        <div>
-          <b>${BRAND.companyName}</b>
-          <span>${BRAND.statusText}</span>
-        </div>
-      `;
-      search.parentElement.insertAdjacentElement('beforebegin', pill);
-    }else{
-      const pill=q('#ntfixCompanyPill');
-      const img=q('img', pill); if(img) img.src=BRAND.logoUrl;
-      const b=q('b', pill); if(b) b.textContent=BRAND.companyName;
-      const span=q('span', pill); if(span) span.textContent=BRAND.statusText;
-    }
+    search.classList.add('brand-apply-hide');
+
+    // Remove old duplicate company pills created by earlier patches.
+    qa('#brandCompanyPill,#ntfixCompanyPill,#ubCompanyPill,#sgbrandCompanyPill,#loginRealCompanyPill,#brandApplyCompanyPill,.brand-company-pill,.ntfix-pill,.ub-company-pill,.sgbrand-pill,.login-real-pill,.brand-apply-company-pill').forEach(el=>el.remove());
+
+    const pill = document.createElement('div');
+    pill.id = 'brandApplyCompanyPill';
+    pill.className = 'brand-apply-company-pill';
+    pill.innerHTML = `
+      <div class="brand-apply-company-logo brand-apply-logo-wide">
+        <img alt="Company logo" src="${esc(brand.companyLogoUrl)}">
+      </div>
+      <div>
+        <b>${esc(brand.companyName)}</b>
+        <span>System Health Status</span>
+      </div>
+    `;
+
+    const holder = search.parentElement || search;
+    holder.insertAdjacentElement('beforebegin', pill);
   }
 
-  function fixWebsiteButton(){
+  function applyWebsiteButton(brand){
     qa('button,a').forEach(el=>{
-      const t=txt(el);
-      if(t==='Profile Website' || t==='Company Website'){
-        el.textContent='Company Website';
-        el.onclick=function(e){
+      const t = txt(el);
+      if(t === 'Profile Website' || t === 'Company Website'){
+        el.textContent = 'Company Website';
+        el.onclick = function(e){
           e.preventDefault();
-          window.open(BRAND.website, '_blank');
+          let url = brand.companyWebsite || DEFAULT_BRAND.companyWebsite;
+          if(!/^https?:\/\//i.test(url)) url = 'https://' + url;
+          window.open(url, '_blank');
         };
       }
     });
   }
 
-  function fixLoginPage(){
-    const hasSidebar = !!qa('aside, nav, .sidebar').find(el=> txt(el).includes('Machine Fleet'));
-    const hasPassword = !!qa('input[type="password"], input[name*="password" i]').length;
-    if(!hasPassword || hasSidebar) return;
-
-    const wrap = q('main') || q('#root') || document.body;
-    wrap.classList.add('ntfix-login-bg');
-
-    qa('*', wrap).forEach(el=>{
-      const t=txt(el);
-      if(t==='SK' || t==='SK LIVE'){ setLogo(el, false); }
-      if(t.includes('Live system health monitoring for labs') || t===BRAND.tagline){
-        el.textContent = BRAND.tagline;
-        el.classList.add('ntfix-small-tagline');
-      }
-    });
-  }
-
-  function fixSettingsDefaults(){
-    const nameInput=q('#brandCompanyName'); if(nameInput && !nameInput.value) nameInput.value=BRAND.companyName;
-    const websiteInput=q('#brandWebsite'); if(websiteInput && !websiteInput.value) websiteInput.value=BRAND.website;
-  }
-
-  function run(){
-    try{
-      saveBrandDefaults();
-      addCss();
-      replaceSidebarBrand();
-      replaceSearchWithCompanyPill();
-      fixWebsiteButton();
-      fixLoginPage();
-      fixSettingsDefaults();
-    }catch(e){
-      console.warn('branding fix error', e);
+  function applyLoginVisuals(brand){
+    if(!isLoginPage()){
+      document.body.classList.remove('brand-login-only-bg');
+      return;
     }
-  }
 
-  setTimeout(run,250);
-  setTimeout(run,900);
-  setTimeout(run,1800);
-  setInterval(run,3500);
-})();
-/* BRANDING_LOGO_TAGLINE_LOGINBG_FIX_ONLY_END */
+    document.documentElement.style.setProperty('--brand-login-bg', 'url("'+brand.loginBackgroundUrl+'")');
+    document.body.classList.add('brand-login-only-bg');
 
-/* BRANDING_SINGLE_PILL_LOGO_LOGINBG_ONLY_START */
-(function(){
-  const BRAND = {
-    companyName: 'Next Toppers',
-    website: 'https://www.nexttoppers.com',
-    logoUrl: '/branding/nexttoppers-logo.png',
-    teamBgUrl: '/branding/nexttoppers-team-bg.png',
-    statusText: 'System Health Status',
-    tagline: 'Live system health monitoring for labs, classrooms, offices and mixed Windows + Ubuntu fleets.'
-  };
-
-  function q(s,r){return (r||document).querySelector(s)}
-  function qa(s,r){return Array.from((r||document).querySelectorAll(s))}
-  function txt(el){return (el && (el.innerText || el.textContent) || '').trim()}
-
-  function addCss(){
-    if(q('#brandingSinglePillFixCss')) return;
-    const s=document.createElement('style');
-    s.id='brandingSinglePillFixCss';
-    s.textContent = `
-      .sgbrand-logo-box{
-        background:#000!important;
-        border-radius:14px!important;
-        overflow:hidden!important;
-        display:flex!important;
-        align-items:center!important;
-        justify-content:center!important;
-        color:transparent!important;
-        font-size:0!important;
-        line-height:0!important;
+    qa('*').forEach(el=>{
+      const t = txt(el);
+      if(t === 'SK' || t === 'SK LIVE'){
+        setLogo(el, brand.companyLogoUrl, false);
       }
-      .sgbrand-logo-box img{
-        width:88%!important;
-        height:88%!important;
-        object-fit:contain!important;
-        display:block!important;
-      }
-      .sgbrand-logo-wide{
-        background:#000!important;
-        border-radius:12px!important;
-        overflow:hidden!important;
-        display:flex!important;
-        align-items:center!important;
-        justify-content:center!important;
-      }
-      .sgbrand-logo-wide img{
-        width:92%!important;
-        height:92%!important;
-        object-fit:contain!important;
-        display:block!important;
-      }
-      .sgbrand-hide{display:none!important}
-      .sgbrand-pill{
-        display:flex;align-items:center;gap:12px;
-        min-width:280px;max-width:430px;
-        padding:10px 14px;border-radius:18px;
-        background:#fff;border:1px solid #dbe6f4;
-        box-shadow:0 8px 24px rgba(15,23,42,.05);
-      }
-      .sgbrand-pill-logo{width:42px;height:42px;flex:0 0 auto}
-      .sgbrand-pill b{display:block;color:#0f172a;font-size:15px;line-height:1.1;font-weight:850}
-      .sgbrand-pill span{display:block;color:#64748b;font-size:11px;font-weight:750;margin-top:3px}
-      .sgbrand-login-bg{
-        background:#000!important;
-        position:relative!important;
-        overflow:hidden!important;
-      }
-      .sgbrand-login-bg:before{
-        content:"";
-        position:absolute;inset:0;
-        background-image:url('/branding/nexttoppers-team-bg.png');
-        background-size:cover;background-position:center top;background-repeat:no-repeat;
-        opacity:.36;pointer-events:none;
-      }
-      .sgbrand-login-bg:after{
-        content:"";
-        position:absolute;inset:0;
-        background:linear-gradient(180deg,rgba(0,0,0,.12),rgba(0,0,0,.55));
-        pointer-events:none;
-      }
-      .sgbrand-login-bg > *{position:relative;z-index:1}
-      .sgbrand-small-tagline{font-size:50%!important;line-height:1.2!important}
-    `;
-    document.head.appendChild(s);
-  }
-
-  function saveBrandDefaults(){
-    ['sk_branding_safe_v4','sk_universal_branding_settings_v1'].forEach(key=>{
-      try{
-        const old = JSON.parse(localStorage.getItem(key) || '{}') || {};
-        localStorage.setItem(key, JSON.stringify(Object.assign({}, old, BRAND)));
-      }catch(e){
-        localStorage.setItem(key, JSON.stringify(BRAND));
+      if(t.includes('Live system health monitoring for labs') || t === brand.loginTagline){
+        el.textContent = brand.loginTagline;
+        if(!el.dataset.brandOriginalFontPx){
+          const fs = parseFloat(getComputedStyle(el).fontSize || '0');
+          if(fs > 0) el.dataset.brandOriginalFontPx = String(fs);
+        }
+        const base = parseFloat(el.dataset.brandOriginalFontPx || getComputedStyle(el).fontSize || '0');
+        const pct = Math.max(20, Math.min(100, Number(brand.taglineFontPercent || 50)));
+        if(base > 0) el.style.fontSize = (base * pct / 100) + 'px';
+        el.style.lineHeight = '1.15';
       }
     });
   }
 
-  function setLogo(el, wide){
-    if(!el) return;
-    el.classList.add(wide ? 'sgbrand-logo-wide' : 'sgbrand-logo-box');
-    el.innerHTML = '<img alt="Next Toppers logo" src="'+BRAND.logoUrl+'">';
-  }
-
-  function fixSidebarLogoOnly(){
-    const sidebar = qa('aside, nav, .sidebar').find(el=>{
-      const t=txt(el);
-      return t.includes('Machine Fleet') || t.includes('Sagar Kerhalkar') || t.includes('System Health Monitor') || t.includes('SK');
-    });
-    if(!sidebar) return;
-
-    qa('*', sidebar).forEach(el=>{
-      const t=txt(el);
-      if(t==='SK' || t==='SK LIVE'){ setLogo(el, false); }
-      if(t==='Sagar Kerhalkar' || t==='System Health Monitor'){ el.classList.add('sgbrand-hide'); }
-    });
-
-    const topBlock = qa('div,section,header,article', sidebar).find(el=>{
-      const t=txt(el);
-      return t.includes('Sagar Kerhalkar') || t.includes('System Health Monitor');
-    });
-    if(topBlock){
-      let logoBox = qa('div,span', topBlock).find(el=> txt(el)==='SK' || txt(el)==='SK LIVE');
-      if(!logoBox) logoBox = topBlock.firstElementChild;
-      if(logoBox) setLogo(logoBox, false);
-      Array.from(topBlock.children).forEach(ch=>{
-        if(ch!==logoBox) ch.classList.add('sgbrand-hide');
+  function wireSettingsSaveApply(){
+    const btn = q('#brandFoundSave');
+    if(btn && !btn.dataset.brandApplyBound){
+      btn.dataset.brandApplyBound = '1';
+      btn.addEventListener('click', function(){
+        setTimeout(applyBrandingFromSettings, 350);
+        setTimeout(applyBrandingFromSettings, 900);
+      });
+    }
+    const reset = q('#brandFoundReset');
+    if(reset && !reset.dataset.brandApplyBound){
+      reset.dataset.brandApplyBound = '1';
+      reset.addEventListener('click', function(){
+        setTimeout(applyBrandingFromSettings, 350);
+        setTimeout(applyBrandingFromSettings, 900);
       });
     }
   }
 
-  function removeDuplicatePillsAndKeepOne(){
-    const search = qa('input').find(el=> (el.placeholder||'').toLowerCase().includes('search machine'));
-    if(search) search.classList.add('sgbrand-hide');
-
-    const allPills = [
-      ...qa('#brandCompanyPill,#ntfixCompanyPill,#ubCompanyPill,.brand-company-pill,.ntfix-pill,.ub-company-pill,.sgbrand-pill')
-    ].filter(Boolean);
-
-    // Remove every old pill first.
-    allPills.forEach(el=>el.remove());
-
-    // Insert only one clean pill.
-    if(search){
-      const holder = search.parentElement || search;
-      if(!q('#sgbrandCompanyPill')){
-        const pill=document.createElement('div');
-        pill.id='sgbrandCompanyPill';
-        pill.className='sgbrand-pill';
-        pill.innerHTML = `
-          <div class="sgbrand-pill-logo sgbrand-logo-wide"><img alt="logo" src="${BRAND.logoUrl}"></div>
-          <div>
-            <b>${BRAND.companyName}</b>
-            <span>${BRAND.statusText}</span>
-          </div>
-        `;
-        holder.insertAdjacentElement('beforebegin', pill);
-      }
-    }
-  }
-
-  function fixWebsiteButton(){
-    qa('button,a').forEach(el=>{
-      const t=txt(el);
-      if(t==='Profile Website' || t==='Company Website'){
-        el.textContent='Company Website';
-        el.onclick=function(e){
-          e.preventDefault();
-          window.open(BRAND.website, '_blank');
-        };
-      }
-    });
-  }
-
-  function fixLoginPage(){
-    const hasSidebar = !!qa('aside, nav, .sidebar').find(el=> txt(el).includes('Machine Fleet'));
-    const hasPassword = !!qa('input[type="password"], input[name*="password" i]').length;
-    if(!hasPassword || hasSidebar) return;
-
-    const wrap = q('main') || q('#root') || document.body;
-    wrap.classList.add('sgbrand-login-bg');
-
-    qa('*', wrap).forEach(el=>{
-      const t=txt(el);
-      if(t==='SK' || t==='SK LIVE'){ setLogo(el, false); }
-      if(t.includes('Live system health monitoring for labs') || t===BRAND.tagline){
-        el.textContent = BRAND.tagline;
-        el.classList.add('sgbrand-small-tagline');
-      }
-    });
-  }
-
-  function run(){
+  function applyBrandingFromSettings(){
     try{
-      saveBrandDefaults();
       addCss();
-      fixSidebarLogoOnly();
-      removeDuplicatePillsAndKeepOne();
-      fixWebsiteButton();
-      fixLoginPage();
+      const brand = getBrand();
+      applySidebarLogo(brand);
+      applyTopCompanyPill(brand);
+      applyWebsiteButton(brand);
+      applyLoginVisuals(brand);
+      wireSettingsSaveApply();
     }catch(e){
-      console.warn('single branding fix error', e);
+      console.warn('apply branding from settings failed', e);
     }
   }
 
-  setTimeout(run,250);
-  setTimeout(run,900);
-  setTimeout(run,1800);
-  setInterval(run,3500);
+  window.applyCompanyBrandingFromSettings = applyBrandingFromSettings;
+
+  setTimeout(applyBrandingFromSettings, 250);
+  setTimeout(applyBrandingFromSettings, 900);
+  setTimeout(applyBrandingFromSettings, 1800);
+  setInterval(applyBrandingFromSettings, 4000);
 })();
-/* BRANDING_SINGLE_PILL_LOGO_LOGINBG_ONLY_END */
+/* BRANDING_APPLY_FROM_SETTINGS_SAFE_ONLY_END */

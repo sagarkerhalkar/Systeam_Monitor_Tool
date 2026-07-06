@@ -3048,3 +3048,393 @@ if(typeof renderSoftware==='function' && !window.__skSoftwareCleanFixWrapped){
   setTimeout(function(){ addDateControls(); hookDownloads(); }, 700);
 })();
 /* HRCL_SAFE_HUMAN_ONLY_END */
+
+/* HISTORY_FAST_3D_ONLY_START */
+(function(){
+  function q(s,r){return (r||document).querySelector(s)}
+  function qa(s,r){return Array.from((r||document).querySelectorAll(s))}
+  function safe(v){
+    return String(v == null ? '' : v).replace(/[&<>"']/g,function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  function txt(el){return (el && (el.innerText || el.textContent) || '').trim()}
+  function apiGet(url){
+    if(typeof api === 'function') return api(url);
+    return fetch(url,{cache:'no-store'}).then(function(r){return r.json()});
+  }
+  function fmtTime(v){
+    if(!v) return 'N/A';
+    try{return new Date(v).toLocaleString()}catch(e){return String(v)}
+  }
+  function typeLabel(t){
+    t=String(t||'').toLowerCase();
+    if(t.indexOf('usb')>=0 || t.indexOf('peripheral')>=0) return 'USB';
+    if(t.indexOf('software')>=0 || t.indexOf('app')>=0 || t.indexOf('install')>=0) return 'S/W';
+    if(t.indexOf('vpn')>=0) return 'VPN';
+    if(t.indexOf('ip')>=0 || t.indexOf('network')>=0 || t.indexOf('wan')>=0 || t.indexOf('internet')>=0 || t.indexOf('latency')>=0 || t.indexOf('dns')>=0) return 'Network';
+    if(t.indexOf('hardware')>=0 || t.indexOf('cpu')>=0 || t.indexOf('ram')>=0 || t.indexOf('disk')>=0 || t.indexOf('gpu')>=0) return 'H/W';
+    return t ? t.toUpperCase() : 'Change';
+  }
+  function titleOf(r){return r.human_title || r.title || r.change_type || r.type || 'Change'}
+  function msgOf(r){return r.human_message || r.summary || r.message || r.title || 'Change recorded'}
+  function arrText(v){
+    if(!v)return '';
+    if(Array.isArray(v)) return v.map(function(x){return String(x)}).join(' | ');
+    return String(v);
+  }
+  function machineOptions(){
+    var ms=[];
+    try{ms=state.machines||[]}catch(e){}
+    var html='<option value="">All machines</option>';
+    ms.forEach(function(m){
+      var id=m.machine_id||'';
+      var name='';
+      try{name=host(m)}catch(e){name=m.hostname||m.host||id}
+      var ip=m.primary_ip || ((m.all_ips||[])[0]) || '';
+      html += '<option value="'+safe(id)+'">'+safe(name)+(ip?' - '+safe(ip):'')+'</option>';
+    });
+    return html;
+  }
+  function page(){
+    return q('#page-history') || q('#page-day-history') || q('#historyPage');
+  }
+  function addCss(){
+    if(q('#historyFast3dCss')) return;
+    var s=document.createElement('style');
+    s.id='historyFast3dCss';
+    s.textContent = `
+      #page-history.history-fast-3d{
+        position:relative;
+        overflow:hidden;
+        min-height:calc(100vh - 120px);
+        padding:18px!important;
+        color:#e5f2ff;
+        background:
+          radial-gradient(circle at 15% 20%, rgba(34,211,238,.26), transparent 26%),
+          radial-gradient(circle at 80% 10%, rgba(168,85,247,.28), transparent 28%),
+          radial-gradient(circle at 55% 90%, rgba(59,130,246,.24), transparent 30%),
+          linear-gradient(135deg,#020617 0%,#0f172a 48%,#111827 100%)!important;
+      }
+      #page-history.history-fast-3d:before{
+        content:"";
+        position:absolute;
+        inset:-30%;
+        background:
+          linear-gradient(rgba(255,255,255,.055) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,.055) 1px, transparent 1px);
+        background-size:42px 42px;
+        transform:perspective(700px) rotateX(63deg);
+        animation:histGridMove 12s linear infinite;
+        opacity:.42;
+        pointer-events:none;
+      }
+      @keyframes histGridMove{from{background-position:0 0,0 0}to{background-position:0 42px,42px 0}}
+      @keyframes histFloat{0%,100%{transform:translateY(0) rotateX(0deg) rotateY(0deg)}50%{transform:translateY(-9px) rotateX(4deg) rotateY(-4deg)}}
+      @keyframes histOrbit{to{transform:rotate(360deg)}}
+      .hist3d-root{position:relative;z-index:1;font-family:"Segoe UI",Arial,sans-serif}
+      .hist3d-hero{
+        display:grid;
+        grid-template-columns:130px 1fr;
+        gap:18px;
+        align-items:center;
+        padding:18px;
+        border:1px solid rgba(148,163,184,.28);
+        border-radius:28px;
+        background:rgba(15,23,42,.66);
+        box-shadow:0 28px 90px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.12);
+        backdrop-filter:blur(15px);
+        animation:histFloat 7s ease-in-out infinite;
+      }
+      .hist3d-globe{
+        width:110px;height:110px;border-radius:50%;
+        position:relative;
+        background:radial-gradient(circle at 35% 28%,#67e8f9,#2563eb 52%,#1e1b4b 78%);
+        box-shadow:0 0 40px rgba(34,211,238,.45), inset -22px -16px 35px rgba(2,6,23,.48);
+      }
+      .hist3d-globe:before,.hist3d-globe:after{
+        content:"";position:absolute;inset:-9px;border-radius:50%;
+        border:2px solid rgba(125,211,252,.45);
+        border-left-color:transparent;border-right-color:transparent;
+        animation:histOrbit 4.8s linear infinite;
+      }
+      .hist3d-globe:after{inset:14px;animation-duration:3.2s;transform:rotate(70deg)}
+      .hist3d-title h1{margin:0;font-size:32px;letter-spacing:-.8px;color:#fff}
+      .hist3d-title p{margin:8px 0 0;color:#b6c7e8;font-weight:700}
+      .hist3d-controls{
+        margin:16px 0;
+        display:flex;gap:10px;flex-wrap:wrap;align-items:center;
+        padding:12px;
+        border:1px solid rgba(148,163,184,.22);
+        border-radius:18px;
+        background:rgba(15,23,42,.58);
+        backdrop-filter:blur(10px);
+      }
+      .hist3d-controls select,.hist3d-controls input{
+        border:1px solid rgba(148,163,184,.38);
+        border-radius:13px;
+        padding:10px 12px;
+        background:rgba(255,255,255,.94);
+        color:#0f172a;
+        font-weight:800;
+      }
+      .hist3d-controls button{
+        border:0;border-radius:13px;
+        padding:11px 14px;
+        color:#031827;
+        font-weight:900;
+        background:linear-gradient(135deg,#67e8f9,#a7f3d0);
+        box-shadow:0 10px 30px rgba(34,211,238,.24);
+        cursor:pointer;
+      }
+      .hist3d-stats{display:grid;grid-template-columns:repeat(5,minmax(130px,1fr));gap:12px;margin:14px 0}
+      .hist3d-stat{
+        border:1px solid rgba(148,163,184,.24);
+        border-radius:20px;
+        padding:14px;
+        background:rgba(15,23,42,.62);
+        box-shadow:0 16px 40px rgba(0,0,0,.22);
+      }
+      .hist3d-stat b{display:block;color:#fff;font-size:23px}
+      .hist3d-stat span{color:#93c5fd;font-weight:800;font-size:12px;text-transform:uppercase}
+      .hist3d-grid{display:grid;grid-template-columns:minmax(280px,390px) 1fr;gap:16px}
+      .hist3d-days,.hist3d-events{
+        border:1px solid rgba(148,163,184,.24);
+        border-radius:24px;
+        background:rgba(15,23,42,.66);
+        backdrop-filter:blur(12px);
+        box-shadow:0 22px 70px rgba(0,0,0,.3);
+        overflow:hidden;
+      }
+      .hist3d-panel-head{
+        padding:14px 16px;
+        border-bottom:1px solid rgba(148,163,184,.18);
+        display:flex;justify-content:space-between;gap:10px;align-items:center;
+      }
+      .hist3d-panel-head h2{margin:0;color:#fff;font-size:18px}
+      .hist3d-day-list{max-height:620px;overflow:auto;padding:12px}
+      .hist3d-day{
+        margin:0 0 10px;
+        padding:13px;
+        border-radius:18px;
+        border:1px solid rgba(148,163,184,.18);
+        background:linear-gradient(135deg,rgba(30,41,59,.9),rgba(15,23,42,.74));
+        cursor:pointer;
+        transition:transform .18s ease, border-color .18s ease, background .18s ease;
+      }
+      .hist3d-day:hover,.hist3d-day.active{
+        transform:translateY(-2px) scale(1.01);
+        border-color:rgba(103,232,249,.7);
+        background:linear-gradient(135deg,rgba(14,116,144,.45),rgba(30,41,59,.82));
+      }
+      .hist3d-day-top{display:flex;justify-content:space-between;gap:10px;align-items:center}
+      .hist3d-day-date{font-weight:950;color:#fff;font-size:16px}
+      .hist3d-count{font-weight:950;color:#67e8f9}
+      .hist3d-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+      .hist3d-badge{
+        font-size:11px;
+        font-weight:950;
+        border-radius:999px;
+        padding:5px 8px;
+        background:rgba(59,130,246,.18);
+        color:#bfdbfe;
+        border:1px solid rgba(147,197,253,.2);
+      }
+      .hist3d-event-list{max-height:620px;overflow:auto;padding:12px}
+      .hist3d-event{
+        display:grid;
+        grid-template-columns:110px 1fr;
+        gap:12px;
+        margin-bottom:10px;
+        padding:13px;
+        border-radius:18px;
+        border:1px solid rgba(148,163,184,.18);
+        background:rgba(2,6,23,.34);
+      }
+      .hist3d-type{
+        align-self:start;
+        text-align:center;
+        padding:9px 8px;
+        border-radius:15px;
+        background:linear-gradient(135deg,rgba(34,211,238,.24),rgba(168,85,247,.2));
+        color:#e0f2fe;
+        font-weight:950;
+      }
+      .hist3d-msg b{color:#fff}
+      .hist3d-msg p{margin:6px 0;color:#dbeafe;font-weight:650}
+      .hist3d-small{color:#93a4c3;font-size:12px;font-weight:700}
+      .hist3d-empty{padding:18px;color:#cbd5e1;font-weight:900}
+      @media(max-width:950px){.hist3d-grid{grid-template-columns:1fr}.hist3d-stats{grid-template-columns:repeat(2,1fr)}.hist3d-hero{grid-template-columns:1fr}.hist3d-globe{display:none}}
+    `;
+    document.head.appendChild(s);
+  }
+  function getFilters(){
+    return {
+      machine_id:(q('#histFastMachine')||{}).value||'',
+      from:(q('#histFastFrom')||{}).value||'',
+      to:(q('#histFastTo')||{}).value||'',
+      limit:(q('#histFastLimit')||{}).value||'1000'
+    };
+  }
+  function daysUrl(){
+    var f=getFilters(), p=new URLSearchParams();
+    p.set('mode','days');
+    p.set('limit_days','1200');
+    if(f.machine_id) p.set('machine_id',f.machine_id);
+    if(f.from) p.set('from',f.from);
+    if(f.to) p.set('to',f.to);
+    return '/api/history-fast?'+p.toString();
+  }
+  function eventsUrl(day){
+    var f=getFilters(), p=new URLSearchParams();
+    p.set('mode','events');
+    p.set('date',day);
+    p.set('limit',f.limit || '1000');
+    if(f.machine_id) p.set('machine_id',f.machine_id);
+    return '/api/history-fast?'+p.toString();
+  }
+  function statSum(days,key){
+    return days.reduce(function(n,d){return n + Number(d[key]||0)},0);
+  }
+  function dayBadges(d){
+    var parts=[
+      ['H/W',d.hardware_count],
+      ['USB',d.usb_count],
+      ['S/W',d.software_count],
+      ['Network',d.network_count],
+      ['VPN',d.vpn_count]
+    ];
+    return parts.filter(function(x){return Number(x[1]||0)>0}).map(function(x){
+      return '<span class="hist3d-badge">'+safe(x[0])+': '+safe(x[1])+'</span>';
+    }).join('');
+  }
+  function renderShell(){
+    var p=page();
+    if(!p) return null;
+    addCss();
+    p.classList.add('history-fast-3d');
+    p.innerHTML =
+      '<div class="hist3d-root">'+
+        '<div class="hist3d-hero">'+
+          '<div class="hist3d-globe"></div>'+
+          '<div class="hist3d-title"><h1>History</h1><p>Fast global 3D change history. Shows only days where real changes happened: H/W, USB, S/W, Network and VPN.</p></div>'+
+        '</div>'+
+        '<div class="hist3d-controls">'+
+          '<select id="histFastMachine">'+machineOptions()+'</select>'+
+          '<label>From <input id="histFastFrom" type="date"></label>'+
+          '<label>To <input id="histFastTo" type="date"></label>'+
+          '<select id="histFastLimit"><option>300</option><option selected>1000</option><option>2000</option><option>5000</option></select>'+
+          '<button id="histFastRefresh">Refresh History</button>'+
+          '<button id="histFastDownload">Download Selected Day CSV</button>'+
+        '</div>'+
+        '<div id="histFastStats" class="hist3d-stats"></div>'+
+        '<div class="hist3d-grid">'+
+          '<div class="hist3d-days"><div class="hist3d-panel-head"><h2>Change Days</h2><span id="histFastDayCount" class="hist3d-small">Loading...</span></div><div id="histFastDays" class="hist3d-day-list"></div></div>'+
+          '<div class="hist3d-events"><div class="hist3d-panel-head"><h2 id="histFastEventTitle">Selected Day Changes</h2><span id="histFastEventCount" class="hist3d-small"></span></div><div id="histFastEvents" class="hist3d-event-list"></div></div>'+
+        '</div>'+
+      '</div>';
+    q('#histFastRefresh').onclick=function(){window.renderHistory(true)};
+    q('#histFastMachine').onchange=function(){window.renderHistory(true)};
+    q('#histFastFrom').onchange=function(){window.renderHistory(true)};
+    q('#histFastTo').onchange=function(){window.renderHistory(true)};
+    q('#histFastLimit').onchange=function(){ if(window.__histFastSelectedDay) loadEvents(window.__histFastSelectedDay); };
+    q('#histFastDownload').onclick=function(){downloadEvents()};
+    return p;
+  }
+  function renderStats(days){
+    var html = '';
+    html += '<div class="hist3d-stat"><span>Total Changes</span><b>'+safe(statSum(days,'total_count'))+'</b></div>';
+    html += '<div class="hist3d-stat"><span>H/W</span><b>'+safe(statSum(days,'hardware_count'))+'</b></div>';
+    html += '<div class="hist3d-stat"><span>USB</span><b>'+safe(statSum(days,'usb_count'))+'</b></div>';
+    html += '<div class="hist3d-stat"><span>S/W</span><b>'+safe(statSum(days,'software_count'))+'</b></div>';
+    html += '<div class="hist3d-stat"><span>Network + VPN</span><b>'+safe(statSum(days,'network_count')+statSum(days,'vpn_count'))+'</b></div>';
+    q('#histFastStats').innerHTML=html;
+  }
+  function renderDays(days){
+    q('#histFastDayCount').textContent=days.length+' day(s)';
+    if(!days.length){
+      q('#histFastDays').innerHTML='<div class="hist3d-empty">No change days found in DB.</div>';
+      q('#histFastEvents').innerHTML='<div class="hist3d-empty">Select another range or machine.</div>';
+      q('#histFastEventCount').textContent='';
+      return;
+    }
+    q('#histFastDays').innerHTML=days.map(function(d,i){
+      return '<div class="hist3d-day '+(i===0?'active':'')+'" data-day="'+safe(d.day)+'">'+
+        '<div class="hist3d-day-top"><span class="hist3d-day-date">'+safe(d.day)+'</span><span class="hist3d-count">'+safe(d.total_count)+' changes</span></div>'+
+        '<div class="hist3d-badges">'+dayBadges(d)+'</div>'+
+      '</div>';
+    }).join('');
+    qa('.hist3d-day').forEach(function(card){
+      card.onclick=function(){
+        qa('.hist3d-day').forEach(function(x){x.classList.remove('active')});
+        card.classList.add('active');
+        loadEvents(card.dataset.day);
+      };
+    });
+    loadEvents(days[0].day);
+  }
+  function renderEvents(day, rows){
+    window.__histFastSelectedDay=day;
+    window.__histFastEvents=rows;
+    q('#histFastEventTitle').textContent='Changes on '+day;
+    q('#histFastEventCount').textContent=rows.length+' record(s)';
+    if(!rows.length){
+      q('#histFastEvents').innerHTML='<div class="hist3d-empty">No change records for this day.</div>';
+      return;
+    }
+    q('#histFastEvents').innerHTML=rows.map(function(r){
+      var add=arrText(r.added_items||r.added);
+      var rem=arrText(r.removed_items||r.removed);
+      var detail='';
+      if(add) detail+='<div class="hist3d-small"><b>Added:</b> '+safe(add)+'</div>';
+      if(rem) detail+='<div class="hist3d-small"><b>Removed:</b> '+safe(rem)+'</div>';
+      return '<div class="hist3d-event">'+
+        '<div class="hist3d-type">'+safe(typeLabel(r.change_type||r.type))+'</div>'+
+        '<div class="hist3d-msg">'+
+          '<b>'+safe(titleOf(r))+'</b>'+
+          '<p>'+safe(msgOf(r))+'</p>'+
+          '<div class="hist3d-small">'+safe(fmtTime(r.created_at))+' | '+safe(r.hostname||'')+' | '+safe(r.machine_id||'')+'</div>'+
+          detail+
+        '</div>'+
+      '</div>';
+    }).join('');
+  }
+  async function loadEvents(day){
+    q('#histFastEvents').innerHTML='<div class="hist3d-empty">Loading selected day changes...</div>';
+    try{
+      var d=await apiGet(eventsUrl(day));
+      if(!d || d.ok===false) throw new Error((d&&d.error)||'API error');
+      renderEvents(day,d.events||[]);
+    }catch(e){
+      q('#histFastEvents').innerHTML='<div class="hist3d-empty">Error loading events: '+safe(e.message||e)+'</div>';
+    }
+  }
+  function csvCell(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"'}
+  function downloadEvents(){
+    var rows=window.__histFastEvents||[];
+    var csv=[['ID','Created At','Machine','Hostname','Type','Title','Message','Added','Removed']].concat(rows.map(function(r){
+      return [r.id,r.created_at,r.machine_id,r.hostname,r.change_type||r.type,titleOf(r),msgOf(r),arrText(r.added_items||r.added),arrText(r.removed_items||r.removed)];
+    })).map(function(row){return row.map(csvCell).join(',')}).join('\r\n');
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
+    a.download='history_'+(window.__histFastSelectedDay||'selected_day')+'.csv';
+    document.body.appendChild(a);a.click();a.remove();
+  }
+  window.renderHistory = async function(force){
+    renderShell();
+    q('#histFastDays').innerHTML='<div class="hist3d-empty">Loading change days fast from DB...</div>';
+    q('#histFastEvents').innerHTML='<div class="hist3d-empty">Waiting for day selection...</div>';
+    try{
+      var d=await apiGet(daysUrl());
+      if(!d || d.ok===false) throw new Error((d&&d.error)||'API error');
+      var days=d.days||[];
+      window.__histFastDays=days;
+      renderStats(days);
+      renderDays(days);
+    }catch(e){
+      q('#histFastDays').innerHTML='<div class="hist3d-empty">Error loading history: '+safe(e.message||e)+'</div>';
+      q('#histFastStats').innerHTML='';
+    }
+  };
+})();
+/* HISTORY_FAST_3D_ONLY_END */

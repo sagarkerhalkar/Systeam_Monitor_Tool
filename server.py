@@ -1910,6 +1910,135 @@ class Handler(BaseHTTPRequestHandler):
                         pass
                     return _hrcl_send({'ok': False, 'error': str(e), 'changes': []}, 500)
             # SK_HRCL_INLINE_RANGE_ROUTE_END
+            # SK_HISTORY_FAST_ROUTE_START
+            if path == "/api/history-fast":
+                import json, sqlite3, pathlib, urllib.parse
+                def _hist_send(payload, code=200):
+                    raw = json.dumps(payload, ensure_ascii=False, default=str).encode('utf-8')
+                    self.send_response(code)
+                    self.send_header('Content-Type', 'application/json; charset=utf-8')
+                    self.send_header('Cache-Control', 'no-store')
+                    self.send_header('Content-Length', str(len(raw)))
+                    self.end_headers()
+                    self.wfile.write(raw)
+                def _hist_q(name, default=''):
+                    try:
+                        return urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query).get(name, [default])[0]
+                    except Exception:
+                        return default
+                def _hist_limit(v, default, hi):
+                    try:
+                        n = int(v)
+                    except Exception:
+                        n = default
+                    return max(1, min(n, hi))
+                def _day_start(v):
+                    v=(v or '').strip()
+                    return v + 'T00:00:00' if len(v)==10 and v[4]=='-' and v[7]=='-' else v
+                def _day_end(v):
+                    v=(v or '').strip()
+                    return v + 'T23:59:59.999999' if len(v)==10 and v[4]=='-' and v[7]=='-' else v
+                def _cat_sql(expr):
+                    low = 'lower(' + expr + ')'
+                    return {
+                      'hardware': "("+low+" LIKE '%hardware%' OR "+low+" LIKE '%cpu%' OR "+low+" LIKE '%ram%' OR "+low+" LIKE '%disk%' OR "+low+" LIKE '%gpu%')",
+                      'usb': "("+low+" LIKE '%usb%' OR "+low+" LIKE '%peripheral%' OR "+low+" LIKE '%keyboard%' OR "+low+" LIKE '%mouse%' OR "+low+" LIKE '%camera%' OR "+low+" LIKE '%printer%')",
+                      'software': "("+low+" LIKE '%software%' OR "+low+" LIKE '%app%' OR "+low+" LIKE '%install%')",
+                      'network': "("+low+" LIKE '%network%' OR "+low+" LIKE '%ip%' OR "+low+" LIKE '%wan%' OR "+low+" LIKE '%internet%' OR "+low+" LIKE '%latency%' OR "+low+" LIKE '%dns%')",
+                      'vpn': "("+low+" LIKE '%vpn%')"
+                    }
+                try:
+                    _base = pathlib.Path(__file__).resolve().parent
+                    _db = pathlib.Path(globals().get('DB_PATH') or globals().get('DATABASE') or globals().get('DB_FILE') or (_base / 'data' / 'monitor.db'))
+                    if not _db.exists():
+                        return _hist_send({'ok': False, 'error': 'monitor.db not found', 'db': str(_db), 'days': [], 'events': []}, 404)
+                    mode = (_hist_q('mode','days') or 'days').strip().lower()
+                    mid = (_hist_q('machine_id','') or '').strip()
+                    con = sqlite3.connect(str(_db), timeout=10)
+                    con.row_factory = sqlite3.Row
+                    cur = con.cursor()
+                    try:
+                        cur.execute('CREATE INDEX IF NOT EXISTS idx_history_fast_ce_day ON change_events(created_at)')
+                        cur.execute('CREATE INDEX IF NOT EXISTS idx_history_fast_ce_machine_day ON change_events(machine_id, created_at)')
+                        cur.execute('CREATE INDEX IF NOT EXISTS idx_history_fast_ce_type_day ON change_events(change_type, created_at)')
+                    except Exception:
+                        pass
+                    cats = _cat_sql("coalesce(change_type,'') || ' ' || coalesce(title,'') || ' ' || coalesce(message,'')")
+                    relevant = '(' + ' OR '.join(cats.values()) + ')'
+                    where = [relevant]
+                    params = []
+                    if mid:
+                        where.append('machine_id = ?')
+                        params.append(mid)
+                    if mode == 'days':
+                        frm = _day_start(_hist_q('from',''))
+                        to = _day_end(_hist_q('to',''))
+                        if frm:
+                            where.append('created_at >= ?')
+                            params.append(frm)
+                        if to:
+                            where.append('created_at <= ?')
+                            params.append(to)
+                        limit_days = _hist_limit(_hist_q('limit_days','1200'), 1200, 5000)
+                        sql = 'SELECT substr(created_at,1,10) AS day, COUNT(*) AS total_count, '
+                        sql += 'SUM(CASE WHEN '+cats['hardware']+' THEN 1 ELSE 0 END) AS hardware_count, '
+                        sql += 'SUM(CASE WHEN '+cats['usb']+' THEN 1 ELSE 0 END) AS usb_count, '
+                        sql += 'SUM(CASE WHEN '+cats['software']+' THEN 1 ELSE 0 END) AS software_count, '
+                        sql += 'SUM(CASE WHEN '+cats['network']+' THEN 1 ELSE 0 END) AS network_count, '
+                        sql += 'SUM(CASE WHEN '+cats['vpn']+' THEN 1 ELSE 0 END) AS vpn_count '
+                        sql += 'FROM change_events WHERE ' + ' AND '.join(where) + ' GROUP BY day ORDER BY day DESC LIMIT ?'
+                        rows = cur.execute(sql, params + [limit_days]).fetchall()
+                        days = [dict(r) for r in rows]
+                        con.close()
+                        return _hist_send({'ok': True, 'mode': 'days', 'days': days, 'count': len(days)})
+                    else:
+                        day = (_hist_q('date','') or '').strip()
+                        if day:
+                            where.append('created_at >= ?')
+                            params.append(day + 'T00:00:00')
+                            where.append('created_at <= ?')
+                            params.append(day + 'T23:59:59.999999')
+                        frm = _day_start(_hist_q('from',''))
+                        to = _day_end(_hist_q('to',''))
+                        if frm:
+                            where.append('created_at >= ?')
+                            params.append(frm)
+                        if to:
+                            where.append('created_at <= ?')
+                            params.append(to)
+                        limit = _hist_limit(_hist_q('limit','1000'), 1000, 10000)
+                        sql = 'SELECT id, created_at, machine_id, hostname, change_type, title, message, detail_json FROM change_events WHERE ' + ' AND '.join(where) + ' ORDER BY created_at DESC, id DESC LIMIT ?'
+                        rows = cur.execute(sql, params + [limit]).fetchall()
+                        events = []
+                        for r in rows:
+                            d = dict(r)
+                            detail = {}
+                            try:
+                                detail = json.loads(d.get('detail_json') or '{}')
+                            except Exception:
+                                detail = {}
+                            added = detail.get('added', [])
+                            removed = detail.get('removed', [])
+                            if not isinstance(added, list): added = [added]
+                            if not isinstance(removed, list): removed = [removed]
+                            d['human_title'] = d.get('title') or detail.get('title') or d.get('change_type') or 'Change'
+                            d['human_message'] = d.get('message') or detail.get('message') or d['human_title']
+                            d['summary'] = d['human_message']
+                            d['added_items'] = added
+                            d['removed_items'] = removed
+                            d['added'] = added
+                            d['removed'] = removed
+                            d['type'] = d.get('change_type') or detail.get('type') or ''
+                            events.append(d)
+                        con.close()
+                        return _hist_send({'ok': True, 'mode': 'events', 'events': events, 'count': len(events)})
+                except Exception as e:
+                    try:
+                        con.close()
+                    except Exception:
+                        pass
+                    return _hist_send({'ok': False, 'error': str(e), 'days': [], 'events': []}, 500)
+            # SK_HISTORY_FAST_ROUTE_END
             if path == "/api/changes":
                 return self.send_json({"changes": latest_change_events(300, human=True)})
             if path == "/api/export/changes.csv":

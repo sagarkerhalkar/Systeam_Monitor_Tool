@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Sagar Kerhalkar System Monitor Tool - zero dependency receiver + premium dashboard.
 Runs with Python standard library only.
@@ -1824,6 +1824,92 @@ class Handler(BaseHTTPRequestHandler):
                 with DB_LOCK, db_connect() as con:
                     rows = con.execute("SELECT * FROM notifications ORDER BY id DESC LIMIT 200").fetchall()
                 return self.send_json({"notifications": [dict(r) for r in rows]})
+            # SK_HRCL_INLINE_RANGE_ROUTE_START
+            if path == "/api/changes-range":
+                import json, sqlite3, pathlib, urllib.parse
+                def _hrcl_send(payload, code=200):
+                    raw = json.dumps(payload, ensure_ascii=False, default=str).encode('utf-8')
+                    self.send_response(code)
+                    self.send_header('Content-Type', 'application/json; charset=utf-8')
+                    self.send_header('Cache-Control', 'no-store')
+                    self.send_header('Content-Length', str(len(raw)))
+                    self.end_headers()
+                    self.wfile.write(raw)
+                def _hrcl_q(name, default=''):
+                    return urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query).get(name, [default])[0]
+                def _hrcl_day_start(v):
+                    v = (v or '').strip()
+                    return v + 'T00:00:00' if len(v) == 10 and v[4] == '-' and v[7] == '-' else v
+                def _hrcl_day_end(v):
+                    v = (v or '').strip()
+                    return v + 'T23:59:59.999999' if len(v) == 10 and v[4] == '-' and v[7] == '-' else v
+                def _hrcl_limit(v):
+                    try:
+                        n = int(v)
+                    except Exception:
+                        n = 5000
+                    return max(1, min(n, 20000))
+                try:
+                    _base = pathlib.Path(__file__).resolve().parent
+                    _db = pathlib.Path(globals().get('DB_PATH') or globals().get('DATABASE') or globals().get('DB_FILE') or (_base / 'data' / 'monitor.db'))
+                    _mid = (_hrcl_q('machine_id', '') or '').strip()
+                    _from = _hrcl_day_start(_hrcl_q('from', ''))
+                    _to = _hrcl_day_end(_hrcl_q('to', ''))
+                    _limit = _hrcl_limit(_hrcl_q('limit', '5000'))
+                    if not _db.exists():
+                        return _hrcl_send({'ok': False, 'error': 'monitor.db not found', 'db': str(_db), 'changes': []}, 404)
+                    con = sqlite3.connect(str(_db), timeout=10)
+                    con.row_factory = sqlite3.Row
+                    cur = con.cursor()
+                    where = []
+                    params = []
+                    if _mid:
+                        where.append('machine_id = ?')
+                        params.append(_mid)
+                    if _from:
+                        where.append('created_at >= ?')
+                        params.append(_from)
+                    if _to:
+                        where.append('created_at <= ?')
+                        params.append(_to)
+                    sql = 'SELECT id, created_at, machine_id, hostname, change_type, title, message, detail_json FROM change_events'
+                    if where:
+                        sql += ' WHERE ' + ' AND '.join(where)
+                    sql += ' ORDER BY created_at DESC, id DESC LIMIT ?'
+                    params.append(_limit)
+                    rows = cur.execute(sql, params).fetchall()
+                    changes = []
+                    for r in rows:
+                        d = dict(r)
+                        detail = {}
+                        try:
+                            detail = json.loads(d.get('detail_json') or '{}')
+                        except Exception:
+                            detail = {}
+                        added = detail.get('added', [])
+                        removed = detail.get('removed', [])
+                        if not isinstance(added, list):
+                            added = [added]
+                        if not isinstance(removed, list):
+                            removed = [removed]
+                        d['human_title'] = d.get('title') or detail.get('title') or d.get('change_type') or 'Change'
+                        d['human_message'] = d.get('message') or detail.get('message') or d['human_title']
+                        d['summary'] = d['human_message']
+                        d['added'] = added
+                        d['removed'] = removed
+                        d['added_items'] = added
+                        d['removed_items'] = removed
+                        d['type'] = d.get('change_type') or detail.get('type') or ''
+                        changes.append(d)
+                    con.close()
+                    return _hrcl_send({'ok': True, 'changes': changes, 'count': len(changes), 'machine_id': _mid, 'from': _from, 'to': _to, 'limit': _limit})
+                except Exception as e:
+                    try:
+                        con.close()
+                    except Exception:
+                        pass
+                    return _hrcl_send({'ok': False, 'error': str(e), 'changes': []}, 500)
+            # SK_HRCL_INLINE_RANGE_ROUTE_END
             if path == "/api/changes":
                 return self.send_json({"changes": latest_change_events(300, human=True)})
             if path == "/api/export/changes.csv":
@@ -2197,5 +2283,6 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
 
 

@@ -1,0 +1,931 @@
+{
+  "time": "2026-07-10 16:33:48.175069",
+  "moved_count": 185,
+  "items": [
+    {
+      "from": "README.md.bak_FINAL_V2_HARDENING_20260710_163343",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\README.md.bak_FINAL_V2_HARDENING_20260710_163343",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "server.py.bak_ASSET_INV_V5_20260706_140016",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\server.py.bak_ASSET_INV_V5_20260706_140016",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "server.py.bak_client_count_fix_20260704_191904",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\server.py.bak_client_count_fix_20260704_191904",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "server.py.bak_fast_remove_failed_human_20260706_094009",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\server.py.bak_fast_remove_failed_human_20260706_094009",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "server.py.bak_final_v2_20260706_013526",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\server.py.bak_final_v2_20260706_013526",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "server.py.bak_FINAL_V2_HARDENING_20260710_163343",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\server.py.bak_FINAL_V2_HARDENING_20260710_163343",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "server.py.bak_final_v3_20260706_014123",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\server.py.bak_final_v3_20260706_014123",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "server.py.bak_HISTORY_FAST_3D_20260706_112918",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\server.py.bak_HISTORY_FAST_3D_20260706_112918",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "server.py.bak_hrcl_real_20260706_083631",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\server.py.bak_hrcl_real_20260706_083631",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "server.py.bak_HRCL_SAFE_20260706_094536",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\server.py.bak_HRCL_SAFE_20260706_094536",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "server.py.bak_HUMAN_ONLY_20260706_092640",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\server.py.bak_HUMAN_ONLY_20260706_092640",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "server.py.bak_HUMAN_ONLY_20260706_093006",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\server.py.bak_HUMAN_ONLY_20260706_093006",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "server.py.bak_HW_INV_20260706_133920",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\server.py.bak_HW_INV_20260706_133920",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "server.py.bak_HW_INV_20260706_133931",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\server.py.bak_HW_INV_20260706_133931",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "server.py.bak_HW_INV_V3_20260706_134452",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\server.py.bak_HW_INV_V3_20260706_134452",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "server.py.bak_HW_INV_V4_20260706_134820",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\server.py.bak_HW_INV_V4_20260706_134820",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "server.py.bak_login_check_human_only_20260706_093102",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\server.py.bak_login_check_human_only_20260706_093102",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "server.py.bak_login_check_human_only_20260706_093231",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\server.py.bak_login_check_human_only_20260706_093231",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "server.py.bak_NOTIFICATION_EXTRA_20260706_170931",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\server.py.bak_NOTIFICATION_EXTRA_20260706_170931",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "server.py.bak_no_full_db_20260704_195056",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\server.py.bak_no_full_db_20260704_195056",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "server.py.bak_no_full_db_20260704_195228",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\server.py.bak_no_full_db_20260704_195228",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "server.py.bak_restore_human_log_20260706_014814",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\server.py.bak_restore_human_log_20260706_014814",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "server.py.bak_SW_INV_20260706_154329",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\server.py.bak_SW_INV_20260706_154329",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "server.py.bak_unknown_host_fix_20260704_194938",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\server.py.bak_unknown_host_fix_20260704_194938",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_ASSET_INV_V5_20260706_140016",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_ASSET_INV_V5_20260706_140016",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_ASSET_INV_V6_20260706_143834",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_ASSET_INV_V6_20260706_143834",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_ASSET_INV_V7_20260706_144739",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_ASSET_INV_V7_20260706_144739",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_ASSET_INV_V8_20260706_145954",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_ASSET_INV_V8_20260706_145954",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_ASSET_INV_V9_20260706_153225",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_ASSET_INV_V9_20260706_153225",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_attention_click_20260704_194429",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_attention_click_20260704_194429",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_attention_click_20260704_195140",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_attention_click_20260704_195140",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_attention_click_20260704_195251",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_attention_click_20260704_195251",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_BRANDING_APPLY_FROM_SETTINGS_20260706_192511",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_BRANDING_APPLY_FROM_SETTINGS_20260706_192511",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_BRANDING_EXACT_STATIC_20260706_194538",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_BRANDING_EXACT_STATIC_20260706_194538",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_BRANDING_LOGO_BLACK_FIX_V3_20260706_184119",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_BRANDING_LOGO_BLACK_FIX_V3_20260706_184119",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_BRANDING_LOGO_TAGLINE_FIX_20260706_185409",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_BRANDING_LOGO_TAGLINE_FIX_20260706_185409",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_BRANDING_SETTINGS_FOUNDATION_20260706_192025",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_BRANDING_SETTINGS_FOUNDATION_20260706_192025",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_BRANDING_SINGLE_PILL_FIX_20260706_185909",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_BRANDING_SINGLE_PILL_FIX_20260706_185909",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_CLIENT_MESSAGES_UI_20260706_164407",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_CLIENT_MESSAGES_UI_20260706_164407",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_CLIENT_MESSAGES_UI_V2_20260706_164909",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_CLIENT_MESSAGES_UI_V2_20260706_164909",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_EMERGENCY_REMOVE_ALL_BRANDING_20260706_191218",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_EMERGENCY_REMOVE_ALL_BRANDING_20260706_191218",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_EMERGENCY_REMOVE_ALL_BRANDING_20260706_191704",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_EMERGENCY_REMOVE_ALL_BRANDING_20260706_191704",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_EMERGENCY_REMOVE_BRANDING_20260706_184408",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_EMERGENCY_REMOVE_BRANDING_20260706_184408",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_emergency_restore_blank_usb_sw_20260706_084701",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_emergency_restore_blank_usb_sw_20260706_084701",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_fast_remove_failed_human_20260706_094009",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_fast_remove_failed_human_20260706_094009",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_final_v2_20260706_013526",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_final_v2_20260706_013526",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_FINAL_V2_HARDENING_20260710_163343",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_FINAL_V2_HARDENING_20260710_163343",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_final_v3_20260706_014123",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_final_v3_20260706_014123",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_fix_arrow_text_20260704_201022",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_fix_arrow_text_20260704_201022",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_FULL_NAME_LABELS_20260706_163309",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_FULL_NAME_LABELS_20260706_163309",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_hardware_premium_20260706_000851",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_hardware_premium_20260706_000851",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_hide_dup_usb_sw_only_20260706_085550",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_hide_dup_usb_sw_only_20260706_085550",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_HISTORY_FAST_3D_20260706_112918",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_HISTORY_FAST_3D_20260706_112918",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_hrcl_real_20260706_083631",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_hrcl_real_20260706_083631",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_HRCL_SAFE_20260706_094536",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_HRCL_SAFE_20260706_094536",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_hrcl_toolbar_checked_20260706_021650",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_hrcl_toolbar_checked_20260706_021650",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_hrcl_toolbar_date_range_20260706_021235",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_hrcl_toolbar_date_range_20260706_021235",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_human_date_filter_only_20260706_020552",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_human_date_filter_only_20260706_020552",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_HUMAN_ONLY_20260706_092640",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_HUMAN_ONLY_20260706_092640",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_HUMAN_ONLY_20260706_093006",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_HUMAN_ONLY_20260706_093006",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_HW_INV_20260706_133920",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_HW_INV_20260706_133920",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_HW_INV_20260706_133931",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_HW_INV_20260706_133931",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_HW_INV_V3_20260706_134452",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_HW_INV_V3_20260706_134452",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_HW_INV_V4_20260706_134820",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_HW_INV_V4_20260706_134820",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_login_approved_layout_animated_20260706_205638",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_login_approved_layout_animated_20260706_205638",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_LOGIN_BRANDING_FROM_SETTINGS_20260706_193226",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_LOGIN_BRANDING_FROM_SETTINGS_20260706_193226",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_LOGIN_BRANDING_REAL_SCREEN_FIX_20260706_190651",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_LOGIN_BRANDING_REAL_SCREEN_FIX_20260706_190651",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_LOGIN_CARD_RIGHT_TOP_20260706_195702",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_LOGIN_CARD_RIGHT_TOP_20260706_195702",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_login_check_human_only_20260706_093102",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_login_check_human_only_20260706_093102",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_login_check_human_only_20260706_093231",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_login_check_human_only_20260706_093231",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_LOGIN_EXACT_FINAL_DESIGN_20260706_204242",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_LOGIN_EXACT_FINAL_DESIGN_20260706_204242",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_LOGIN_PAGE_PROPER_FIX_20260706_195107",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_LOGIN_PAGE_PROPER_FIX_20260706_195107",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_LOGIN_PIXEL_EXACT_20260706_204737",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_LOGIN_PIXEL_EXACT_20260706_204737",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_LOGIN_PREMIUM_WOW_20260706_200202",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_LOGIN_PREMIUM_WOW_20260706_200202",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_LOGIN_RESTORE_ORIGINAL_20260706_202718",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_LOGIN_RESTORE_ORIGINAL_20260706_202718",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_LOGIN_SIMPLE_CLEAR_20260706_200733",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_LOGIN_SIMPLE_CLEAR_20260706_200733",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_LOGIN_SPLIT_PHOTO_20260706_201234",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_LOGIN_SPLIT_PHOTO_20260706_201234",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_machine360_full_20260704_200052",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_machine360_full_20260704_200052",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_machine360_premium_20260704_200558",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_machine360_premium_20260704_200558",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_machine360_premium_20260705_185136",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_machine360_premium_20260705_185136",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_machine360_premium_20260705_185145",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_machine360_premium_20260705_185145",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_network_today_ip_changes_20260705_235217",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_network_today_ip_changes_20260705_235217",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_network_vpn_machine_20260705_232704",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_network_vpn_machine_20260705_232704",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_NOTIFICATION_COMPACT_GRID_20260706_173230",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_NOTIFICATION_COMPACT_GRID_20260706_173230",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_NOTIFICATION_EXTRA_20260706_170931",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_NOTIFICATION_EXTRA_20260706_170931",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_NOTIFICATION_SIMPLE_PAGED_20260706_173748",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_NOTIFICATION_SIMPLE_PAGED_20260706_173748",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_NOTIFICATION_SMOOTH_20260706_172231",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_NOTIFICATION_SMOOTH_20260706_172231",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_remove_fake_hrcl_20260706_082009",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_remove_fake_hrcl_20260706_082009",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_restore_human_log_20260706_014814",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_restore_human_log_20260706_014814",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_restore_usb_sw_minimal_20260706_015939",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_restore_usb_sw_minimal_20260706_015939",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_restore_usb_sw_minimal_20260706_093735",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_restore_usb_sw_minimal_20260706_093735",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_single_search_only_20260706_015129",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_single_search_only_20260706_015129",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_software_appgrid_clean_20260706_003646",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_software_appgrid_clean_20260706_003646",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_software_appstore_3d_20260706_003101",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_software_appstore_3d_20260706_003101",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_software_keep_publishers_20260706_004908",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_software_keep_publishers_20260706_004908",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_software_premium_20260706_001716",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_software_premium_20260706_001716",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_software_universal_3d_20260706_002350",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_software_universal_3d_20260706_002350",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_SW_INV_20260706_154329",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_SW_INV_20260706_154329",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_UNIVERSAL_BRANDING_20260706_175805",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_UNIVERSAL_BRANDING_20260706_175805",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_UNIVERSAL_BRANDING_FIX_V2_20260706_182257",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_UNIVERSAL_BRANDING_FIX_V2_20260706_182257",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_UNIVERSAL_BRANDING_SAFE_V4_20260706_184710",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_UNIVERSAL_BRANDING_SAFE_V4_20260706_184710",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_usb_css_picture_icons_20260706_005923",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_usb_css_picture_icons_20260706_005923",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_usb_simple_human_20260706_005503",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_usb_simple_human_20260706_005503",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_usb_software_clean_changes_20260706_010627",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_usb_software_clean_changes_20260706_010627",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/app.js.bak_usb_software_clean_single_view_20260706_015621",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\app.js.bak_usb_software_clean_single_view_20260706_015621",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/index.html.bak_BRANDING_EXACT_STATIC_20260706_194538",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\index.html.bak_BRANDING_EXACT_STATIC_20260706_194538",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/index.html.bak_emergency_restore_blank_usb_sw_20260706_084701",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\index.html.bak_emergency_restore_blank_usb_sw_20260706_084701",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/index.html.bak_fast_remove_failed_human_20260706_094009",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\index.html.bak_fast_remove_failed_human_20260706_094009",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/index.html.bak_FINAL_V2_HARDENING_20260710_163343",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\index.html.bak_FINAL_V2_HARDENING_20260710_163343",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/index.html.bak_hrcl_toolbar_checked_20260706_021650",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\index.html.bak_hrcl_toolbar_checked_20260706_021650",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/index.html.bak_HUMAN_ONLY_20260706_092640",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\index.html.bak_HUMAN_ONLY_20260706_092640",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/index.html.bak_HUMAN_ONLY_20260706_093006",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\index.html.bak_HUMAN_ONLY_20260706_093006",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/index.html.bak_login_check_human_only_20260706_093102",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\index.html.bak_login_check_human_only_20260706_093102",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/index.html.bak_login_check_human_only_20260706_093231",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\index.html.bak_login_check_human_only_20260706_093231",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/index.html.bak_remove_fake_hrcl_20260706_082009",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\index.html.bak_remove_fake_hrcl_20260706_082009",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/styles.css.bak_BRANDING_EXACT_STATIC_20260706_194538",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\styles.css.bak_BRANDING_EXACT_STATIC_20260706_194538",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/styles.css.bak_FINAL_V2_HARDENING_20260710_163343",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\styles.css.bak_FINAL_V2_HARDENING_20260710_163343",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/styles.css.bak_login_approved_layout_animated_20260706_205638",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\styles.css.bak_login_approved_layout_animated_20260706_205638",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/styles.css.bak_LOGIN_CARD_RIGHT_TOP_20260706_195702",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\styles.css.bak_LOGIN_CARD_RIGHT_TOP_20260706_195702",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/styles.css.bak_LOGIN_EXACT_FINAL_DESIGN_20260706_204242",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\styles.css.bak_LOGIN_EXACT_FINAL_DESIGN_20260706_204242",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/styles.css.bak_LOGIN_FORCE_TOP_20260706_202336",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\styles.css.bak_LOGIN_FORCE_TOP_20260706_202336",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/styles.css.bak_LOGIN_PAGE_PROPER_FIX_20260706_195107",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\styles.css.bak_LOGIN_PAGE_PROPER_FIX_20260706_195107",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/styles.css.bak_LOGIN_PIXEL_EXACT_20260706_204737",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\styles.css.bak_LOGIN_PIXEL_EXACT_20260706_204737",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/styles.css.bak_LOGIN_PREMIUM_WOW_20260706_200202",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\styles.css.bak_LOGIN_PREMIUM_WOW_20260706_200202",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/styles.css.bak_LOGIN_RESTORE_ORIGINAL_20260706_202718",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\styles.css.bak_LOGIN_RESTORE_ORIGINAL_20260706_202718",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/styles.css.bak_LOGIN_SIMPLE_CLEAR_20260706_200733",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\styles.css.bak_LOGIN_SIMPLE_CLEAR_20260706_200733",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/styles.css.bak_LOGIN_SPLIT_PHOTO_20260706_201234",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\styles.css.bak_LOGIN_SPLIT_PHOTO_20260706_201234",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "public/styles.css.bak_LOGIN_STABLE_TOPTEXT_PERSONPHOTO_20260706_201921",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\public\\styles.css.bak_LOGIN_STABLE_TOPTEXT_PERSONPHOTO_20260706_201921",
+      "reason": "temporary/backup pattern *.bak_*"
+    },
+    {
+      "from": "__pycache__",
+      "to": "D:\\SagarSystemHealthMonitor\\_cleanup_quarantine\\20260710_163343\\__pycache__",
+      "reason": "cache directory"
+    },
+    {
+      "from": "ASSETS_INVENTORY_V5_ONLY_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\ASSETS_INVENTORY_V5_ONLY_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "ASSETS_INVENTORY_V6_GLOBAL_UI_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\ASSETS_INVENTORY_V6_GLOBAL_UI_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "ASSETS_INVENTORY_V7_LAYOUT_SYNC_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\ASSETS_INVENTORY_V7_LAYOUT_SYNC_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "ASSETS_INVENTORY_V8_UNIVERSAL_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\ASSETS_INVENTORY_V8_UNIVERSAL_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "ASSETS_INVENTORY_V9_FAST_TABLE_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\ASSETS_INVENTORY_V9_FAST_TABLE_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "BRANDING_APPLY_FROM_SETTINGS_SAFE_ONLY_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\BRANDING_APPLY_FROM_SETTINGS_SAFE_ONLY_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "BRANDING_EXACT_STATIC_PATCH_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\BRANDING_EXACT_STATIC_PATCH_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "BRANDING_FAST_STRUCTURE_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\BRANDING_FAST_STRUCTURE_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "BRANDING_FIND_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\BRANDING_FIND_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "BRANDING_LOGO_BLACK_FIX_V3_ONLY_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\BRANDING_LOGO_BLACK_FIX_V3_ONLY_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "BRANDING_LOGO_TAGLINE_LOGINBG_FIX_ONLY_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\BRANDING_LOGO_TAGLINE_LOGINBG_FIX_ONLY_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "BRANDING_SETTINGS_FOUNDATION_ONLY_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\BRANDING_SETTINGS_FOUNDATION_ONLY_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "BRANDING_SINGLE_PILL_LOGO_LOGINBG_ONLY_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\BRANDING_SINGLE_PILL_LOGO_LOGINBG_ONLY_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "BRANDING_STRUCTURE_REPORT_FOR_EXACT_PATCH.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\BRANDING_STRUCTURE_REPORT_FOR_EXACT_PATCH.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "CLIENT_MESSAGES_UI_ONLY_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\CLIENT_MESSAGES_UI_ONLY_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "CLIENT_MESSAGES_UI_V2_ONLY_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\CLIENT_MESSAGES_UI_V2_ONLY_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "EMERGENCY_REMOVE_ALL_BRANDING_PATCHES_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\EMERGENCY_REMOVE_ALL_BRANDING_PATCHES_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "EMERGENCY_REMOVE_BRANDING_PATCHES_ONLY_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\EMERGENCY_REMOVE_BRANDING_PATCHES_ONLY_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "EMERGENCY_RESTORE_USB_SW_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\EMERGENCY_RESTORE_USB_SW_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "FAST_REMOVE_FAILED_HUMAN_PATCH_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\FAST_REMOVE_FAILED_HUMAN_PATCH_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "FINAL_V2_GITHUB_PUSH_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\FINAL_V2_GITHUB_PUSH_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "FULL_NAME_LABELS_ONLY_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\FULL_NAME_LABELS_ONLY_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "HARDWARE_INVENTORY_ONLY_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\HARDWARE_INVENTORY_ONLY_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "HISTORY_FAST_3D_ONLY_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\HISTORY_FAST_3D_ONLY_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "HRCL_DATE_RANGE_CHECK_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\HRCL_DATE_RANGE_CHECK_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "HRCL_REAL_DATA_SOURCE_CHECK_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\HRCL_REAL_DATA_SOURCE_CHECK_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "HRCL_REAL_WORKING_PATCH_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\HRCL_REAL_WORKING_PATCH_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "HUMAN_ONLY_HRCL_DATE_RANGE_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\HUMAN_ONLY_HRCL_DATE_RANGE_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "HUMAN_ONLY_SAFE_PATCH_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\HUMAN_ONLY_SAFE_PATCH_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "LOGIN_APPROVED_LAYOUT_ANIMATED_ONLY_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\LOGIN_APPROVED_LAYOUT_ANIMATED_ONLY_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "LOGIN_BRANDING_FROM_SETTINGS_ONLY_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\LOGIN_BRANDING_FROM_SETTINGS_ONLY_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "LOGIN_BRANDING_REAL_SCREEN_FIX_ONLY_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\LOGIN_BRANDING_REAL_SCREEN_FIX_ONLY_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "LOGIN_CARD_RIGHT_TOP_LAYOUT_FIX_ONLY_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\LOGIN_CARD_RIGHT_TOP_LAYOUT_FIX_ONLY_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "LOGIN_EXACT_FINAL_DESIGN_ONLY_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\LOGIN_EXACT_FINAL_DESIGN_ONLY_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "LOGIN_FORCE_TOP_LEFT_TOP_RIGHT_ONLY_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\LOGIN_FORCE_TOP_LEFT_TOP_RIGHT_ONLY_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "LOGIN_PAGE_PROPER_LAYOUT_FIX_ONLY_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\LOGIN_PAGE_PROPER_LAYOUT_FIX_ONLY_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "LOGIN_PIXEL_EXACT_APPROVED_IMAGE_ONLY_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\LOGIN_PIXEL_EXACT_APPROVED_IMAGE_ONLY_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "LOGIN_PREMIUM_WOW_LAYOUT_ONLY_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\LOGIN_PREMIUM_WOW_LAYOUT_ONLY_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "LOGIN_RESTORE_ORIGINAL_BACKGROUND_ONLY_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\LOGIN_RESTORE_ORIGINAL_BACKGROUND_ONLY_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "LOGIN_SIMPLE_CLEAR_UI_ONLY_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\LOGIN_SIMPLE_CLEAR_UI_ONLY_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "LOGIN_SPLIT_PHOTO_RIGHT_CARD_FIX_ONLY_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\LOGIN_SPLIT_PHOTO_RIGHT_CARD_FIX_ONLY_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "LOGIN_STABLE_TOPTEXT_PERSONPHOTO_ONLY_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\LOGIN_STABLE_TOPTEXT_PERSONPHOTO_ONLY_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "MILESTONE_2_0_GITHUB_PUSH_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\MILESTONE_2_0_GITHUB_PUSH_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "MILESTONE_3_0_GITHUB_PUSH_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\MILESTONE_3_0_GITHUB_PUSH_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "MILESTONE_3_1_BRANDING_FOUNDATION_GITHUB_PUSH_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\MILESTONE_3_1_BRANDING_FOUNDATION_GITHUB_PUSH_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "MILESTONE_3_1_GITHUB_PUSH_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\MILESTONE_3_1_GITHUB_PUSH_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "MILESTONE_3_2_BRANDING_LOGIN_STABLE_GITHUB_PUSH_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\MILESTONE_3_2_BRANDING_LOGIN_STABLE_GITHUB_PUSH_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "NOTIFICATION_COMPACT_GRID_UI_ONLY_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\NOTIFICATION_COMPACT_GRID_UI_ONLY_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "NOTIFICATION_EXTRA_ALERTS_ONLY_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\NOTIFICATION_EXTRA_ALERTS_ONLY_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "NOTIFICATION_SIMPLE_PAGED_HISTORY_UI_ONLY_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\NOTIFICATION_SIMPLE_PAGED_HISTORY_UI_ONLY_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "NOTIFICATION_SMOOTH_COMPACT_UI_ONLY_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\NOTIFICATION_SMOOTH_COMPACT_UI_ONLY_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "SOFTWARE_INVENTORY_NEW_TAB_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\SOFTWARE_INVENTORY_NEW_TAB_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "UNIVERSAL_BRANDING_FIX_V2_ONLY_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\UNIVERSAL_BRANDING_FIX_V2_ONLY_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "UNIVERSAL_BRANDING_SAFE_V4_ONLY_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\UNIVERSAL_BRANDING_SAFE_V4_ONLY_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "UNIVERSAL_BRANDING_SETTINGS_ONLY_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\UNIVERSAL_BRANDING_SETTINGS_ONLY_REPORT.txt",
+      "reason": "old root report organized"
+    },
+    {
+      "from": "USB_SOFTWARE_HIDE_DUPLICATE_ONLY_REPORT.txt",
+      "to": "D:\\SagarSystemHealthMonitor\\reports\\final_v2\\old_root_reports\\USB_SOFTWARE_HIDE_DUPLICATE_ONLY_REPORT.txt",
+      "reason": "old root report organized"
+    }
+  ]
+}

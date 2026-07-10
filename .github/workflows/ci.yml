@@ -1,0 +1,74 @@
+
+name: Final V2 CI
+
+on:
+  push:
+    branches: [ "workingcode", "main", "master" ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: Validate source, security scan and package readiness
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Python syntax check
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem -Recurse -Filter *.py | Where-Object {
+            $_.FullName -notmatch '\\.git\\' -and
+            $_.FullName -notmatch '\\data\\' -and
+            $_.FullName -notmatch '\\_cleanup_quarantine\\' -and
+            $_.FullName -notmatch '\\node_modules\\'
+          }
+          foreach ($f in $files) {
+            python -m py_compile $f.FullName
+          }
+
+      - name: JavaScript syntax check
+        shell: pwsh
+        run: |
+          if (Test-Path "public/app.js") {
+            node --check "public/app.js"
+          }
+
+      - name: Security scan
+        shell: pwsh
+        run: |
+          python scripts/security_scan.py .
+
+      - name: Required files check
+        shell: pwsh
+        run: |
+          $required = @(
+            "server.py",
+            "public/index.html",
+            "public/app.js",
+            "public/styles.css"
+          )
+          foreach ($f in $required) {
+            if (-not (Test-Path $f)) {
+              throw "Missing required file: $f"
+            }
+          }
+
+      - name: Upload reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: final-v2-ci-reports
+          path: reports/final_v2/

@@ -1,0 +1,86 @@
+{
+  "time": "2026-07-10 16:33:48.032731",
+  "root": "D:\\SagarSystemHealthMonitor",
+  "files_scanned": 240,
+  "finding_count": 13,
+  "findings": [
+    {
+      "file": "BRANDING_FAST_STRUCTURE_REPORT.txt",
+      "line": 993,
+      "pattern": "possible_password_assignment",
+      "note": "Potential secret. Value intentionally not printed."
+    },
+    {
+      "file": "BRANDING_FAST_STRUCTURE_REPORT.txt",
+      "line": 996,
+      "pattern": "possible_password_assignment",
+      "note": "Potential secret. Value intentionally not printed."
+    },
+    {
+      "file": "README.md",
+      "line": 2957,
+      "pattern": "possible_password_assignment",
+      "note": "Potential secret. Value intentionally not printed."
+    },
+    {
+      "file": "server.py",
+      "line": 3086,
+      "pattern": "possible_password_assignment",
+      "note": "Potential secret. Value intentionally not printed."
+    },
+    {
+      "file": "BACKUP_CUSTOM_DEPLOY_PAGE_V2_20260612_124103/server.py",
+      "line": 1979,
+      "pattern": "possible_password_assignment",
+      "note": "Potential secret. Value intentionally not printed."
+    },
+    {
+      "file": "BACKUP_GPU_MEMORY_32GB_FIX_20260612_144248/server.py",
+      "line": 1979,
+      "pattern": "possible_password_assignment",
+      "note": "Potential secret. Value intentionally not printed."
+    },
+    {
+      "file": "BACKUP_STRICT_GPU_ACTUAL_DATA_20260612_150200/server.py",
+      "line": 1985,
+      "pattern": "possible_password_assignment",
+      "note": "Potential secret. Value intentionally not printed."
+    },
+    {
+      "file": "public/app.js",
+      "line": 4316,
+      "pattern": "possible_password_assignment",
+      "note": "Potential secret. Value intentionally not printed."
+    },
+    {
+      "file": "SagarSystemHealthMonitor_README_A_to_Z/README.md",
+      "line": 1475,
+      "pattern": "possible_password_assignment",
+      "note": "Potential secret. Value intentionally not printed."
+    },
+    {
+      "file": "INCREMENTAL_SOURCE_BACKUPS/INC_20260701_155955/README.md",
+      "line": 1475,
+      "pattern": "possible_password_assignment",
+      "note": "Potential secret. Value intentionally not printed."
+    },
+    {
+      "file": "INCREMENTAL_SOURCE_BACKUPS/INC_20260701_155955/server.py",
+      "line": 2108,
+      "pattern": "possible_password_assignment",
+      "note": "Potential secret. Value intentionally not printed."
+    },
+    {
+      "file": "INCREMENTAL_SOURCE_BACKUPS/INC_20260705_221203/server.py",
+      "line": 2198,
+      "pattern": "possible_password_assignment",
+      "note": "Potential secret. Value intentionally not printed."
+    },
+    {
+      "file": "INCREMENTAL_SOURCE_BACKUPS/INC_20260701_155955/SagarSystemHealthMonitor_README_A_to_Z/README.md",
+      "line": 1475,
+      "pattern": "possible_password_assignment",
+      "note": "Potential secret. Value intentionally not printed."
+    }
+  ]
+}

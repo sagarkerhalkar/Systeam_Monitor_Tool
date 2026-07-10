@@ -1,24 +1,12 @@
 {
-  "time": "2026-07-10 16:33:48.032731",
+  "time": "2026-07-10 16:37:20.986918",
   "root": "D:\\SagarSystemHealthMonitor",
-  "files_scanned": 240,
+  "files_scanned": 246,
   "finding_count": 13,
   "findings": [
     {
-      "file": "BRANDING_FAST_STRUCTURE_REPORT.txt",
-      "line": 993,
-      "pattern": "possible_password_assignment",
-      "note": "Potential secret. Value intentionally not printed."
-    },
-    {
-      "file": "BRANDING_FAST_STRUCTURE_REPORT.txt",
-      "line": 996,
-      "pattern": "possible_password_assignment",
-      "note": "Potential secret. Value intentionally not printed."
-    },
-    {
       "file": "README.md",
-      "line": 2957,
+      "line": 5913,
       "pattern": "possible_password_assignment",
       "note": "Potential secret. Value intentionally not printed."
     },
@@ -55,6 +43,18 @@
     {
       "file": "SagarSystemHealthMonitor_README_A_to_Z/README.md",
       "line": 1475,
+      "pattern": "possible_password_assignment",
+      "note": "Potential secret. Value intentionally not printed."
+    },
+    {
+      "file": "reports/final_v2/old_root_reports/BRANDING_FAST_STRUCTURE_REPORT.txt",
+      "line": 993,
+      "pattern": "possible_password_assignment",
+      "note": "Potential secret. Value intentionally not printed."
+    },
+    {
+      "file": "reports/final_v2/old_root_reports/BRANDING_FAST_STRUCTURE_REPORT.txt",
+      "line": 996,
       "pattern": "possible_password_assignment",
       "note": "Potential secret. Value intentionally not printed."
     },

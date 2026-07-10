@@ -1,8 +1,8 @@
 {
-  "time": "2026-07-10 16:33:46.539335",
+  "time": "2026-07-10 16:37:20.358198",
   "repo": "D:\\SagarSystemHealthMonitor",
-  "source_file_count": 167,
-  "total_source_lines": 57534,
+  "source_file_count": 172,
+  "total_source_lines": 74650,
   "function_like_count": 2053,
   "source_files": [
     {
@@ -127,9 +127,9 @@
     {
       "file": "README.md",
       "ext": ".md",
-      "lines": 3422,
-      "bytes": 39623,
-      "sha256": "2dbb9d91f40577cfdbe0fd83b58c4ecf2f51fc5cc2ee30edf96f577d2ce5dc23"
+      "lines": 6772,
+      "bytes": 44648,
+      "sha256": "eb2e13fd272c67b663eabde83c17b92bbfc377cdb513dcaa40e0703a72bcb8e1"
     },
     {
       "file": "RUN_SERVER_2278.bat",
@@ -409,7 +409,7 @@
       "ext": ".md",
       "lines": 142,
       "bytes": 1983,
-      "sha256": "994d4c43472fa852064d2632ab437efba8ceca8796afc31b4eeb96ba53f6a6d0"
+      "sha256": "6c012d283c76bc678bc16bb461df22b93cfcfdef40a399365edecb6200796d2b"
     },
     {
       "file": "INCREMENTAL_SOURCE_BACKUPS/manifest_latest.json",
@@ -442,9 +442,9 @@
     {
       "file": "public/styles.css",
       "ext": ".css",
-      "lines": 1082,
-      "bytes": 65750,
-      "sha256": "ba485aeec7e57e52cb8ef9386e47115c0136495c4322618637ea8d9864add8c5"
+      "lines": 1912,
+      "bytes": 66995,
+      "sha256": "0d21734cd0a0878196dd16716eb90473358fe500579c8d93d479c649728b0879"
     },
     {
       "file": "Restore_Working_V8_Client_Only_Int64_Fix/RESTORE_WORKING_WINDOWS_CLIENT_ONLY.ps1",
@@ -753,6 +753,41 @@
       "lines": 45,
       "bytes": 2692,
       "sha256": "e2dba0892a53744a6809fced8a3a1e004f8444080d2e444fb4c42656106b4e83"
+    },
+    {
+      "file": "reports/final_v2/CLEANUP_QUARANTINE_MANIFEST_FINAL_V2.json",
+      "ext": ".json",
+      "lines": 931,
+      "bytes": 49314,
+      "sha256": "43aa759e290cf75c5497c435e6b29b42081d1f09f79193223b40cd73abbc25a6"
+    },
+    {
+      "file": "reports/final_v2/CODE_QUALITY_AUDIT_FINAL_V2.json",
+      "ext": ".json",
+      "lines": 11202,
+      "bytes": 290827,
+      "sha256": "2514eff56a45ef1029341bf55e57b28e260312c610113dae9a0b8c768b35701f"
+    },
+    {
+      "file": "reports/final_v2/CODE_QUALITY_AUDIT_FINAL_V2.md",
+      "ext": ".md",
+      "lines": 694,
+      "bytes": 52168,
+      "sha256": "b945dcd03bdb5afd72b26c4a3fdbd0f93742a5ff749059d1c1f561af4bb8a8cf"
+    },
+    {
+      "file": "reports/final_v2/SECURITY_SCAN_REPORT.json",
+      "ext": ".json",
+      "lines": 86,
+      "bytes": 3044,
+      "sha256": "b3ae7693c6a77b41e4e8a2855c3fbb497a4f3d42ed2037e202af89bf19cb1f5a"
+    },
+    {
+      "file": "reports/final_v2/SECURITY_SCAN_REPORT.md",
+      "ext": ".md",
+      "lines": 23,
+      "bytes": 2098,
+      "sha256": "1ce2fa4ab766bf01e0ab8ddf241482cf29050054f30811321907b0c13c10407f"
     },
     {
       "file": "INCREMENTAL_SOURCE_BACKUPS/INC_20260701_155955/BUILD_WINDOWS_CLIENT_EXE.ps1",
@@ -11184,19 +11219,11 @@
     },
     {
       "file": "data/server.log",
-      "bytes": 281627007
+      "bytes": 281707269
     },
     {
       "file": "data/server_boot_stderr.log",
       "bytes": 34024538
-    },
-    {
-      "file": "public/app.js.bak_BRANDING_LOGO_BLACK_FIX_V3_20260706_184119",
-      "bytes": 7215644
-    },
-    {
-      "file": "public/app.js.bak_EMERGENCY_REMOVE_BRANDING_20260706_184408",
-      "bytes": 7295753
     }
   ]
 }

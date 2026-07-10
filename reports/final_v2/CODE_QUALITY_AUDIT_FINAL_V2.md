@@ -1,8 +1,8 @@
 # Code Quality Audit - Final V2
 
-Time: 2026-07-10 16:33:46.539335
-Source files scanned: 167
-Total source lines: 57534
+Time: 2026-07-10 16:37:20.358198
+Source files scanned: 172
+Total source lines: 74650
 Function-like definitions found: 2053
 
 ## Source files
@@ -26,7 +26,7 @@ Function-like definitions found: 2053
 | MILESTONE_3_2_BRANDING_LOGIN_STABLE.md | 78 | 2657 | `86ad4cb351a35a43...` |
 | NEW_CHAT_HANDOFF_FINAL_V2.md | 194 | 4105 | `85f9227d011d62be...` |
 | NEW_CHAT_HANDOFF_MILESTONE_3_2_BRANDING_LOGIN_STABLE.md | 96 | 2581 | `78a1cd65b3aa727b...` |
-| README.md | 3422 | 39623 | `2dbb9d91f40577cf...` |
+| README.md | 6772 | 44648 | `eb2e13fd272c67b6...` |
 | RUN_SERVER_2278.bat | 4 | 74 | `b282aa69e90ca617...` |
 | RUN_SERVER_2278.ps1 | 8 | 569 | `1d7b3130bd8ed6f3...` |
 | RUN_SERVER_2278_BOOT_SYSTEM.ps1 | 32 | 1484 | `8ae4d3afa437f741...` |
@@ -66,12 +66,12 @@ Function-like definitions found: 2053
 | data/hardware_inventory_seed.json | 11452 | 324212 | `8d6d966c528590a4...` |
 | data/retention_settings.json | 4 | 75 | `f3c637cf19d46bdb...` |
 | data/server_isp_cache.json | 11 | 361 | `73f1170a1558b1d2...` |
-| docs/FINAL_V2_HARDENING_CICD_SECURITY.md | 142 | 1983 | `994d4c43472fa852...` |
+| docs/FINAL_V2_HARDENING_CICD_SECURITY.md | 142 | 1983 | `6c012d283c76bc67...` |
 | INCREMENTAL_SOURCE_BACKUPS/manifest_latest.json | 68 | 7683 | `3bd38836897f89b6...` |
 | public/app.js | 5765 | 359982 | `7fd7565f28241c94...` |
 | public/index.html | 213 | 24264 | `d71c26e976709da6...` |
 | public/retention-manager.html | 99 | 4796 | `dbed6e27ee5544db...` |
-| public/styles.css | 1082 | 65750 | `ba485aeec7e57e52...` |
+| public/styles.css | 1912 | 66995 | `0d21734cd0a08781...` |
 | Restore_Working_V8_Client_Only_Int64_Fix/RESTORE_WORKING_WINDOWS_CLIENT_ONLY.ps1 | 33 | 1552 | `4d239fec75d220c7...` |
 | RETENTION_REPORTS/EMERGENCY_KEEP_10_DAYS_20260701_142307.json | 27 | 719 | `8a98aae5894d2995...` |
 | RETENTION_REPORTS/EMERGENCY_KEEP_10_DAYS_20260701_145612.json | 27 | 713 | `a5c3f640f967cc19...` |
@@ -116,6 +116,11 @@ Function-like definitions found: 2053
 | Restore_Working_V8_Client_Only_Int64_Fix/scripts/client_windows.ps1 | 488 | 28986 | `de25bb4b09bbc619...` |
 | Restore_Working_V8_Client_Only_Int64_Fix/scripts/DIAGNOSE_WINDOWS_CLIENT_2278.ps1 | 40 | 2273 | `c50f46187c9947bc...` |
 | Restore_Working_V8_Client_Only_Int64_Fix/scripts/install_windows_client_2278.ps1 | 45 | 2692 | `e2dba0892a53744a...` |
+| reports/final_v2/CLEANUP_QUARANTINE_MANIFEST_FINAL_V2.json | 931 | 49314 | `43aa759e290cf75c...` |
+| reports/final_v2/CODE_QUALITY_AUDIT_FINAL_V2.json | 11202 | 290827 | `2514eff56a45ef10...` |
+| reports/final_v2/CODE_QUALITY_AUDIT_FINAL_V2.md | 694 | 52168 | `b945dcd03bdb5afd...` |
+| reports/final_v2/SECURITY_SCAN_REPORT.json | 86 | 3044 | `b3ae7693c6a77b41...` |
+| reports/final_v2/SECURITY_SCAN_REPORT.md | 23 | 2098 | `1ce2fa4ab766bf01...` |
 | INCREMENTAL_SOURCE_BACKUPS/INC_20260701_155955/BUILD_WINDOWS_CLIENT_EXE.ps1 | 66 | 2542 | `257b4139beada542...` |
 | INCREMENTAL_SOURCE_BACKUPS/INC_20260701_155955/COPY_DATA_FROM_OLD_BUILD.ps1 | 12 | 572 | `3ea2ade71d3ffc42...` |
 | INCREMENTAL_SOURCE_BACKUPS/INC_20260701_155955/incremental_backup_report.json | 17 | 544 | `4888d4929f69c888...` |
@@ -688,7 +693,5 @@ Function-like definitions found: 2053
 | File | Bytes |
 |---|---:|
 | data/monitor.db | 452676583424 |
-| data/server.log | 281627007 |
+| data/server.log | 281707269 |
 | data/server_boot_stderr.log | 34024538 |
-| public/app.js.bak_BRANDING_LOGO_BLACK_FIX_V3_20260706_184119 | 7215644 |
-| public/app.js.bak_EMERGENCY_REMOVE_BRANDING_20260706_184408 | 7295753 |

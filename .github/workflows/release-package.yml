@@ -1,0 +1,32 @@
+
+name: Final V2 Package
+
+on:
+  workflow_dispatch:
+
+jobs:
+  package:
+    name: Create deployable package artifact
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare package folder
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path package | Out-Null
+          Copy-Item server.py package\ -Force
+          Copy-Item public package\public -Recurse -Force
+          if (Test-Path RUN_SERVER_2278.ps1) { Copy-Item RUN_SERVER_2278.ps1 package\ -Force }
+          if (Test-Path README.md) { Copy-Item README.md package\ -Force }
+          if (Test-Path FINAL_V2_MILESTONE.md) { Copy-Item FINAL_V2_MILESTONE.md package\ -Force }
+          if (Test-Path IMPLEMENTATION_PLAN_FINAL_V2.md) { Copy-Item IMPLEMENTATION_PLAN_FINAL_V2.md package\ -Force }
+          Compress-Archive -Path package\* -DestinationPath final-v2-system-monitor-package.zip -Force
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: final-v2-system-monitor-package
+          path: final-v2-system-monitor-package.zip

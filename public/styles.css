@@ -1908,14 +1908,14 @@ table {
 
 /* FINAL_V2_RESPONSIVE_HARDENING_END */
 
-/* ISP_TABLE_ONLY_FINAL_FIX_CSS_START */
+/* ISP_TABLE_5_ROWS_FONT_2_CSS_START */
 .isp-final-hide-old{display:none!important}
 #ispDeepDetails{
   position:relative!important;
   z-index:2!important;
   margin-top:10px!important;
   width:100%!important;
-  max-height:255px!important;
+  max-height:295px!important;
   overflow:auto!important;
   padding-right:4px!important;
   scrollbar-width:thin!important;
@@ -1929,7 +1929,7 @@ table {
 }
 .isp-final-head span{
   color:#9fffee!important;
-  font-size:10px!important;
+  font-size:10.2px!important;
   font-weight:950!important;
   letter-spacing:.10em!important;
   text-transform:uppercase!important;
@@ -1942,11 +1942,15 @@ table {
   background:linear-gradient(135deg,rgba(255,255,255,.105),rgba(255,255,255,.045))!important;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.045)!important;
 }
+.isp-final-row.isp-pending-row{
+  border-style:dashed!important;
+  opacity:.82!important;
+}
 .isp-final-row div{min-width:0!important}
 .isp-final-row strong{
   display:block!important;
   color:#fff!important;
-  font-size:clamp(11px,.84vw,14px)!important;
+  font-size:calc(clamp(11px,.84vw,14px) * 1.02)!important;
   line-height:1.18!important;
   font-weight:950!important;
   overflow:hidden!important;
@@ -1957,7 +1961,7 @@ table {
   display:block!important;
   margin-top:3px!important;
   color:#d6eef7!important;
-  font-size:9.5px!important;
+  font-size:calc(9.5px * 1.02)!important;
   line-height:1.15!important;
   opacity:.88!important;
   overflow:hidden!important;
@@ -1967,16 +1971,16 @@ table {
 .isp-final-note{
   margin-top:7px!important;
   color:#dff8ff!important;
-  font-size:10.5px!important;
+  font-size:calc(10.5px * 1.02)!important;
   line-height:1.25!important;
   opacity:.88!important;
 }
 @media(max-width:900px){
-  #ispDeepDetails{max-height:340px!important}
+  #ispDeepDetails{max-height:380px!important}
   .isp-final-head{display:none!important}
   .isp-final-row{grid-template-columns:1fr 1fr!important}
 }
 @media(max-width:560px){
   .isp-final-row{grid-template-columns:1fr!important}
 }
-/* ISP_TABLE_ONLY_FINAL_FIX_CSS_END */
+/* ISP_TABLE_5_ROWS_FONT_2_CSS_END */

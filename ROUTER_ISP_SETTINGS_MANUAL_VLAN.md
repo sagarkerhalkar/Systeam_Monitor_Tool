@@ -1,0 +1,1 @@
+# Router ISP Settings\n\nAdds Settings page fields for TP-Link ER8411 router details and manual WAN/interface/VLAN ISP rows. Password is saved only in config/router_isp_settings.local.json and ignored by Git.\n

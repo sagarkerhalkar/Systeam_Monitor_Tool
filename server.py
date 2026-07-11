@@ -1641,6 +1641,134 @@ def load_latest() -> List[Dict[str, Any]]:
     return out
 
 
+# ISP_DEEP_BOX_ONLY_START
+ISP_DEEP_CACHE: Dict[str, Any] = {"ts": 0.0, "data": {}}
+
+def sk_isp_parse_cloudflare_trace(text: str) -> Dict[str, Any]:
+    out: Dict[str, Any] = {}
+    for line in (text or "").splitlines():
+        if "=" in line:
+            k, v = line.split("=", 1)
+            out[k.strip()] = v.strip()
+    return out
+
+def sk_isp_gateway_info() -> Dict[str, Any]:
+    import socket
+    info: Dict[str, Any] = {"gateway": "", "local_ip": "", "source": "os_route", "raw": ""}
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.settimeout(1)
+        s.connect(("1.1.1.1", 80))
+        info["local_ip"] = s.getsockname()[0]
+        s.close()
+    except Exception:
+        pass
+    try:
+        if os.name == "nt":
+            p = subprocess.run(["ipconfig"], capture_output=True, text=True, timeout=5)
+            raw = (p.stdout or "") + (p.stderr or "")
+            info["raw"] = raw[:2000]
+            m = re.search(r"Default Gateway[ .]*:\s*([0-9]{1,3}(?:\.[0-9]{1,3}){3})", raw, re.I)
+            if m:
+                info["gateway"] = m.group(1)
+        else:
+            p = subprocess.run(["sh", "-c", "ip route 2>/dev/null | awk '/default/ {print $3; exit}'"], capture_output=True, text=True, timeout=5)
+            info["gateway"] = clean_str(p.stdout)
+            p2 = subprocess.run(["sh", "-c", "hostname -I 2>/dev/null | awk '{print $1}'"], capture_output=True, text=True, timeout=5)
+            if not info.get("local_ip"):
+                info["local_ip"] = clean_str(p2.stdout)
+    except Exception as e:
+        info["error"] = str(e)
+    return info
+
+def sk_cloudflared_status() -> Dict[str, Any]:
+    out: Dict[str, Any] = {"installed": False, "running": False, "status": "not_checked", "source": ""}
+    try:
+        if os.name == "nt":
+            p = subprocess.run(["sc", "query", "cloudflared"], capture_output=True, text=True, timeout=5)
+            raw = (p.stdout or "") + (p.stderr or "")
+            out["source"] = "windows_service"
+            out["installed"] = "SERVICE_NAME" in raw or "cloudflared" in raw.lower()
+            out["running"] = "RUNNING" in raw
+            out["status"] = "running" if out["running"] else ("installed_not_running" if out["installed"] else "not_installed")
+        else:
+            p = subprocess.run(["sh", "-c", "pgrep -a cloudflared || systemctl is-active cloudflared 2>/dev/null || true"], capture_output=True, text=True, timeout=5)
+            raw = ((p.stdout or "") + (p.stderr or "")).strip()
+            out["source"] = "linux_process_systemd"
+            out["installed"] = bool(raw)
+            out["running"] = ("active" in raw.lower()) or ("cloudflared" in raw.lower())
+            out["status"] = "running" if out["running"] else ("installed_not_running" if out["installed"] else "not_installed")
+    except Exception as e:
+        out["status"] = "check_failed"
+        out["error"] = str(e)
+    return out
+
+def sk_isp_deep_status(force: bool = False) -> Dict[str, Any]:
+    now = time.time()
+    if not force and ISP_DEEP_CACHE.get("data") and now - float(ISP_DEEP_CACHE.get("ts") or 0) < 45:
+        return ISP_DEEP_CACHE["data"]
+
+    server_isp = server_public_internet_info(bool(force))
+    try:
+        health = server_internet_health(bool(force), True)
+    except Exception:
+        health = {}
+
+    cf_trace: Dict[str, Any] = {}
+    try:
+        req = urllib.request.Request("https://www.cloudflare.com/cdn-cgi/trace", headers={"User-Agent": "SagarSystemMonitor/FinalV2"})
+        with urllib.request.urlopen(req, timeout=6) as r:
+            cf_trace = sk_isp_parse_cloudflare_trace(r.read().decode("utf-8", errors="replace"))
+    except Exception as e:
+        cf_trace = {"error": str(e), "ok": False}
+
+    try:
+        machines = load_latest()
+    except Exception:
+        machines = []
+
+    isp_counts: Dict[str, int] = {}
+    public_ips: List[str] = []
+    client_rows: List[Dict[str, Any]] = []
+    for m in machines[:500]:
+        isp = clean_str(m.get("isp_name"))
+        pub = clean_str(m.get("public_ip"))
+        if isp:
+            isp_counts[isp] = isp_counts.get(isp, 0) + 1
+        if pub and pub not in public_ips:
+            public_ips.append(pub)
+        if isp or pub:
+            client_rows.append({"host": clean_str(m.get("hostname") or m.get("machine_id")), "isp": isp, "public_ip": pub, "lan_ip": clean_str(m.get("primary_ip")), "online": bool(m.get("online"))})
+
+    data = {
+        "ok": True,
+        "checked_at": now_iso(),
+        "provider": server_isp.get("isp") or server_isp.get("org") or server_isp.get("as") or "",
+        "asn": server_isp.get("as") or "",
+        "org": server_isp.get("org") or "",
+        "public_ip": server_isp.get("public_ip") or cf_trace.get("ip") or "",
+        "city": server_isp.get("city") or "",
+        "country": server_isp.get("country") or cf_trace.get("loc") or "",
+        "source": server_isp.get("source") or "",
+        "latency_ms": health.get("avg_latency_ms") or health.get("latency_ms"),
+        "jitter_ms": health.get("jitter_ms"),
+        "loss_percent": health.get("loss_percent") or health.get("packet_loss_percent"),
+        "down_mbps": health.get("probe_download_mbps"),
+        "up_mbps": health.get("probe_upload_mbps"),
+        "health": health,
+        "cloudflare": {"ok": not bool(cf_trace.get("error")), "ip": cf_trace.get("ip", ""), "colo": cf_trace.get("colo", ""), "loc": cf_trace.get("loc", ""), "tls": cf_trace.get("tls", ""), "http": cf_trace.get("http", ""), "warp": cf_trace.get("warp", ""), "gateway": cf_trace.get("gateway", ""), "error": cf_trace.get("error", "")},
+        "router": sk_isp_gateway_info(),
+        "cloudflared": sk_cloudflared_status(),
+        "client_isp_counts": [{"isp": k, "count": v} for k, v in sorted(isp_counts.items(), key=lambda kv: kv[1], reverse=True)[:8]],
+        "client_public_ips": public_ips[:8],
+        "client_samples": client_rows[:12],
+        "note": "Router gateway/local IP is detected without router login. Router WAN/SNMP stats need router details."
+    }
+    ISP_DEEP_CACHE["ts"] = now
+    ISP_DEEP_CACHE["data"] = data
+    return data
+# ISP_DEEP_BOX_ONLY_END
+
 def overview() -> Dict[str, Any]:
     machines = load_latest()
     server_isp = server_public_internet_info(False)
@@ -1904,6 +2032,9 @@ class Handler(BaseHTTPRequestHandler):
                 force = (qs.get("force") or ["0"])[0] in ("1", "true", "yes")
                 speed = (qs.get("speed") or ["1"])[0] in ("1", "true", "yes")
                 return self.send_json(server_internet_health(force, speed))
+            if path == "/api/isp-deep":
+                force = (qs.get("force") or ["0"])[0] in ("1", "true", "yes", "on")
+                return self.send_json(sk_isp_deep_status(force))
             if path == "/api/users":
                 if not self.require_admin():
                     return

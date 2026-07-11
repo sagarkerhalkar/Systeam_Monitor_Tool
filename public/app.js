@@ -5763,214 +5763,50 @@ if(typeof renderSoftware==='function' && !window.__skSoftwareCleanFixWrapped){
 })();
 /* LOGIN_APPROVED_LAYOUT_ANIMATED_ONLY_END */
 
-
-/* MACHINE_FLEET_IDENTITY_RESPONSIVE_V4_START */
-(function(){
-  const REAL_LAN_PREFIX = ['156.156.'];
-
-  function esc(v){
-    return String(v == null ? '' : v).replace(/[&<>"']/g, function(c){
-      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
-    });
+/* MACHINE_FLEET_MERGE_DELETE_NO_FLICKER_V5_START */
+function machineFleetIdentityHtml(m){
+  const asset = m.id_value || '';
+  const id = m.machine_id || '';
+  return `<strong class="mfv5-name">${esc(host(m))}</strong>
+    <small class="mfv5-meta">Client: ${esc(id)}</small>
+    ${asset && asset !== id ? `<small class="mfv5-meta">Asset: ${esc(asset)}</small>` : ''}
+    ${attention(m)?`<small class="warn-text">${esc(attentionReason(m))}</small>`:''}`;
+}
+function machineFleetIpHtml(m){
+  const fixed = m.ip_auto_fixed ? `<small class="mfv5-good">Auto fixed main IP</small>` : '';
+  const reason = m.old_primary_ip_reason ? `<small class="mfv5-warn">Old IP: ${esc(m.old_primary_ip_reason)}</small>` : '';
+  const other = (m.all_ips||[]).filter(x=>x && x!==m.primary_ip).slice(0,3);
+  return `<strong class="mfv5-ip">${esc(m.primary_ip||'')}</strong>${fixed}${reason}${other.length?`<small class="mfv5-meta">Other: ${esc(other.join(', '))}</small>`:''}`;
+}
+function renderFleet(){ 
+  const tb=$('#fleetTable tbody'); 
+  if(!tb)return; 
+  const cleanup = (state.overview||{}).machine_cleanup || {};
+  const machines = filteredMachines();
+  tb.innerHTML = machines.map(m=>`<tr>
+    <td data-label="Status">${statusPill(m)}</td>
+    <td data-label="Machine">${machineFleetIdentityHtml(m)}</td>
+    <td data-label="IP">${machineFleetIpHtml(m)}</td>
+    <td data-label="OS">${esc(m.os||'')}</td>
+    <td data-label="CPU">${fmt(m.cpu_percent,'%')}</td>
+    <td data-label="RAM">${ramFleetCell(m)}</td>
+    <td data-label="Disk">${fmt(m.disk_max_percent,'%')}</td>
+    <td data-label="Net Now">${netNowCell(m)}</td>
+    <td data-label="GPU">${esc(gpuBrief(m))}</td>
+    <td data-label="USB">${esc(m.usb_count||0)}</td>
+    <td data-label="Last Seen">${ago(m.updated_at)}</td>
+  </tr>`).join('') || '<tr><td colspan="11" class="empty">No matching machines.</td></tr>';
+  const page = $('#page-fleet') || tb.closest('section') || tb.closest('main');
+  if(page && !page.querySelector('.mfv5-cleanup-note')){
+    const note=document.createElement('div');
+    note.className='mfv5-cleanup-note';
+    note.innerHTML=`<b>Machine Fleet cleanup active</b><span>Duplicate same-host/same-client rows are merged from current count. Old rows are deleted only from latest table, not history.</span><em>${esc(cleanup.deleted_count||0)} merged/deleted</em>`;
+    const table = $('#fleetTable');
+    const holder = table?.parentElement || page.firstElementChild;
+    if(holder && holder.parentElement) holder.parentElement.insertBefore(note, holder);
+  }else if(page){
+    const em=page.querySelector('.mfv5-cleanup-note em');
+    if(em) em.textContent=(cleanup.deleted_count||0)+' merged/deleted';
   }
-  function norm(v){ return String(v || '').trim().toLowerCase().replace(/[^a-z0-9]+/g,''); }
-  function validIp(ip){
-    const p = String(ip || '').trim().split('.').map(Number);
-    return p.length === 4 && p.every(n => Number.isInteger(n) && n >= 0 && n <= 255);
-  }
-  function badIp(ip){
-    if(!validIp(ip)) return 'invalid';
-    const p = ip.split('.').map(Number);
-    if(ip === '0.0.0.0' || ip === '255.255.255.255') return 'invalid';
-    if(p[0] === 127) return 'loopback';
-    if(p[0] === 169 && p[1] === 254) return 'auto-ip';
-    if(ip.startsWith('192.168.56.')) return 'VirtualBox';
-    if(ip.startsWith('192.168.99.')) return 'Docker/VM';
-    if(ip.startsWith('172.17.') || ip.startsWith('172.18.') || ip.startsWith('172.19.')) return 'Docker/VM';
-    if(ip === '172.28.176.1') return 'virtual/VPN';
-    return '';
-  }
-  function isPrivate(ip){
-    const p = ip.split('.').map(Number);
-    return p[0] === 10 || (p[0] === 192 && p[1] === 168) || (p[0] === 172 && p[1] >= 16 && p[1] <= 31);
-  }
-  function ipScore(ip, currentText){
-    if(!validIp(ip)) return -9999;
-    let s = 0;
-    if(REAL_LAN_PREFIX.some(x => ip.startsWith(x))) s += 10000;
-    if(isPrivate(ip)) s += 1000;
-    if(ip.startsWith('192.168.') && !badIp(ip)) s += 700;
-    if(ip.startsWith('10.')) s += 500;
-    if(ip.startsWith('172.') && !badIp(ip)) s += 250;
-    if(currentText && String(currentText).includes(ip)) s += 20;
-    if(badIp(ip)) s -= 5000;
-    return s;
-  }
-  function collectIps(obj){
-    const out = new Set();
-    const seen = new Set();
-    const ipRe = /\b(?:\d{1,3}\.){3}\d{1,3}\b/g;
-    function walk(x, depth){
-      if(depth > 8 || x == null) return;
-      if(typeof x === 'string'){
-        const m = x.match(ipRe);
-        if(m) m.forEach(ip => { if(validIp(ip)) out.add(ip); });
-        return;
-      }
-      if(typeof x === 'number' || typeof x === 'boolean') return;
-      if(seen.has(x)) return;
-      seen.add(x);
-      if(Array.isArray(x)) x.forEach(v => walk(v, depth + 1));
-      else if(typeof x === 'object') Object.keys(x).forEach(k => walk(x[k], depth + 1));
-    }
-    walk(obj,0);
-    return Array.from(out);
-  }
-  function payloadSafe(m){
-    try{
-      if(typeof payload === 'function') return payload(m) || {};
-    }catch(e){}
-    return (m && (m.payload || m.data || m.raw)) || m || {};
-  }
-  function machineList(){
-    try{
-      if(typeof state !== 'undefined' && Array.isArray(state.machines)) return state.machines;
-    }catch(e){}
-    if(window.state && Array.isArray(window.state.machines)) return window.state.machines;
-    return [];
-  }
-  function hostName(m){
-    try{
-      if(typeof host === 'function') return host(m);
-    }catch(e){}
-    const p = payloadSafe(m);
-    return p.hostname || p.computer_name || p.machine_name || p.host || m.hostname || m.name || m.machine || m.machine_id || '';
-  }
-  function identity(m){
-    const p = payloadSafe(m);
-    return {
-      hostname: hostName(m),
-      machineId: p.machine_id || p.client_id || p.device_id || m.machine_id || m.id || '',
-      asset: p.asset_id || p.asset_tag || p.asset || p.serial || p.serial_number || p.bios_serial || p.motherboard_serial || p.uuid || ''
-    };
-  }
-  function bestIp(m, currentText){
-    let ips = m ? collectIps(payloadSafe(m)) : [];
-    const inRow = String(currentText || '').match(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g) || [];
-    ips.push(...inRow);
-    ips = Array.from(new Set(ips)).filter(validIp);
-    ips.sort((a,b) => ipScore(b,currentText) - ipScore(a,currentText));
-    return {primary: ips[0] || '', all: ips};
-  }
-  function fleetTables(){
-    return Array.from(document.querySelectorAll('table')).filter(t => {
-      const h = Array.from(t.querySelectorAll('thead th')).map(x => x.textContent.trim().toUpperCase());
-      return h.includes('MACHINE') && h.includes('IP') && h.includes('OS');
-    });
-  }
-  function rowName(row){
-    const c = row.children;
-    if(c.length < 2) return '';
-    return (c[1].textContent || '').split(/\n|ASSET:|CLIENT:|ID:/i)[0].trim();
-  }
-  function match(row){
-    const list = machineList();
-    const rn = norm(rowName(row));
-    if(!rn || !list.length) return null;
-    let m = list.find(x => norm(hostName(x)) === rn);
-    if(m) return m;
-    m = list.find(x => {
-      const h = norm(hostName(x));
-      return h && (h.includes(rn) || rn.includes(h));
-    });
-    if(m) return m;
-    const rowIps = (row.textContent || '').match(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g) || [];
-    if(rowIps.length){
-      return list.find(x => {
-        const ips = collectIps(payloadSafe(x));
-        return rowIps.some(ip => ips.includes(ip));
-      }) || null;
-    }
-    return null;
-  }
-  function labels(table){
-    const hs = Array.from(table.querySelectorAll('thead th')).map(x => x.textContent.trim());
-    table.querySelectorAll('tbody tr').forEach(tr => {
-      Array.from(tr.children).forEach((td,i) => {
-        if(hs[i]) td.setAttribute('data-label', hs[i]);
-      });
-    });
-    return hs.map(x => x.toUpperCase());
-  }
-  function machineCell(td, m){
-    if(!td || td.dataset.mfv4Done === '1') return;
-    const old = td.textContent || '';
-    const id = m ? identity(m) : {};
-    const name = id.hostname || old.split(/\n|ASSET:|CLIENT:|ID:/i)[0].trim() || 'Unknown machine';
-    const meta = [];
-    if(id.asset) meta.push('<span>Asset: ' + esc(id.asset) + '</span>');
-    if(id.machineId && norm(id.machineId) !== norm(id.asset)) meta.push('<span>Client: ' + esc(id.machineId) + '</span>');
-    if(!meta.length){
-      const asset = (old.match(/ASSET:\s*([^\n]+)/i) || [])[1] || '';
-      if(asset) meta.push('<span>Asset: ' + esc(asset.trim()) + '</span>');
-    }
-    td.innerHTML = '<div class="mfv4-name">' + esc(name) + '</div><div class="mfv4-meta">' + meta.join('') + '</div>';
-    td.dataset.mfv4Done = '1';
-  }
-  function ipCell(td, m){
-    if(!td) return 0;
-    const old = td.textContent || '';
-    const current = (old.match(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g) || [])[0] || '';
-    const info = bestIp(m, old);
-    const primary = info.primary || current;
-    if(!primary) return 0;
-    const badCurrent = badIp(current);
-    const badPrimary = badIp(primary);
-    const others = info.all.filter(x => x !== primary).slice(0,4);
-    td.innerHTML = '<div class="mfv4-ip ' + (badPrimary ? 'warn' : '') + '">' + esc(primary) + '</div>' +
-      '<div class="mfv4-ip-meta">' +
-      ((current && primary !== current) ? '<span class="good">main IP fixed</span>' : '') +
-      (badPrimary ? '<span class="warn">' + esc(badPrimary) + '</span>' : '') +
-      (others.length ? '<span title="' + esc(others.join(', ')) + '">+' + others.length + ' other IP</span>' : '') +
-      '</div>';
-    return (badCurrent || badPrimary || (current && primary !== current)) ? 1 : 0;
-  }
-  function banner(table, warnings){
-    const holder = table.closest('.table-wrap,.table-shell,.panel,.card') || table.parentElement;
-    if(!holder || holder.parentElement.querySelector('.mfv4-banner')) return;
-    const div = document.createElement('div');
-    div.className = 'mfv4-banner';
-    div.innerHTML = '<b>Machine Fleet identity/IP optimizer active</b><span>Real LAN IP is preferred over Docker/VM/VirtualBox IP when available.</span><em>' + warnings + ' review row(s)</em>';
-    holder.parentElement.insertBefore(div, holder);
-  }
-  function enhance(){
-    fleetTables().forEach(table => {
-      table.classList.add('mfv4-table');
-      const wrap = table.closest('.table-wrap,.table-shell') || table.parentElement;
-      if(wrap) wrap.classList.add('mfv4-wrap');
-      const hs = labels(table);
-      const im = hs.indexOf('MACHINE');
-      const ii = hs.indexOf('IP');
-      let warnings = 0;
-      table.querySelectorAll('tbody tr').forEach(row => {
-        row.classList.add('mfv4-row');
-        const cells = Array.from(row.children);
-        const m = match(row);
-        if(im >= 0) machineCell(cells[im], m);
-        if(ii >= 0) warnings += ipCell(cells[ii], m);
-      });
-      banner(table, warnings);
-    });
-  }
-
-  window.fixMachineFleetIdentityResponsiveV4 = enhance;
-  setTimeout(enhance,200);
-  setTimeout(enhance,1000);
-  setInterval(enhance,3000);
-  new MutationObserver(function(){
-    clearTimeout(window.__mfv4Timer);
-    window.__mfv4Timer = setTimeout(enhance,250);
-  }).observe(document.documentElement,{childList:true,subtree:true});
-})();
-/* MACHINE_FLEET_IDENTITY_RESPONSIVE_V4_END */
-
+}
+/* MACHINE_FLEET_MERGE_DELETE_NO_FLICKER_V5_END */

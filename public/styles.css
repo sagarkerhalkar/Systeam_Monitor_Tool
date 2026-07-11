@@ -1908,19 +1908,75 @@ table {
 
 /* FINAL_V2_RESPONSIVE_HARDENING_END */
 
-/* ISP_DEEP_BOX_ONLY_CSS_START */
-#ispDeepDetails{position:relative;z-index:2;margin-top:10px;width:100%;max-height:250px;overflow:auto;padding-right:2px;scrollbar-width:thin}
-.isp-compact-top{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-bottom:8px}
-.isp-compact-top span{padding:7px 9px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.08);color:#eaffff;font-size:10.5px;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.isp-compact-top b{color:#9fffee;font-weight:950;letter-spacing:.06em;text-transform:uppercase}
-.isp-compact-table{display:grid;gap:6px}
-.isp-compact-head,.isp-compact-row{display:grid;grid-template-columns:1.35fr 1fr 1fr .9fr;gap:8px;align-items:stretch}
-.isp-compact-head span{color:#9fffee;font-size:10px;font-weight:950;letter-spacing:.10em;text-transform:uppercase;padding:0 4px 2px}
-.isp-compact-row{padding:8px 9px;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:linear-gradient(135deg,rgba(255,255,255,.10),rgba(255,255,255,.045));box-shadow:inset 0 1px 0 rgba(255,255,255,.045)}
-.isp-compact-row div{min-width:0}
-.isp-compact-row strong{display:block;color:#fff;font-size:clamp(11px,.84vw,14px);line-height:1.18;font-weight:950;overflow:hidden;text-overflow:ellipsis;overflow-wrap:anywhere}
-.isp-compact-row small{display:block;margin-top:3px;color:#d6eef7;font-size:9.5px;line-height:1.15;opacity:.9;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.isp-deep-note{margin-top:7px;color:#dff8ff;font-size:10.5px;line-height:1.25;opacity:.88}
-@media(max-width:900px){#ispDeepDetails{max-height:320px}.isp-compact-top{grid-template-columns:repeat(2,minmax(0,1fr))}.isp-compact-head{display:none}.isp-compact-row{grid-template-columns:1fr 1fr}}
-@media(max-width:560px){.isp-compact-top{grid-template-columns:1fr}.isp-compact-row{grid-template-columns:1fr}}
-/* ISP_DEEP_BOX_ONLY_CSS_END */
+/* ISP_TABLE_ONLY_FINAL_FIX_CSS_START */
+.isp-final-hide-old{display:none!important}
+#ispDeepDetails{
+  position:relative!important;
+  z-index:2!important;
+  margin-top:10px!important;
+  width:100%!important;
+  max-height:255px!important;
+  overflow:auto!important;
+  padding-right:4px!important;
+  scrollbar-width:thin!important;
+}
+.isp-final-table{display:grid!important;gap:6px!important;width:100%!important}
+.isp-final-head,.isp-final-row{
+  display:grid!important;
+  grid-template-columns:1.35fr 1fr 1fr .92fr!important;
+  gap:8px!important;
+  align-items:stretch!important;
+}
+.isp-final-head span{
+  color:#9fffee!important;
+  font-size:10px!important;
+  font-weight:950!important;
+  letter-spacing:.10em!important;
+  text-transform:uppercase!important;
+  padding:0 4px 2px!important;
+}
+.isp-final-row{
+  padding:8px 9px!important;
+  border-radius:14px!important;
+  border:1px solid rgba(255,255,255,.16)!important;
+  background:linear-gradient(135deg,rgba(255,255,255,.105),rgba(255,255,255,.045))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.045)!important;
+}
+.isp-final-row div{min-width:0!important}
+.isp-final-row strong{
+  display:block!important;
+  color:#fff!important;
+  font-size:clamp(11px,.84vw,14px)!important;
+  line-height:1.18!important;
+  font-weight:950!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  overflow-wrap:anywhere!important;
+}
+.isp-final-row small{
+  display:block!important;
+  margin-top:3px!important;
+  color:#d6eef7!important;
+  font-size:9.5px!important;
+  line-height:1.15!important;
+  opacity:.88!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+}
+.isp-final-note{
+  margin-top:7px!important;
+  color:#dff8ff!important;
+  font-size:10.5px!important;
+  line-height:1.25!important;
+  opacity:.88!important;
+}
+@media(max-width:900px){
+  #ispDeepDetails{max-height:340px!important}
+  .isp-final-head{display:none!important}
+  .isp-final-row{grid-template-columns:1fr 1fr!important}
+}
+@media(max-width:560px){
+  .isp-final-row{grid-template-columns:1fr!important}
+}
+/* ISP_TABLE_ONLY_FINAL_FIX_CSS_END */

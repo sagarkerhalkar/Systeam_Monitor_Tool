@@ -5763,114 +5763,144 @@ if(typeof renderSoftware==='function' && !window.__skSoftwareCleanFixWrapped){
 })();
 /* LOGIN_APPROVED_LAYOUT_ANIMATED_ONLY_END */
 
-/* ISP_DEEP_BOX_ONLY_START */
-const ispDeepState = {ts:0, data:null, loading:false};
+/* ISP_TABLE_ONLY_FINAL_FIX_START */
+const ispFinalState = {ts:0, data:null, loading:false};
 
-function ispDeepText(v, fallback='N/A'){
+function ispText(v, fallback='N/A'){
   return (v===null || v===undefined || v==='') ? fallback : String(v);
 }
-function ispDeepMetric(v, suffix='', decimals=0){
+function ispMetric(v, suffix='', decimals=0){
   if(v===null || v===undefined || v==='') return 'N/A';
   const n = Number(v);
   if(Number.isFinite(n)) return n.toFixed(decimals).replace(/\.0+$/,'') + suffix;
   return String(v);
 }
-function ispDeepRows(data){
-  const rows = ((data && data.isp_groups) || []);
-  if(rows.length) return rows;
-  const o = state.overview || {};
-  const ih = o.internet_health || {};
-  return [{
-    provider:(data||{}).provider || ((o.server_isp||{}).isp) || 'Server ISP',
-    meta:(data||{}).asn || (data||{}).org || '',
-    latency_ms:(data||{}).latency_ms ?? ih.avg_latency_ms ?? ih.latency_ms,
-    jitter_ms:(data||{}).jitter_ms ?? ih.jitter_ms,
-    loss_percent:(data||{}).loss_percent ?? ih.loss_percent ?? ih.packet_loss_percent,
-    down_mbps:(data||{}).down_mbps ?? ih.probe_download_mbps,
-    up_mbps:(data||{}).up_mbps ?? ih.probe_upload_mbps,
-    public_ip:(data||{}).public_ip || 'N/A',
-    source_label:'Server'
-  }];
+function ispQuality(r){
+  if(r.latency_ms===null || r.latency_ms===undefined || r.latency_ms==='') return r.probe_note || 'Router probe pending';
+  return `${ispMetric(r.latency_ms,' ms',0)} / ${ispMetric(r.jitter_ms,' ms',0)} / ${ispMetric(r.loss_percent,'%',0)}`;
 }
-function ispQualityText(r){
-  if(r.latency_ms===null || r.latency_ms===undefined || r.latency_ms==='') return r.probe_note || 'Cloudflare probe missing';
-  return `${ispDeepMetric(r.latency_ms,' ms',0)} / ${ispDeepMetric(r.jitter_ms,' ms',0)} / ${ispDeepMetric(r.loss_percent,'%',0)}`;
+function ispProbe(r){
+  if(r.down_mbps===null || r.down_mbps===undefined || r.down_mbps==='') return r.probe_note || 'Router probe pending';
+  return `${ispMetric(r.down_mbps,' Mbps',2)} / ${ispMetric(r.up_mbps,' Mbps',2)}`;
 }
-function ispProbeText(r){
-  if(r.down_mbps===null || r.down_mbps===undefined || r.down_mbps==='') return r.probe_note || 'Cloudflare probe missing';
-  return `${ispDeepMetric(r.down_mbps,' Mbps',2)} / ${ispDeepMetric(r.up_mbps,' Mbps',2)}`;
-}
-function renderIspDeepBox(data){
-  const box = $('#ispDeepDetails');
+function hideIspOldCards(){
+  const box = document.querySelector('#ispDeepDetails');
   if(!box) return;
-  const cf = (data && data.cloudflare) || {};
-  const router = (data && data.router) || {};
-  const cfd = (data && data.cloudflared) || {};
-  const rows = ispDeepRows(data);
+  const root = box.closest('.hero-card,.internet-card,.card,section,main') || box.parentElement;
+  if(!root) return;
+
+  Array.from(root.querySelectorAll('*')).forEach(el => {
+    if(el.id === 'ispDeepDetails') return;
+    const txt = (el.textContent || '').trim().toUpperCase();
+    const cls = (el.className || '').toString();
+    if(
+      (txt.includes('PROVIDER') && txt.includes('LATENCY') && txt.includes('JITTER') && txt.includes('DOWN PROBE')) ||
+      (txt.includes('PROVIDER') && txt.includes('LOSS') && txt.includes('UP PROBE')) ||
+      (cls.match(/metric|stat|grid|probe|hero/i) && txt.includes('PROVIDER') && txt.includes('LATENCY'))
+    ){
+      if(!el.contains(box) && el.children.length >= 2) el.classList.add('isp-final-hide-old');
+    }
+  });
+
+  // Hide individual old tiles also, if wrapper detection missed.
+  Array.from(root.querySelectorAll('div')).forEach(el => {
+    if(el.id === 'ispDeepDetails' || el.closest('#ispDeepDetails')) return;
+    const txt = (el.textContent || '').trim().toUpperCase();
+    const direct = Array.from(el.children).length <= 3;
+    if(direct && ['PROVIDER','LATENCY','JITTER','LOSS','DOWN PROBE','UP PROBE'].some(k => txt.startsWith(k))){
+      el.classList.add('isp-final-hide-old');
+    }
+  });
+}
+function ispRows(data){
+  const raw = ((data && data.isp_groups) || []);
+  const map = new Map();
+  raw.forEach(r => {
+    const key = String(r.provider || r.public_ip || 'unknown').toLowerCase().replace(/[^a-z0-9]+/g,'');
+    if(!map.has(key)){
+      map.set(key, Object.assign({}, r));
+    }else{
+      const old = map.get(key);
+      const ips = [];
+      String(old.public_ip || '').split(',').map(x=>x.trim()).filter(Boolean).forEach(x=>{if(!ips.includes(x))ips.push(x)});
+      String(r.public_ip || '').split(',').map(x=>x.trim()).filter(Boolean).forEach(x=>{if(!ips.includes(x))ips.push(x)});
+      old.public_ip = ips.join(', ');
+      old.count = (Number(old.count)||0) + (Number(r.count)||0);
+      ['latency_ms','jitter_ms','loss_percent','down_mbps','up_mbps'].forEach(k => {
+        if((old[k]===null || old[k]===undefined || old[k]==='') && r[k]!==null && r[k]!==undefined && r[k]!=='') old[k]=r[k];
+      });
+      old.has_probe = old.has_probe || r.has_probe;
+      map.set(key, old);
+    }
+  });
+  return Array.from(map.values());
+}
+function renderIspTableOnly(data){
+  const box = document.querySelector('#ispDeepDetails');
+  if(!box) return;
+  hideIspOldCards();
+  const rows = ispRows(data);
   const html = `
-    <div class="isp-compact-top">
-      <span><b>Cloudflare</b> ${esc(ispDeepText(cf.colo))} / ${esc(ispDeepText(cf.loc))}</span>
-      <span><b>Router</b> ${esc(ispDeepText(router.gateway))}</span>
-      <span><b>Local</b> ${esc(ispDeepText(router.local_ip))}</span>
-      <span><b>Cloudflared</b> ${esc(ispDeepText(cfd.status))}</span>
-    </div>
-    <div class="isp-compact-table">
-      <div class="isp-compact-head">
+    <div class="isp-final-table">
+      <div class="isp-final-head">
         <span>Provider</span>
         <span>Latency / Jitter / Loss</span>
         <span>Down / Up Probe</span>
         <span>Public IP</span>
       </div>
       ${rows.map(r => `
-        <div class="isp-compact-row">
-          <div><strong title="${esc(r.provider||'')}">${esc(r.provider||'Unknown ISP')}</strong><small>${esc((r.source_label||'') + (r.count?` • ${r.count} record(s)`:''))}</small></div>
-          <div><strong>${esc(ispQualityText(r))}</strong><small>Cloudflare quality</small></div>
-          <div><strong>${esc(ispProbeText(r))}</strong><small>${esc(r.has_probe?'probe OK':'needs client probe')}</small></div>
-          <div><strong title="${esc(r.public_ip||'')}">${esc(r.public_ip||'N/A')}</strong><small>public IP</small></div>
-        </div>
-      `).join('')}
+        <div class="isp-final-row">
+          <div><strong title="${esc(r.provider||'')}">${esc(r.provider||'Unknown ISP')}</strong><small>${esc(r.source_label || 'Router')}</small></div>
+          <div><strong>${esc(ispQuality(r))}</strong><small>latency / jitter / loss</small></div>
+          <div><strong>${esc(ispProbe(r))}</strong><small>down / up probe</small></div>
+          <div><strong title="${esc(r.public_ip||'')}">${esc(r.public_ip || 'N/A')}</strong><small>public IP</small></div>
+        </div>`).join('') || `
+        <div class="isp-final-row">
+          <div><strong>No ISP rows configured</strong><small>router config pending</small></div>
+          <div><strong>N/A</strong><small>latency / jitter / loss</small></div>
+          <div><strong>N/A</strong><small>down / up probe</small></div>
+          <div><strong>N/A</strong><small>public IP</small></div>
+        </div>`}
     </div>
-    <div class="isp-deep-note">${esc((data||{}).note || 'Same ISP names are merged. Cloudflare speed for each ISP requires a probe from that ISP/client line.')}</div>
+    <div class="isp-final-note">${esc((data||{}).note || 'Router access is required for all live WAN ISP speed data.')}</div>
   `;
   if(box.dataset.lastHtml !== html){
     box.innerHTML = html;
     box.dataset.lastHtml = html;
   }
 }
-async function refreshIspDeepBox(force=false){
-  if(ispDeepState.loading) return;
+async function refreshIspTableOnly(force=false){
+  if(ispFinalState.loading) return;
   const now = Date.now();
-  if(!force && ispDeepState.data && now - ispDeepState.ts < 45000){
-    renderIspDeepBox(ispDeepState.data);
+  if(!force && ispFinalState.data && now - ispFinalState.ts < 30000){
+    renderIspTableOnly(ispFinalState.data);
     return;
   }
-  ispDeepState.loading = true;
+  ispFinalState.loading = true;
   try{
     const d = await api('/api/isp-deep' + (force ? '?force=1' : ''));
-    ispDeepState.data = d;
-    ispDeepState.ts = Date.now();
-    renderIspDeepBox(d);
+    ispFinalState.data = d;
+    ispFinalState.ts = Date.now();
+    renderIspTableOnly(d);
   }catch(e){
-    console.warn('ISP deep box unavailable', e);
-    renderIspDeepBox(ispDeepState.data || {});
+    console.warn('ISP table unavailable', e);
+    renderIspTableOnly(ispFinalState.data || {});
   }finally{
-    ispDeepState.loading = false;
+    ispFinalState.loading = false;
   }
 }
 (function(){
   const oldRenderDashboard = window.renderDashboard || renderDashboard;
   window.renderDashboard = function(){
     oldRenderDashboard.apply(this, arguments);
-    renderIspDeepBox(ispDeepState.data || {});
-    refreshIspDeepBox(false);
+    setTimeout(hideIspOldCards, 50);
+    setTimeout(hideIspOldCards, 250);
+    renderIspTableOnly(ispFinalState.data || {});
+    refreshIspTableOnly(false);
   };
-  if(typeof window.runServerSpeedTest === 'function'){
-    const oldSpeed = window.runServerSpeedTest;
-    window.runServerSpeedTest = async function(full){
-      const r = await oldSpeed.apply(this, arguments);
-      setTimeout(()=>refreshIspDeepBox(true), 900);
-      return r;
-    };
-  }
+  setInterval(() => {
+    const box = document.querySelector('#ispDeepDetails');
+    if(box) hideIspOldCards();
+  }, 2000);
 })();
-/* ISP_DEEP_BOX_ONLY_END */
+/* ISP_TABLE_ONLY_FINAL_FIX_END */

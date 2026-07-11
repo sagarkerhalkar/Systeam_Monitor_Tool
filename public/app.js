@@ -5763,7 +5763,75 @@ if(typeof renderSoftware==='function' && !window.__skSoftwareCleanFixWrapped){
 })();
 /* LOGIN_APPROVED_LAYOUT_ANIMATED_ONLY_END */
 
+/* ISP_DEEP_BOX_ONLY_START */
+const ispDeepState = {ts:0, data:null, loading:false};
 
-
-
-
+function ispDeepText(v, fallback='N/A'){
+  return (v===null || v===undefined || v==='') ? fallback : String(v);
+}
+function ispDeepSmallMetric(label, value, sub=''){
+  return `<div class="isp-deep-mini"><span>${esc(label)}</span><strong>${esc(ispDeepText(value))}</strong>${sub?`<small>${esc(sub)}</small>`:''}</div>`;
+}
+function renderIspDeepBox(data){
+  const box = $('#ispDeepDetails');
+  if(!box) return;
+  const o = state.overview || {};
+  const ih = o.internet_health || {};
+  const cf = (data && data.cloudflare) || {};
+  const router = (data && data.router) || {};
+  const cfd = (data && data.cloudflared) || {};
+  const clientIsps = ((data && data.client_isp_counts) || []).map(x => `${x.isp} (${x.count})`).join(', ');
+  const clientIps = ((data && data.client_public_ips) || []).join(', ');
+  const html = `
+    <div class="isp-deep-strip">
+      <span>Public IP</span><b>${esc(ispDeepText((data||{}).public_ip || cf.ip))}</b>
+      <span>ASN</span><b>${esc(ispDeepText((data||{}).asn))}</b>
+      <span>Cloudflare</span><b>${esc(ispDeepText(cf.colo))}</b>
+      <span>Router</span><b>${esc(ispDeepText(router.gateway))}</b>
+    </div>
+    <div class="isp-deep-grid">
+      ${ispDeepSmallMetric('Provider / ISP', (data||{}).provider || ((o.server_isp||{}).isp) || 'N/A', (data||{}).org || '')}
+      ${ispDeepSmallMetric('Location', [ispDeepText((data||{}).city,''), ispDeepText((data||{}).country,'')].filter(Boolean).join(', ') || 'N/A', 'server public lookup')}
+      ${ispDeepSmallMetric('Cloudflare Trace', cf.ok===false ? 'Failed' : `${ispDeepText(cf.colo)} / ${ispDeepText(cf.loc)}`, `TLS ${ispDeepText(cf.tls)} | WARP ${ispDeepText(cf.warp)}`)}
+      ${ispDeepSmallMetric('Cloudflared', ispDeepText(cfd.status), ispDeepText(cfd.source,''))}
+      ${ispDeepSmallMetric('Router Gateway', ispDeepText(router.gateway), `Server LAN ${ispDeepText(router.local_ip,'N/A')}`)}
+      ${ispDeepSmallMetric('Latency / Jitter / Loss', `${fmt((data||{}).latency_ms ?? ih.avg_latency_ms ?? ih.latency_ms,' ms',0)} / ${fmt((data||{}).jitter_ms ?? ih.jitter_ms,' ms',0)} / ${fmt((data||{}).loss_percent ?? ih.loss_percent ?? ih.packet_loss_percent,'%',0)}`, 'live class quality')}
+      ${ispDeepSmallMetric('Down / Up Probe', `${fmt((data||{}).down_mbps ?? ih.probe_download_mbps,' Mbps',2)} / ${fmt((data||{}).up_mbps ?? ih.probe_upload_mbps,' Mbps',2)}`, 'server to Cloudflare')}
+      ${ispDeepSmallMetric('Client ISP Samples', clientIsps || 'No client ISP yet', clientIps ? `Public IPs: ${clientIps}` : 'waiting for client ISP data')}
+    </div>
+    <div class="isp-deep-note">${esc((data||{}).note || 'Router WAN/SNMP stats need router details.')}</div>
+  `;
+  if(box.dataset.lastHtml !== html){
+    box.innerHTML = html;
+    box.dataset.lastHtml = html;
+  }
+}
+async function refreshIspDeepBox(force=false){
+  if(ispDeepState.loading) return;
+  const now = Date.now();
+  if(!force && ispDeepState.data && now - ispDeepState.ts < 45000){
+    renderIspDeepBox(ispDeepState.data);
+    return;
+  }
+  ispDeepState.loading = true;
+  try{
+    const d = await api('/api/isp-deep' + (force ? '?force=1' : ''));
+    ispDeepState.data = d;
+    ispDeepState.ts = Date.now();
+    renderIspDeepBox(d);
+  }catch(e){
+    console.warn('ISP deep box unavailable', e);
+    renderIspDeepBox(ispDeepState.data || {});
+  }finally{
+    ispDeepState.loading = false;
+  }
+}
+(function(){
+  const oldRenderDashboard = window.renderDashboard || renderDashboard;
+  window.renderDashboard = function(){
+    oldRenderDashboard.apply(this, arguments);
+    renderIspDeepBox(ispDeepState.data || {});
+    refreshIspDeepBox(false);
+  };
+})();
+/* ISP_DEEP_BOX_ONLY_END */

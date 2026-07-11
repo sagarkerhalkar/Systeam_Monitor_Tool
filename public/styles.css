@@ -1984,3 +1984,15 @@ table {
   .isp-final-row{grid-template-columns:1fr!important}
 }
 /* ISP_TABLE_5_ROWS_FONT_2_CSS_END */
+
+/* ROUTER_ISP_SETTINGS_UI_CSS_START */
+.router-isp-settings-panel{margin-top:18px}
+.router-settings-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:12px 0}
+.router-settings-grid label{display:flex;flex-direction:column;gap:6px;color:#64748b;font-size:12px;font-weight:850}
+.router-settings-grid input,.router-settings-grid select,.router-isp-add-row input{min-height:42px;border:1px solid #dbe7f6;border-radius:12px;padding:9px 11px;background:#fff;color:#0f172a;font-weight:750}
+.router-check{justify-content:center;flex-direction:row!important;align-items:center;color:#b45309!important}.router-check input{min-height:auto!important}
+.router-isp-add-row{display:grid;grid-template-columns:1.4fr 1fr .75fr .95fr .7fr .7fr .65fr .75fr .75fr auto;gap:8px;margin:12px 0}
+#routerIspTable td small{display:block;color:#64748b;margin-top:3px;font-size:11px}
+@media(max-width:1100px){.router-settings-grid{grid-template-columns:1fr 1fr}.router-isp-add-row{grid-template-columns:1fr 1fr}}
+@media(max-width:620px){.router-settings-grid,.router-isp-add-row{grid-template-columns:1fr}}
+/* ROUTER_ISP_SETTINGS_UI_CSS_END */

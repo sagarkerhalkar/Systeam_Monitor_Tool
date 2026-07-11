@@ -1642,73 +1642,113 @@ def load_latest() -> List[Dict[str, Any]]:
 
 
 
+
+# ROUTER_ISP_SETTINGS_ONLY_START
+from pathlib import Path as _router_Path
+ROUTER_ISP_LOCAL_PATH = _router_Path(__file__).resolve().parent / "config" / "router_isp_settings.local.json"
+
+def router_isp_default_settings() -> Dict[str, Any]:
+    return {"router":{"brand_model":"TP-Link ER8411","login_ip":"192.168.0.1","access_type":"web","username":"admin","password":"","save_password_local":False,"notes":"Password is local-only and never committed to GitHub."},"isp_rows":[],"updated_at":""}
+
+def router_isp_clean_text(v: Any) -> str:
+    return clean_str(v).strip()
+
+def router_isp_to_float(v: Any):
+    try:
+        if v is None or v == "":
+            return None
+        return float(v)
+    except Exception:
+        return None
+
+def router_isp_sanitize_row(row: Dict[str, Any]) -> Dict[str, Any]:
+    return {"provider":router_isp_clean_text(row.get("provider") or row.get("isp") or row.get("name")),"interface_name":router_isp_clean_text(row.get("interface_name") or row.get("interface") or row.get("wan")),"vlan_id":router_isp_clean_text(row.get("vlan_id") or row.get("vlan")),"public_ip":router_isp_clean_text(row.get("public_ip") or row.get("wan_ip")),"latency_ms":router_isp_to_float(row.get("latency_ms") or row.get("latency")),"jitter_ms":router_isp_to_float(row.get("jitter_ms") or row.get("jitter")),"loss_percent":router_isp_to_float(row.get("loss_percent") or row.get("loss")),"down_mbps":router_isp_to_float(row.get("down_mbps") or row.get("download_mbps") or row.get("down")),"up_mbps":router_isp_to_float(row.get("up_mbps") or row.get("upload_mbps") or row.get("up")),"source_label":router_isp_clean_text(row.get("source_label") or "Router manual"),"notes":router_isp_clean_text(row.get("notes"))}
+
+def router_isp_load_settings(include_secret: bool = False) -> Dict[str, Any]:
+    data = router_isp_default_settings()
+    try:
+        if ROUTER_ISP_LOCAL_PATH.exists():
+            raw = json.loads(ROUTER_ISP_LOCAL_PATH.read_text(encoding="utf-8-sig"))
+            if isinstance(raw, dict):
+                data["router"].update(raw.get("router") or {})
+                data["isp_rows"] = raw.get("isp_rows") or []
+                data["updated_at"] = raw.get("updated_at") or ""
+    except Exception as e:
+        data["load_error"] = str(e)
+    rows = []
+    for r in data.get("isp_rows") or []:
+        if isinstance(r, dict):
+            rr = router_isp_sanitize_row(r)
+            if rr.get("provider") or rr.get("public_ip") or rr.get("interface_name"):
+                rows.append(rr)
+    data["isp_rows"] = rows
+    if not include_secret:
+        pwd = data.get("router", {}).get("password") or ""
+        data["router"]["password"] = ""
+        data["router"]["password_saved"] = bool(pwd)
+    return data
+
+def router_isp_save_settings(body: Dict[str, Any]) -> Dict[str, Any]:
+    current = router_isp_load_settings(include_secret=True)
+    router = dict(current.get("router") or {})
+    incoming_router = body.get("router") or {}
+    for key in ["brand_model","login_ip","access_type","username","notes"]:
+        if key in incoming_router:
+            router[key] = router_isp_clean_text(incoming_router.get(key))
+    if incoming_router.get("clear_password") in (True,1,"1","true","True","yes"):
+        router["password"] = ""
+    elif router_isp_clean_text(incoming_router.get("password")):
+        router["password"] = router_isp_clean_text(incoming_router.get("password"))
+    rows = []
+    for r in body.get("isp_rows") or []:
+        if isinstance(r, dict):
+            rr = router_isp_sanitize_row(r)
+            if rr.get("provider") or rr.get("public_ip") or rr.get("interface_name"):
+                rows.append(rr)
+    out = {"router":router,"isp_rows":rows,"updated_at":now_iso()}
+    ROUTER_ISP_LOCAL_PATH.parent.mkdir(parents=True, exist_ok=True)
+    ROUTER_ISP_LOCAL_PATH.write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
+    try:
+        ISP_DEEP_CACHE["ts"] = 0
+        ISP_DEEP_CACHE["data"] = {}
+    except Exception:
+        pass
+    return router_isp_load_settings(include_secret=False)
+
+def router_isp_public_settings() -> Dict[str, Any]:
+    data = router_isp_load_settings(include_secret=False)
+    data["local_config_path"] = str(ROUTER_ISP_LOCAL_PATH)
+    return data
+
+def router_isp_test_router() -> Dict[str, Any]:
+    data = router_isp_load_settings(include_secret=True)
+    router = data.get("router") or {}
+    ip = router_isp_clean_text(router.get("login_ip")) or "192.168.0.1"
+    out = {"ok":False,"ip":ip,"checks":[]}
+    for scheme in ["http","https"]:
+        url = f"{scheme}://{ip}/"
+        item = {"url":url,"ok":False,"status":"","error":""}
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent":"SagarSystemMonitor/RouterCheck"})
+            with urllib.request.urlopen(req, timeout=4) as r:
+                item["ok"] = True
+                item["status"] = str(getattr(r, "status", 200))
+                out["ok"] = True
+        except Exception as e:
+            item["error"] = str(e)
+        out["checks"].append(item)
+    out["note"] = "This only checks router web reachability. Live WAN/interface scraping needs TP-Link ER8411 web/API connector."
+    return out
+# ROUTER_ISP_SETTINGS_ONLY_END
+
 # ISP_DEEP_BOX_ONLY_START
 ISP_DEEP_CACHE: Dict[str, Any] = {"ts": 0.0, "data": {}}
-
-def sk_isp_parse_cloudflare_trace(text: str) -> Dict[str, Any]:
-    out: Dict[str, Any] = {}
-    for line in (text or "").splitlines():
-        if "=" in line:
-            k, v = line.split("=", 1)
-            out[k.strip()] = v.strip()
-    return out
 
 def sk_isp_norm_provider(v: str) -> str:
     s = clean_str(v).lower()
     s = re.sub(r"\s+", " ", s).strip()
     s = re.sub(r"[^a-z0-9]+", "", s)
     return s
-
-def sk_isp_gateway_info() -> Dict[str, Any]:
-    import socket
-    info: Dict[str, Any] = {"gateway": "", "local_ip": "", "source": "os_route", "raw": ""}
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.settimeout(1)
-        s.connect(("1.1.1.1", 80))
-        info["local_ip"] = s.getsockname()[0]
-        s.close()
-    except Exception:
-        pass
-    try:
-        if os.name == "nt":
-            p = subprocess.run(["ipconfig"], capture_output=True, text=True, timeout=5)
-            raw = (p.stdout or "") + (p.stderr or "")
-            info["raw"] = raw[:2000]
-            m = re.search(r"Default Gateway[ .]*:\s*([0-9]{1,3}(?:\.[0-9]{1,3}){3})", raw, re.I)
-            if m:
-                info["gateway"] = m.group(1)
-        else:
-            p = subprocess.run(["sh", "-c", "ip route 2>/dev/null | awk '/default/ {print $3; exit}'"], capture_output=True, text=True, timeout=5)
-            info["gateway"] = clean_str(p.stdout)
-            p2 = subprocess.run(["sh", "-c", "hostname -I 2>/dev/null | awk '{print $1}'"], capture_output=True, text=True, timeout=5)
-            if not info.get("local_ip"):
-                info["local_ip"] = clean_str(p2.stdout)
-    except Exception as e:
-        info["error"] = str(e)
-    return info
-
-def sk_cloudflared_status() -> Dict[str, Any]:
-    out: Dict[str, Any] = {"installed": False, "running": False, "status": "not_checked", "source": ""}
-    try:
-        if os.name == "nt":
-            p = subprocess.run(["sc", "query", "cloudflared"], capture_output=True, text=True, timeout=5)
-            raw = (p.stdout or "") + (p.stderr or "")
-            out["source"] = "windows_service"
-            out["installed"] = "SERVICE_NAME" in raw or "cloudflared" in raw.lower()
-            out["running"] = "RUNNING" in raw
-            out["status"] = "running" if out["running"] else ("installed_not_running" if out["installed"] else "not_installed")
-        else:
-            p = subprocess.run(["sh", "-c", "pgrep -a cloudflared || systemctl is-active cloudflared 2>/dev/null || true"], capture_output=True, text=True, timeout=5)
-            raw = ((p.stdout or "") + (p.stderr or "")).strip()
-            out["source"] = "linux_process_systemd"
-            out["installed"] = bool(raw)
-            out["running"] = ("active" in raw.lower()) or ("cloudflared" in raw.lower())
-            out["status"] = "running" if out["running"] else ("installed_not_running" if out["installed"] else "not_installed")
-    except Exception as e:
-        out["status"] = "check_failed"
-        out["error"] = str(e)
-    return out
 
 def sk_num_first(*vals):
     for v in vals:
@@ -1719,130 +1759,72 @@ def sk_num_first(*vals):
             pass
     return None
 
-def sk_isp_client_probe_fields(m: Dict[str, Any]) -> Dict[str, Any]:
-    """Read probe fields if the client already sends them. Does not invent values."""
-    h = m.get("internet_health") if isinstance(m.get("internet_health"), dict) else {}
-    return {
-        "latency_ms": sk_num_first(m.get("latency_ms"), m.get("avg_latency_ms"), h.get("latency_ms"), h.get("avg_latency_ms")),
-        "jitter_ms": sk_num_first(m.get("jitter_ms"), h.get("jitter_ms")),
-        "loss_percent": sk_num_first(m.get("loss_percent"), m.get("packet_loss_percent"), h.get("loss_percent"), h.get("packet_loss_percent")),
-        "down_mbps": sk_num_first(m.get("probe_download_mbps"), m.get("download_mbps"), h.get("probe_download_mbps"), h.get("download_mbps")),
-        "up_mbps": sk_num_first(m.get("probe_upload_mbps"), m.get("upload_mbps"), h.get("probe_upload_mbps"), h.get("upload_mbps")),
-    }
-
-def sk_merge_isp_group(groups: Dict[str, Dict[str, Any]], provider: str, public_ip: str = "", source: str = "client", meta: str = "", metrics: Dict[str, Any] = None, host: str = ""):
+def sk_merge_isp_group(groups: Dict[str, Dict[str, Any]], provider: str, public_ip: str = "", source: str = "client", meta: str = "", metrics: Dict[str, Any] = None, host: str = "", interface_name: str = "", vlan_id: str = ""):
     provider = clean_str(provider) or "Unknown ISP"
-    key = sk_isp_norm_provider(provider) or ("ip_" + clean_str(public_ip)) or "unknown"
-    g = groups.setdefault(key, {
-        "provider": provider,
-        "sources": set(),
-        "public_ips": [],
-        "hosts": [],
-        "count": 0,
-        "latency_ms": None,
-        "jitter_ms": None,
-        "loss_percent": None,
-        "down_mbps": None,
-        "up_mbps": None,
-        "meta": meta,
-        "has_probe": False,
-    })
-    # Keep longest/provider-rich label.
-    if len(provider) > len(clean_str(g.get("provider"))):
-        g["provider"] = provider
+    interface_name = clean_str(interface_name)
+    vlan_id = clean_str(vlan_id)
+    key = sk_isp_norm_provider(provider) + "|" + clean_str(public_ip) + "|" + interface_name.lower() + "|" + vlan_id.lower()
+    if key == "|||":
+        key = "unknown"
+    g = groups.setdefault(key, {"provider":provider,"sources":set(),"public_ips":[],"hosts":[],"count":0,"latency_ms":None,"jitter_ms":None,"loss_percent":None,"down_mbps":None,"up_mbps":None,"meta":meta,"interface_name":interface_name,"vlan_id":vlan_id,"has_probe":False})
     g["sources"].add(source)
     g["count"] += 1
     if public_ip and public_ip not in g["public_ips"]:
         g["public_ips"].append(public_ip)
     if host and host not in g["hosts"]:
         g["hosts"].append(host)
-    if meta and not g.get("meta"):
-        g["meta"] = meta
+    if interface_name and not g.get("interface_name"):
+        g["interface_name"] = interface_name
+    if vlan_id and not g.get("vlan_id"):
+        g["vlan_id"] = vlan_id
     metrics = metrics or {}
-    for k in ["latency_ms", "jitter_ms", "loss_percent", "down_mbps", "up_mbps"]:
+    for k in ["latency_ms","jitter_ms","loss_percent","down_mbps","up_mbps"]:
         if g.get(k) is None and metrics.get(k) is not None:
             g[k] = metrics.get(k)
-    if any(metrics.get(k) is not None for k in ["latency_ms", "jitter_ms", "loss_percent", "down_mbps", "up_mbps"]):
+    if any(metrics.get(k) is not None for k in ["latency_ms","jitter_ms","loss_percent","down_mbps","up_mbps"]):
         g["has_probe"] = True
+
+def sk_isp_client_probe_fields(m: Dict[str, Any]) -> Dict[str, Any]:
+    h = m.get("internet_health") if isinstance(m.get("internet_health"), dict) else {}
+    return {"latency_ms":sk_num_first(m.get("latency_ms"),m.get("avg_latency_ms"),h.get("latency_ms"),h.get("avg_latency_ms")),"jitter_ms":sk_num_first(m.get("jitter_ms"),h.get("jitter_ms")),"loss_percent":sk_num_first(m.get("loss_percent"),m.get("packet_loss_percent"),h.get("loss_percent"),h.get("packet_loss_percent")),"down_mbps":sk_num_first(m.get("probe_download_mbps"),m.get("download_mbps"),h.get("probe_download_mbps"),h.get("download_mbps")),"up_mbps":sk_num_first(m.get("probe_upload_mbps"),m.get("upload_mbps"),h.get("probe_upload_mbps"),h.get("upload_mbps"))}
 
 def sk_isp_deep_status(force: bool = False) -> Dict[str, Any]:
     now = time.time()
     if not force and ISP_DEEP_CACHE.get("data") and now - float(ISP_DEEP_CACHE.get("ts") or 0) < 45:
         return ISP_DEEP_CACHE["data"]
-
     server_isp = server_public_internet_info(bool(force))
     try:
         health = server_internet_health(bool(force), True)
     except Exception:
         health = {}
-
-    cf_trace: Dict[str, Any] = {}
-    try:
-        req = urllib.request.Request("https://www.cloudflare.com/cdn-cgi/trace", headers={"User-Agent": "SagarSystemMonitor/FinalV2"})
-        with urllib.request.urlopen(req, timeout=6) as r:
-            cf_trace = sk_isp_parse_cloudflare_trace(r.read().decode("utf-8", errors="replace"))
-    except Exception as e:
-        cf_trace = {"error": str(e), "ok": False}
-
+    groups: Dict[str, Dict[str, Any]] = {}
+    router_settings = router_isp_load_settings(include_secret=False) if "router_isp_load_settings" in globals() else {"isp_rows":[]}
+    for r in router_settings.get("isp_rows") or []:
+        sk_merge_isp_group(groups, r.get("provider"), r.get("public_ip"), "router_manual", r.get("notes") or r.get("source_label") or "Router manual", r, "router", r.get("interface_name"), r.get("vlan_id"))
+    server_provider = server_isp.get("isp") or server_isp.get("org") or server_isp.get("as") or "Server ISP"
+    server_ip = server_isp.get("public_ip") or ""
+    sk_merge_isp_group(groups, server_provider, server_ip, "server_probe", server_isp.get("as") or server_isp.get("org") or "", {"latency_ms":health.get("avg_latency_ms") or health.get("latency_ms"),"jitter_ms":health.get("jitter_ms"),"loss_percent":health.get("loss_percent") or health.get("packet_loss_percent"),"down_mbps":health.get("probe_download_mbps"),"up_mbps":health.get("probe_upload_mbps")}, "server", "", "")
     try:
         machines = load_latest()
     except Exception:
         machines = []
-
-    groups: Dict[str, Dict[str, Any]] = {}
-    server_provider = server_isp.get("isp") or server_isp.get("org") or server_isp.get("as") or "Server ISP"
-    server_ip = server_isp.get("public_ip") or cf_trace.get("ip") or ""
-    sk_merge_isp_group(groups, server_provider, server_ip, "server", server_isp.get("as") or server_isp.get("org") or "", {
-        "latency_ms": health.get("avg_latency_ms") or health.get("latency_ms"),
-        "jitter_ms": health.get("jitter_ms"),
-        "loss_percent": health.get("loss_percent") or health.get("packet_loss_percent"),
-        "down_mbps": health.get("probe_download_mbps"),
-        "up_mbps": health.get("probe_upload_mbps"),
-    }, "server")
-
     for m in machines[:1000]:
         provider = clean_str(m.get("isp_name") or m.get("isp") or m.get("public_isp"))
         public_ip = clean_str(m.get("public_ip") or m.get("wan_ip"))
         host = clean_str(m.get("hostname") or m.get("machine_id"))
-        if not provider and not public_ip:
-            continue
-        if not provider:
-            provider = "Unknown ISP"
-        sk_merge_isp_group(groups, provider, public_ip, "client", f"{host}", sk_isp_client_probe_fields(m), host)
-
+        if provider or public_ip:
+            sk_merge_isp_group(groups, provider or "Unknown ISP", public_ip, "client_discovery", host, sk_isp_client_probe_fields(m), host, "", "")
     isp_groups = []
     for g in groups.values():
         sources = sorted(list(g.pop("sources", set())))
         g["sources"] = sources
-        g["source_label"] = "Server + Clients" if ("server" in sources and "client" in sources) else ("Server" if "server" in sources else "Clients")
+        g["source_label"] = "Router manual" if "router_manual" in sources else ("Server probe" if "server_probe" in sources else "Client discovery")
         g["public_ip"] = ", ".join(g["public_ips"][:3]) + (f" +{len(g['public_ips'])-3}" if len(g["public_ips"]) > 3 else "")
         g["host_count"] = len(g["hosts"])
-        g["probe_note"] = "Cloudflare speed probe OK" if g.get("has_probe") else "Client Cloudflare probe missing"
+        g["probe_note"] = "Probe OK" if g.get("has_probe") else "Manual/router probe pending"
         isp_groups.append(g)
-
-    isp_groups.sort(key=lambda x: (0 if "server" in x.get("sources", []) else 1, -int(x.get("count") or 0), clean_str(x.get("provider"))))
-
-    data = {
-        "ok": True,
-        "checked_at": now_iso(),
-        "provider": server_provider,
-        "asn": server_isp.get("as") or "",
-        "org": server_isp.get("org") or "",
-        "public_ip": server_ip,
-        "city": server_isp.get("city") or "",
-        "country": server_isp.get("country") or cf_trace.get("loc") or "",
-        "source": server_isp.get("source") or "",
-        "latency_ms": health.get("avg_latency_ms") or health.get("latency_ms"),
-        "jitter_ms": health.get("jitter_ms"),
-        "loss_percent": health.get("loss_percent") or health.get("packet_loss_percent"),
-        "down_mbps": health.get("probe_download_mbps"),
-        "up_mbps": health.get("probe_upload_mbps"),
-        "cloudflare": {"ok": not bool(cf_trace.get("error")), "ip": cf_trace.get("ip", ""), "colo": cf_trace.get("colo", ""), "loc": cf_trace.get("loc", ""), "tls": cf_trace.get("tls", ""), "http": cf_trace.get("http", ""), "warp": cf_trace.get("warp", ""), "gateway": cf_trace.get("gateway", ""), "error": cf_trace.get("error", "")},
-        "router": sk_isp_gateway_info(),
-        "cloudflared": sk_cloudflared_status(),
-        "isp_groups": isp_groups,
-        "note": "Same ISP names are merged. Cloudflare speed for each ISP requires a probe from that ISP/client line."
-    }
+    isp_groups.sort(key=lambda x: (0 if "router_manual" in x.get("sources", []) else (1 if "server_probe" in x.get("sources", []) else 2), clean_str(x.get("provider"))))
+    data = {"ok":True,"checked_at":now_iso(),"provider":server_provider,"public_ip":server_ip,"latency_ms":health.get("avg_latency_ms") or health.get("latency_ms"),"jitter_ms":health.get("jitter_ms"),"loss_percent":health.get("loss_percent") or health.get("packet_loss_percent"),"down_mbps":health.get("probe_download_mbps"),"up_mbps":health.get("probe_upload_mbps"),"router_settings":router_isp_public_settings() if "router_isp_public_settings" in globals() else {},"isp_groups":isp_groups,"note":"Router manual settings support WAN/interface/VLAN rows. TP-Link ER8411 live web scraping connector can be added after router page/API inspection."}
     ISP_DEEP_CACHE["ts"] = now
     ISP_DEEP_CACHE["data"] = data
     return data
@@ -2114,6 +2096,9 @@ class Handler(BaseHTTPRequestHandler):
             if path == "/api/isp-deep":
                 force = (qs.get("force") or ["0"])[0] in ("1", "true", "yes", "on")
                 return self.send_json(sk_isp_deep_status(force))
+            if path == "/api/router-isp-settings":
+                if not self.require_admin(): return
+                return self.send_json(router_isp_public_settings())
             if path == "/api/users":
                 if not self.require_admin():
                     return
@@ -3099,6 +3084,12 @@ class Handler(BaseHTTPRequestHandler):
                 if not self.require_admin(): return
                 set_settings(body)
                 return self.send_json({"ok": True, "settings": public_settings()})
+            if path == "/api/router-isp-settings":
+                if not self.require_admin(): return
+                return self.send_json(router_isp_save_settings(body))
+            if path == "/api/router-isp-test":
+                if not self.require_admin(): return
+                return self.send_json(router_isp_test_router())
             if path == "/api/users":
                 if not self.require_admin(): return
                 return self.send_json(upsert_user(clean_str(body.get("username")), clean_str(body.get("password")), clean_str(body.get("role") or "viewer"), body.get("enabled", True) not in (False, 0, "0", "false", "False")))

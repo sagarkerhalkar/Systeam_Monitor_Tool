@@ -1908,91 +1908,26 @@ table {
 
 /* FINAL_V2_RESPONSIVE_HARDENING_END */
 
-/* ISP_TABLE_5_ROWS_FONT_2_CSS_START */
-.isp-final-hide-old{display:none!important}
-#ispDeepDetails{
-  position:relative!important;
-  z-index:2!important;
-  margin-top:10px!important;
-  width:100%!important;
-  max-height:295px!important;
-  overflow:auto!important;
-  padding-right:4px!important;
-  scrollbar-width:thin!important;
-}
-.isp-final-table{display:grid!important;gap:6px!important;width:100%!important}
-.isp-final-head,.isp-final-row{
-  display:grid!important;
-  grid-template-columns:1.35fr 1fr 1fr .92fr!important;
-  gap:8px!important;
-  align-items:stretch!important;
-}
-.isp-final-head span{
-  color:#9fffee!important;
-  font-size:10.2px!important;
-  font-weight:950!important;
-  letter-spacing:.10em!important;
-  text-transform:uppercase!important;
-  padding:0 4px 2px!important;
-}
-.isp-final-row{
-  padding:8px 9px!important;
-  border-radius:14px!important;
-  border:1px solid rgba(255,255,255,.16)!important;
-  background:linear-gradient(135deg,rgba(255,255,255,.105),rgba(255,255,255,.045))!important;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.045)!important;
-}
-.isp-final-row.isp-pending-row{
-  border-style:dashed!important;
-  opacity:.82!important;
-}
-.isp-final-row div{min-width:0!important}
-.isp-final-row strong{
-  display:block!important;
-  color:#fff!important;
-  font-size:calc(clamp(11px,.84vw,14px) * 1.02)!important;
-  line-height:1.18!important;
-  font-weight:950!important;
-  overflow:hidden!important;
-  text-overflow:ellipsis!important;
-  overflow-wrap:anywhere!important;
-}
-.isp-final-row small{
-  display:block!important;
-  margin-top:3px!important;
-  color:#d6eef7!important;
-  font-size:calc(9.5px * 1.02)!important;
-  line-height:1.15!important;
-  opacity:.88!important;
-  overflow:hidden!important;
-  text-overflow:ellipsis!important;
-  white-space:nowrap!important;
-}
-.isp-final-note{
-  margin-top:7px!important;
-  color:#dff8ff!important;
-  font-size:calc(10.5px * 1.02)!important;
-  line-height:1.25!important;
-  opacity:.88!important;
-}
-@media(max-width:900px){
-  #ispDeepDetails{max-height:380px!important}
-  .isp-final-head{display:none!important}
-  .isp-final-row{grid-template-columns:1fr 1fr!important}
-}
-@media(max-width:560px){
-  .isp-final-row{grid-template-columns:1fr!important}
-}
-/* ISP_TABLE_5_ROWS_FONT_2_CSS_END */
-
-/* ROUTER_ISP_SETTINGS_UI_CSS_START */
+/* ISP_BOX_VISIBLE_AUTO_CLEAN_CSS_START */
+.premium-hero{display:block!important;visibility:visible!important}
+.premium-hero.isp-final-hide-old{display:block!important}
+.premium-hero .health-metrics,.premium-hero .health-metrics.isp-final-hide-old,.isp-clean-hide-metric-cards{display:none!important}
+#ispDeepDetails{display:block!important;position:relative!important;z-index:2!important;margin-top:10px!important;width:100%!important;max-height:285px!important;overflow:auto!important;padding-right:4px!important;scrollbar-width:thin!important}
+.isp-clean-table{display:grid!important;gap:7px!important;width:100%!important}
+.isp-clean-head,.isp-clean-row{display:grid!important;grid-template-columns:1.35fr 1fr 1fr .92fr!important;gap:8px!important;align-items:stretch!important}
+.isp-clean-head span{color:#9fffee!important;font-size:10.4px!important;font-weight:950!important;letter-spacing:.10em!important;text-transform:uppercase!important;padding:0 4px 2px!important}
+.isp-clean-row{padding:9px 10px!important;border-radius:14px!important;border:1px solid rgba(255,255,255,.16)!important;background:linear-gradient(135deg,rgba(255,255,255,.11),rgba(255,255,255,.045))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.045)!important}
+.isp-clean-row div{min-width:0!important}
+.isp-clean-row strong{display:block!important;color:#fff!important;font-size:calc(clamp(11px,.86vw,14px)*1.02)!important;line-height:1.18!important;font-weight:950!important;overflow:hidden!important;text-overflow:ellipsis!important;overflow-wrap:anywhere!important}
+.isp-clean-row small{display:block!important;margin-top:3px!important;color:#d6eef7!important;font-size:calc(9.5px*1.02)!important;line-height:1.15!important;opacity:.9!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+.isp-clean-note{margin-top:7px!important;color:#dff8ff!important;font-size:10.6px!important;line-height:1.25!important;opacity:.9!important}
 .router-isp-settings-panel{margin-top:18px}
 .router-settings-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:12px 0}
 .router-settings-grid label{display:flex;flex-direction:column;gap:6px;color:#64748b;font-size:12px;font-weight:850}
-.router-settings-grid input,.router-settings-grid select,.router-isp-add-row input{min-height:42px;border:1px solid #dbe7f6;border-radius:12px;padding:9px 11px;background:#fff;color:#0f172a;font-weight:750}
-.router-check{justify-content:center;flex-direction:row!important;align-items:center;color:#b45309!important}.router-check input{min-height:auto!important}
-.router-isp-add-row{display:grid;grid-template-columns:1.4fr 1fr .75fr .95fr .7fr .7fr .65fr .75fr .75fr auto;gap:8px;margin:12px 0}
-#routerIspTable td small{display:block;color:#64748b;margin-top:3px;font-size:11px}
-@media(max-width:1100px){.router-settings-grid{grid-template-columns:1fr 1fr}.router-isp-add-row{grid-template-columns:1fr 1fr}}
-@media(max-width:620px){.router-settings-grid,.router-isp-add-row{grid-template-columns:1fr}}
-/* ROUTER_ISP_SETTINGS_UI_CSS_END */
+.router-settings-grid input,.router-settings-grid select{min-height:42px;border:1px solid #dbe7f6;border-radius:12px;padding:9px 11px;background:#fff;color:#0f172a;font-weight:750}
+.router-check{justify-content:center;flex-direction:row!important;align-items:center;color:#b45309!important}
+.router-check input{min-height:auto!important}
+.router-auto-note{padding:12px 14px;border:1px dashed #b7c9e7;border-radius:14px;background:#f8fbff;color:#334155;font-weight:700;line-height:1.45}
+@media(max-width:900px){#ispDeepDetails{max-height:360px!important}.isp-clean-head{display:none!important}.isp-clean-row{grid-template-columns:1fr 1fr!important}.router-settings-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.isp-clean-row,.router-settings-grid{grid-template-columns:1fr!important}}
+/* ISP_BOX_VISIBLE_AUTO_CLEAN_CSS_END */

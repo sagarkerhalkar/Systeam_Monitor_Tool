@@ -202,10 +202,29 @@
         </div>
       </section>
 <section id="page-settings" class="page"><div class="two-col"><section class="panel admin-only"><div class="panel-head"><h2>User Access</h2><span>Create viewer/admin accounts</span></div><p class="muted">Viewer users can see live data only. Admin users can download, change settings and deploy.</p><div class="form-grid"><input id="newUserName" placeholder="username"><input id="newUserPass" type="password" placeholder="password min 8 chars"><select id="newUserRole"><option value="viewer">viewer - see only</option><option value="admin">admin - full access</option></select><button class="btn primary" onclick="saveUser()">Add / Update User</button></div><div class="table-wrap"><table id="usersTable"><thead><tr><th>User</th><th>Role</th><th>Enabled</th><th>Updated</th><th>Action</th></tr></thead><tbody></tbody></table></div></section><section class="panel admin-only"><div class="panel-head"><h2>Change Admin Password</h2></div><label class="label">Old Password</label><input id="oldPassword" type="password" class="full"><label class="label">New Password</label><input id="newPassword" type="password" class="full"><label class="label">Confirm New Password</label><input id="confirmPassword" type="password" class="full"><button class="btn primary" onclick="changePassword()">Change Password</button><p class="muted">Use at least 8 characters. After change, keep the new password safely.</p></section></div><section class="panel"><div class="panel-head"><h2>Refresh Control</h2></div><p class="muted">To make reading easy, USB, Change Log, Day History, Deploy, Settings, Messages and Notifications will not redraw automatically. You will see a banner when new data arrives.</p><button class="btn" onclick="toggleAutoRefresh()" id="settingsAutoBtn">Live Refresh: On</button></section><section class="panel admin-only router-isp-settings-panel" id="routerIspSettingsPanel">
-  <div class="panel-head"><div><h2>Router ISP Settings</h2><p class="muted">TP-Link ER8411 router-level ISP lines. Add WAN/interface/VLAN rows manually here. Password is saved only in local config, never pushed to GitHub.</p></div><div class="history-actions"><button class="btn small" onclick="loadRouterIspSettings(true)">Reload</button><button class="btn small" onclick="testRouterIspConnection()">Test Router</button><button class="btn small primary" onclick="saveRouterIspSettings()">Save Router ISP Settings</button></div></div>
-  <div class="router-settings-grid"><label>Router Brand/Model<input id="routerBrandModel" placeholder="TP-Link ER8411"></label><label>Router Login IP<input id="routerLoginIp" placeholder="192.168.0.1"></label><label>Access Type<select id="routerAccessType"><option value="web">Web Login</option><option value="snmp">SNMP</option><option value="ssh">SSH</option><option value="api">API</option></select></label><label>Username<input id="routerUsername" placeholder="admin"></label><label>Password<input id="routerPassword" type="password" placeholder="Enter locally only"></label><label class="router-check"><input id="routerClearPassword" type="checkbox"> Clear saved password</label></div>
-  <div class="router-isp-add-row"><input id="riProvider" placeholder="Provider / ISP name"><input id="riInterface" placeholder="WAN / interface name"><input id="riVlan" placeholder="VLAN ID / none"><input id="riPublicIp" placeholder="Public IP"><input id="riLatency" placeholder="Latency ms"><input id="riJitter" placeholder="Jitter ms"><input id="riLoss" placeholder="Loss %"><input id="riDown" placeholder="Down Mbps"><input id="riUp" placeholder="Up Mbps"><button class="btn small primary" onclick="addRouterIspRow()">Add ISP Line</button></div>
-  <div class="table-wrap"><table id="routerIspTable"><thead><tr><th>Provider</th><th>WAN / VLAN</th><th>Latency/Jitter/Loss</th><th>Down/Up</th><th>Public IP</th><th>Action</th></tr></thead><tbody></tbody></table></div><p id="routerIspStatus" class="muted">Router details load here. Use one row per company ISP line. VLAN is optional.</p>
+  <div class="panel-head">
+    <div>
+      <h2>Router Auto Source Settings</h2>
+      <p class="muted">For TP-Link ER8411. Enter router connection details only. ISP names should come automatically from router/client discovery; do not type ISP names here.</p>
+    </div>
+    <div class="history-actions">
+      <button class="btn small" onclick="loadRouterIspSettings(true)">Reload</button>
+      <button class="btn small" onclick="testRouterIspConnection()">Test Router</button>
+      <button class="btn small primary" onclick="saveRouterIspSettings()">Save Router Details</button>
+    </div>
+  </div>
+  <div class="router-settings-grid">
+    <label>Router Brand/Model<input id="routerBrandModel" placeholder="TP-Link ER8411"></label>
+    <label>Router Login IP<input id="routerLoginIp" placeholder="192.168.0.1"></label>
+    <label>Access Type<select id="routerAccessType"><option value="web">Web Login</option><option value="snmp">SNMP</option><option value="ssh">SSH</option><option value="api">API</option></select></label>
+    <label>Username<input id="routerUsername" placeholder="admin"></label>
+    <label>Password<input id="routerPassword" type="password" placeholder="Enter locally only"></label>
+    <label class="router-check"><input id="routerClearPassword" type="checkbox"> Clear saved password</label>
+  </div>
+  <div class="router-auto-note">
+    <strong>Auto mode:</strong> Dashboard ISP table will show all discovered ISP/company lines. WAN/interface and VLAN will appear when router connector reads them. For now, the app will not ask you to manually type ISP names.
+  </div>
+  <p id="routerIspStatus" class="muted">Router details load here. Password stays local only.</p>
 </section><section class="panel viewer-note"><h2>View-only account</h2><p class="muted">You can see live machine data, ISP status, USB, history and changes. Downloads, password changes, notification edits and deploy changes are admin-only.</p></section></section>
     </main>
   </div>

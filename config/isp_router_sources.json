@@ -1,0 +1,59 @@
+{
+  "router": {
+    "ip": "156.156.40.1",
+    "method": "manual_until_router_api_details_given",
+    "note": "Fill missing ISP rows here. UI always shows 5 ISP slots."
+  },
+  "isp_rows": [
+    {
+      "provider": "AS135782 Nyak Technologies And Teleservices Pvt Ltd",
+      "public_ip": "103.82.99.226",
+      "latency_ms": null,
+      "jitter_ms": null,
+      "loss_percent": null,
+      "down_mbps": null,
+      "up_mbps": null,
+      "source_label": "Router"
+    },
+    {
+      "provider": "AS24560 Bharti Airtel Ltd., Telemedia Services",
+      "public_ip": "182.70.245.115",
+      "latency_ms": null,
+      "jitter_ms": null,
+      "loss_percent": null,
+      "down_mbps": null,
+      "up_mbps": null,
+      "source_label": "Router"
+    },
+    {
+      "provider": "AS132964 Fibernet Solutions (opc) Pvt. Ltd.",
+      "public_ip": "103.85.93.246",
+      "latency_ms": null,
+      "jitter_ms": null,
+      "loss_percent": null,
+      "down_mbps": null,
+      "up_mbps": null,
+      "source_label": "Router"
+    },
+    {
+      "provider": "Router ISP 4 details pending",
+      "public_ip": "Pending",
+      "latency_ms": null,
+      "jitter_ms": null,
+      "loss_percent": null,
+      "down_mbps": null,
+      "up_mbps": null,
+      "source_label": "Router pending"
+    },
+    {
+      "provider": "Router ISP 5 details pending",
+      "public_ip": "Pending",
+      "latency_ms": null,
+      "jitter_ms": null,
+      "loss_percent": null,
+      "down_mbps": null,
+      "up_mbps": null,
+      "source_label": "Router pending"
+    }
+  ]
+}

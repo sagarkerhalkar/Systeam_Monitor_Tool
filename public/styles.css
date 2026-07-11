@@ -1909,98 +1909,18 @@ table {
 /* FINAL_V2_RESPONSIVE_HARDENING_END */
 
 /* ISP_DEEP_BOX_ONLY_CSS_START */
-#ispDeepDetails{
-  position:relative;
-  z-index:2;
-  margin-top:10px;
-  width:100%;
-  max-height:255px;
-  overflow:auto;
-  padding-right:2px;
-  scrollbar-width:thin;
-}
-.isp-compact-top{
-  display:grid;
-  grid-template-columns:repeat(4,minmax(0,1fr));
-  gap:7px;
-  margin-bottom:8px;
-}
-.isp-compact-top span{
-  padding:7px 9px;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,.16);
-  background:rgba(255,255,255,.08);
-  color:#eaffff;
-  font-size:10.5px;
-  line-height:1.1;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-}
-.isp-compact-top b{
-  color:#9fffee;
-  font-weight:950;
-  letter-spacing:.06em;
-  text-transform:uppercase;
-}
-.isp-compact-table{
-  display:grid;
-  gap:6px;
-}
-.isp-compact-head,
-.isp-compact-row{
-  display:grid;
-  grid-template-columns:1.4fr 1fr 1fr .9fr;
-  gap:8px;
-  align-items:stretch;
-}
-.isp-compact-head span{
-  color:#9fffee;
-  font-size:10px;
-  font-weight:950;
-  letter-spacing:.10em;
-  text-transform:uppercase;
-  padding:0 4px 2px;
-}
-.isp-compact-row{
-  padding:8px 9px;
-  border-radius:14px;
-  border:1px solid rgba(255,255,255,.14);
-  background:linear-gradient(135deg,rgba(255,255,255,.10),rgba(255,255,255,.045));
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.045);
-}
-.isp-compact-row div{
-  min-width:0;
-}
-.isp-compact-row strong{
-  display:block;
-  color:#fff;
-  font-size:clamp(11px,.86vw,14px);
-  line-height:1.18;
-  font-weight:950;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  overflow-wrap:anywhere;
-}
-.isp-compact-row small{
-  display:block;
-  margin-top:3px;
-  color:#d6eef7;
-  font-size:9.5px;
-  line-height:1.15;
-  opacity:.9;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-}
-@media(max-width:900px){
-  #ispDeepDetails{max-height:320px}
-  .isp-compact-top{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .isp-compact-head{display:none}
-  .isp-compact-row{grid-template-columns:1fr 1fr}
-}
-@media(max-width:560px){
-  .isp-compact-top{grid-template-columns:1fr}
-  .isp-compact-row{grid-template-columns:1fr}
-}
+#ispDeepDetails{position:relative;z-index:2;margin-top:10px;width:100%;max-height:250px;overflow:auto;padding-right:2px;scrollbar-width:thin}
+.isp-compact-top{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-bottom:8px}
+.isp-compact-top span{padding:7px 9px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.08);color:#eaffff;font-size:10.5px;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.isp-compact-top b{color:#9fffee;font-weight:950;letter-spacing:.06em;text-transform:uppercase}
+.isp-compact-table{display:grid;gap:6px}
+.isp-compact-head,.isp-compact-row{display:grid;grid-template-columns:1.35fr 1fr 1fr .9fr;gap:8px;align-items:stretch}
+.isp-compact-head span{color:#9fffee;font-size:10px;font-weight:950;letter-spacing:.10em;text-transform:uppercase;padding:0 4px 2px}
+.isp-compact-row{padding:8px 9px;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:linear-gradient(135deg,rgba(255,255,255,.10),rgba(255,255,255,.045));box-shadow:inset 0 1px 0 rgba(255,255,255,.045)}
+.isp-compact-row div{min-width:0}
+.isp-compact-row strong{display:block;color:#fff;font-size:clamp(11px,.84vw,14px);line-height:1.18;font-weight:950;overflow:hidden;text-overflow:ellipsis;overflow-wrap:anywhere}
+.isp-compact-row small{display:block;margin-top:3px;color:#d6eef7;font-size:9.5px;line-height:1.15;opacity:.9;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.isp-deep-note{margin-top:7px;color:#dff8ff;font-size:10.5px;line-height:1.25;opacity:.88}
+@media(max-width:900px){#ispDeepDetails{max-height:320px}.isp-compact-top{grid-template-columns:repeat(2,minmax(0,1fr))}.isp-compact-head{display:none}.isp-compact-row{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.isp-compact-top{grid-template-columns:1fr}.isp-compact-row{grid-template-columns:1fr}}
 /* ISP_DEEP_BOX_ONLY_CSS_END */

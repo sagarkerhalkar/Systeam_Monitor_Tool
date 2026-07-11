@@ -5776,57 +5776,29 @@ function ispDeepMetric(v, suffix='', decimals=0){
   return String(v);
 }
 function ispDeepRows(data){
+  const rows = ((data && data.isp_groups) || []);
+  if(rows.length) return rows;
   const o = state.overview || {};
   const ih = o.internet_health || {};
-  const cf = (data && data.cloudflare) || {};
-  const rows = [];
-
-  const provider = (data||{}).provider || ((o.server_isp||{}).isp) || 'Server ISP';
-  const pubIp = (data||{}).public_ip || cf.ip || '';
-  const latency = (data||{}).latency_ms ?? ih.avg_latency_ms ?? ih.latency_ms;
-  const jitter = (data||{}).jitter_ms ?? ih.jitter_ms;
-  const loss = (data||{}).loss_percent ?? ih.loss_percent ?? ih.packet_loss_percent;
-  const down = (data||{}).down_mbps ?? ih.probe_download_mbps;
-  const up = (data||{}).up_mbps ?? ih.probe_upload_mbps;
-
-  rows.push({
-    provider: provider,
-    meta: ((data||{}).asn || (data||{}).org || '').replace(/^AS/i,'AS'),
-    quality: `${ispDeepMetric(latency,' ms',0)} / ${ispDeepMetric(jitter,' ms',0)} / ${ispDeepMetric(loss,'%',0)}`,
-    probe: `${ispDeepMetric(down,' Mbps',2)} / ${ispDeepMetric(up,' Mbps',2)}`,
-    publicIp: pubIp || 'N/A',
-    tag: 'Server'
-  });
-
-  ((data && data.client_samples) || []).forEach(x => {
-    const p = x.isp || 'Client ISP';
-    const exists = rows.some(r => r.provider === p && r.publicIp === (x.public_ip || 'N/A'));
-    if(!exists){
-      rows.push({
-        provider: p,
-        meta: x.host || '',
-        quality: 'client sample',
-        probe: x.online ? 'online client' : 'offline client',
-        publicIp: x.public_ip || 'N/A',
-        tag: x.online ? 'Online' : 'Offline'
-      });
-    }
-  });
-
-  ((data && data.client_isp_counts) || []).forEach(x => {
-    if(!rows.some(r => r.provider === x.isp)){
-      rows.push({
-        provider: x.isp,
-        meta: `${x.count} client(s)`,
-        quality: 'client ISP',
-        probe: 'from clients',
-        publicIp: 'see samples',
-        tag: 'Client'
-      });
-    }
-  });
-
-  return rows.slice(0,8);
+  return [{
+    provider:(data||{}).provider || ((o.server_isp||{}).isp) || 'Server ISP',
+    meta:(data||{}).asn || (data||{}).org || '',
+    latency_ms:(data||{}).latency_ms ?? ih.avg_latency_ms ?? ih.latency_ms,
+    jitter_ms:(data||{}).jitter_ms ?? ih.jitter_ms,
+    loss_percent:(data||{}).loss_percent ?? ih.loss_percent ?? ih.packet_loss_percent,
+    down_mbps:(data||{}).down_mbps ?? ih.probe_download_mbps,
+    up_mbps:(data||{}).up_mbps ?? ih.probe_upload_mbps,
+    public_ip:(data||{}).public_ip || 'N/A',
+    source_label:'Server'
+  }];
+}
+function ispQualityText(r){
+  if(r.latency_ms===null || r.latency_ms===undefined || r.latency_ms==='') return r.probe_note || 'Cloudflare probe missing';
+  return `${ispDeepMetric(r.latency_ms,' ms',0)} / ${ispDeepMetric(r.jitter_ms,' ms',0)} / ${ispDeepMetric(r.loss_percent,'%',0)}`;
+}
+function ispProbeText(r){
+  if(r.down_mbps===null || r.down_mbps===undefined || r.down_mbps==='') return r.probe_note || 'Cloudflare probe missing';
+  return `${ispDeepMetric(r.down_mbps,' Mbps',2)} / ${ispDeepMetric(r.up_mbps,' Mbps',2)}`;
 }
 function renderIspDeepBox(data){
   const box = $('#ispDeepDetails');
@@ -5835,7 +5807,6 @@ function renderIspDeepBox(data){
   const router = (data && data.router) || {};
   const cfd = (data && data.cloudflared) || {};
   const rows = ispDeepRows(data);
-
   const html = `
     <div class="isp-compact-top">
       <span><b>Cloudflare</b> ${esc(ispDeepText(cf.colo))} / ${esc(ispDeepText(cf.loc))}</span>
@@ -5852,13 +5823,14 @@ function renderIspDeepBox(data){
       </div>
       ${rows.map(r => `
         <div class="isp-compact-row">
-          <div><strong>${esc(r.provider)}</strong><small>${esc(r.meta || r.tag || '')}</small></div>
-          <div><strong>${esc(r.quality)}</strong><small>quality</small></div>
-          <div><strong>${esc(r.probe)}</strong><small>${esc(r.tag || '')}</small></div>
-          <div><strong>${esc(r.publicIp)}</strong><small>public IP</small></div>
+          <div><strong title="${esc(r.provider||'')}">${esc(r.provider||'Unknown ISP')}</strong><small>${esc((r.source_label||'') + (r.count?` • ${r.count} record(s)`:''))}</small></div>
+          <div><strong>${esc(ispQualityText(r))}</strong><small>Cloudflare quality</small></div>
+          <div><strong>${esc(ispProbeText(r))}</strong><small>${esc(r.has_probe?'probe OK':'needs client probe')}</small></div>
+          <div><strong title="${esc(r.public_ip||'')}">${esc(r.public_ip||'N/A')}</strong><small>public IP</small></div>
         </div>
       `).join('')}
     </div>
+    <div class="isp-deep-note">${esc((data||{}).note || 'Same ISP names are merged. Cloudflare speed for each ISP requires a probe from that ISP/client line.')}</div>
   `;
   if(box.dataset.lastHtml !== html){
     box.innerHTML = html;
@@ -5892,5 +5864,13 @@ async function refreshIspDeepBox(force=false){
     renderIspDeepBox(ispDeepState.data || {});
     refreshIspDeepBox(false);
   };
+  if(typeof window.runServerSpeedTest === 'function'){
+    const oldSpeed = window.runServerSpeedTest;
+    window.runServerSpeedTest = async function(full){
+      const r = await oldSpeed.apply(this, arguments);
+      setTimeout(()=>refreshIspDeepBox(true), 900);
+      return r;
+    };
+  }
 })();
 /* ISP_DEEP_BOX_ONLY_END */

@@ -1641,6 +1641,7 @@ def load_latest() -> List[Dict[str, Any]]:
     return out
 
 
+
 # ISP_DEEP_BOX_ONLY_START
 ISP_DEEP_CACHE: Dict[str, Any] = {"ts": 0.0, "data": {}}
 
@@ -1651,6 +1652,12 @@ def sk_isp_parse_cloudflare_trace(text: str) -> Dict[str, Any]:
             k, v = line.split("=", 1)
             out[k.strip()] = v.strip()
     return out
+
+def sk_isp_norm_provider(v: str) -> str:
+    s = clean_str(v).lower()
+    s = re.sub(r"\s+", " ", s).strip()
+    s = re.sub(r"[^a-z0-9]+", "", s)
+    return s
 
 def sk_isp_gateway_info() -> Dict[str, Any]:
     import socket
@@ -1703,6 +1710,61 @@ def sk_cloudflared_status() -> Dict[str, Any]:
         out["error"] = str(e)
     return out
 
+def sk_num_first(*vals):
+    for v in vals:
+        try:
+            if v is not None and v != "":
+                return float(v)
+        except Exception:
+            pass
+    return None
+
+def sk_isp_client_probe_fields(m: Dict[str, Any]) -> Dict[str, Any]:
+    """Read probe fields if the client already sends them. Does not invent values."""
+    h = m.get("internet_health") if isinstance(m.get("internet_health"), dict) else {}
+    return {
+        "latency_ms": sk_num_first(m.get("latency_ms"), m.get("avg_latency_ms"), h.get("latency_ms"), h.get("avg_latency_ms")),
+        "jitter_ms": sk_num_first(m.get("jitter_ms"), h.get("jitter_ms")),
+        "loss_percent": sk_num_first(m.get("loss_percent"), m.get("packet_loss_percent"), h.get("loss_percent"), h.get("packet_loss_percent")),
+        "down_mbps": sk_num_first(m.get("probe_download_mbps"), m.get("download_mbps"), h.get("probe_download_mbps"), h.get("download_mbps")),
+        "up_mbps": sk_num_first(m.get("probe_upload_mbps"), m.get("upload_mbps"), h.get("probe_upload_mbps"), h.get("upload_mbps")),
+    }
+
+def sk_merge_isp_group(groups: Dict[str, Dict[str, Any]], provider: str, public_ip: str = "", source: str = "client", meta: str = "", metrics: Dict[str, Any] = None, host: str = ""):
+    provider = clean_str(provider) or "Unknown ISP"
+    key = sk_isp_norm_provider(provider) or ("ip_" + clean_str(public_ip)) or "unknown"
+    g = groups.setdefault(key, {
+        "provider": provider,
+        "sources": set(),
+        "public_ips": [],
+        "hosts": [],
+        "count": 0,
+        "latency_ms": None,
+        "jitter_ms": None,
+        "loss_percent": None,
+        "down_mbps": None,
+        "up_mbps": None,
+        "meta": meta,
+        "has_probe": False,
+    })
+    # Keep longest/provider-rich label.
+    if len(provider) > len(clean_str(g.get("provider"))):
+        g["provider"] = provider
+    g["sources"].add(source)
+    g["count"] += 1
+    if public_ip and public_ip not in g["public_ips"]:
+        g["public_ips"].append(public_ip)
+    if host and host not in g["hosts"]:
+        g["hosts"].append(host)
+    if meta and not g.get("meta"):
+        g["meta"] = meta
+    metrics = metrics or {}
+    for k in ["latency_ms", "jitter_ms", "loss_percent", "down_mbps", "up_mbps"]:
+        if g.get(k) is None and metrics.get(k) is not None:
+            g[k] = metrics.get(k)
+    if any(metrics.get(k) is not None for k in ["latency_ms", "jitter_ms", "loss_percent", "down_mbps", "up_mbps"]):
+        g["has_probe"] = True
+
 def sk_isp_deep_status(force: bool = False) -> Dict[str, Any]:
     now = time.time()
     if not force and ISP_DEEP_CACHE.get("data") and now - float(ISP_DEEP_CACHE.get("ts") or 0) < 45:
@@ -1727,26 +1789,46 @@ def sk_isp_deep_status(force: bool = False) -> Dict[str, Any]:
     except Exception:
         machines = []
 
-    isp_counts: Dict[str, int] = {}
-    public_ips: List[str] = []
-    client_rows: List[Dict[str, Any]] = []
-    for m in machines[:500]:
-        isp = clean_str(m.get("isp_name"))
-        pub = clean_str(m.get("public_ip"))
-        if isp:
-            isp_counts[isp] = isp_counts.get(isp, 0) + 1
-        if pub and pub not in public_ips:
-            public_ips.append(pub)
-        if isp or pub:
-            client_rows.append({"host": clean_str(m.get("hostname") or m.get("machine_id")), "isp": isp, "public_ip": pub, "lan_ip": clean_str(m.get("primary_ip")), "online": bool(m.get("online"))})
+    groups: Dict[str, Dict[str, Any]] = {}
+    server_provider = server_isp.get("isp") or server_isp.get("org") or server_isp.get("as") or "Server ISP"
+    server_ip = server_isp.get("public_ip") or cf_trace.get("ip") or ""
+    sk_merge_isp_group(groups, server_provider, server_ip, "server", server_isp.get("as") or server_isp.get("org") or "", {
+        "latency_ms": health.get("avg_latency_ms") or health.get("latency_ms"),
+        "jitter_ms": health.get("jitter_ms"),
+        "loss_percent": health.get("loss_percent") or health.get("packet_loss_percent"),
+        "down_mbps": health.get("probe_download_mbps"),
+        "up_mbps": health.get("probe_upload_mbps"),
+    }, "server")
+
+    for m in machines[:1000]:
+        provider = clean_str(m.get("isp_name") or m.get("isp") or m.get("public_isp"))
+        public_ip = clean_str(m.get("public_ip") or m.get("wan_ip"))
+        host = clean_str(m.get("hostname") or m.get("machine_id"))
+        if not provider and not public_ip:
+            continue
+        if not provider:
+            provider = "Unknown ISP"
+        sk_merge_isp_group(groups, provider, public_ip, "client", f"{host}", sk_isp_client_probe_fields(m), host)
+
+    isp_groups = []
+    for g in groups.values():
+        sources = sorted(list(g.pop("sources", set())))
+        g["sources"] = sources
+        g["source_label"] = "Server + Clients" if ("server" in sources and "client" in sources) else ("Server" if "server" in sources else "Clients")
+        g["public_ip"] = ", ".join(g["public_ips"][:3]) + (f" +{len(g['public_ips'])-3}" if len(g["public_ips"]) > 3 else "")
+        g["host_count"] = len(g["hosts"])
+        g["probe_note"] = "Cloudflare speed probe OK" if g.get("has_probe") else "Client Cloudflare probe missing"
+        isp_groups.append(g)
+
+    isp_groups.sort(key=lambda x: (0 if "server" in x.get("sources", []) else 1, -int(x.get("count") or 0), clean_str(x.get("provider"))))
 
     data = {
         "ok": True,
         "checked_at": now_iso(),
-        "provider": server_isp.get("isp") or server_isp.get("org") or server_isp.get("as") or "",
+        "provider": server_provider,
         "asn": server_isp.get("as") or "",
         "org": server_isp.get("org") or "",
-        "public_ip": server_isp.get("public_ip") or cf_trace.get("ip") or "",
+        "public_ip": server_ip,
         "city": server_isp.get("city") or "",
         "country": server_isp.get("country") or cf_trace.get("loc") or "",
         "source": server_isp.get("source") or "",
@@ -1755,14 +1837,11 @@ def sk_isp_deep_status(force: bool = False) -> Dict[str, Any]:
         "loss_percent": health.get("loss_percent") or health.get("packet_loss_percent"),
         "down_mbps": health.get("probe_download_mbps"),
         "up_mbps": health.get("probe_upload_mbps"),
-        "health": health,
         "cloudflare": {"ok": not bool(cf_trace.get("error")), "ip": cf_trace.get("ip", ""), "colo": cf_trace.get("colo", ""), "loc": cf_trace.get("loc", ""), "tls": cf_trace.get("tls", ""), "http": cf_trace.get("http", ""), "warp": cf_trace.get("warp", ""), "gateway": cf_trace.get("gateway", ""), "error": cf_trace.get("error", "")},
         "router": sk_isp_gateway_info(),
         "cloudflared": sk_cloudflared_status(),
-        "client_isp_counts": [{"isp": k, "count": v} for k, v in sorted(isp_counts.items(), key=lambda kv: kv[1], reverse=True)[:8]],
-        "client_public_ips": public_ips[:8],
-        "client_samples": client_rows[:12],
-        "note": "Router gateway/local IP is detected without router login. Router WAN/SNMP stats need router details."
+        "isp_groups": isp_groups,
+        "note": "Same ISP names are merged. Cloudflare speed for each ISP requires a probe from that ISP/client line."
     }
     ISP_DEEP_CACHE["ts"] = now
     ISP_DEEP_CACHE["data"] = data

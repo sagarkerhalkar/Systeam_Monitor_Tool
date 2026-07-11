@@ -625,140 +625,6 @@ def stable_machine_merge_key(payload: Dict[str, Any], summary: Optional[Dict[str
     return ""
 
 
-# MACHINE_FLEET_MERGE_DELETE_NO_FLICKER_V5_START
-def mf_v5_ip_bad_reason(ip: str) -> str:
-    ip = clean_str(ip)
-    if not ip:
-        return "blank"
-    try:
-        parts = [int(x) for x in ip.split(".")]
-    except Exception:
-        return "invalid"
-    if len(parts) != 4 or any(x < 0 or x > 255 for x in parts):
-        return "invalid"
-    if ip in {"0.0.0.0", "255.255.255.255"}:
-        return "invalid"
-    if parts[0] == 127:
-        return "loopback"
-    if parts[0] == 169 and parts[1] == 254:
-        return "auto-ip"
-    low = ip.lower()
-    if low.startswith("192.168.56."):
-        return "virtualbox"
-    if low.startswith("192.168.99."):
-        return "docker_vm"
-    if low.startswith("172.17.") or low.startswith("172.18.") or low.startswith("172.19."):
-        return "docker_vm"
-    if low == "172.28.176.1":
-        return "virtual_vpn"
-    return ""
-
-def mf_v5_is_private_ip(ip: str) -> bool:
-    try:
-        p = [int(x) for x in clean_str(ip).split(".")]
-        return len(p) == 4 and (p[0] == 10 or (p[0] == 192 and p[1] == 168) or (p[0] == 172 and 16 <= p[1] <= 31))
-    except Exception:
-        return False
-
-def mf_v5_ip_score(ip: str, preferred_prefixes: Optional[List[str]] = None) -> int:
-    ip = clean_str(ip)
-    if mf_v5_ip_bad_reason(ip):
-        return -5000
-    score = 0
-    for pref in (preferred_prefixes or ["156.156."]):
-        if ip.startswith(pref):
-            score += 10000
-    if mf_v5_is_private_ip(ip):
-        score += 1000
-    if ip.startswith("192.168."):
-        score += 700
-    if ip.startswith("10."):
-        score += 500
-    if ip.startswith("172."):
-        score += 250
-    return score
-
-def mf_v5_best_primary_ip(primary_ip: str, all_ips: List[str]) -> Tuple[str, List[str], str]:
-    seen = []
-    for ip in [primary_ip] + list(all_ips or []):
-        ip = clean_str(ip)
-        if ip and ip not in seen:
-            seen.append(ip)
-    valid = [ip for ip in seen if re.match(r"^\d{1,3}(?:\.\d{1,3}){3}$", ip)]
-    if not valid:
-        return clean_str(primary_ip), list(all_ips or []), ""
-    best = sorted(valid, key=lambda x: mf_v5_ip_score(x), reverse=True)[0]
-    reason = mf_v5_ip_bad_reason(primary_ip)
-    ordered = [best] + [ip for ip in valid if ip != best]
-    return best, ordered, reason
-
-def mf_v5_norm_host(v: str) -> str:
-    s = clean_str(v).strip().lower()
-    if not s or s in {"unknown", "unknown-host", "localhost"}:
-        return ""
-    return re.sub(r"[^a-z0-9_-]+", "", s)
-
-def mf_v5_dt_score(v: str) -> float:
-    try:
-        return dt.datetime.fromisoformat(str(v or "").replace("Z", "+00:00")).timestamp()
-    except Exception:
-        return 0.0
-
-def mf_v5_cleanup_latest_table(con: sqlite3.Connection) -> Dict[str, Any]:
-    rows = con.execute("SELECT machine_id,hostname,id_source,id_value,updated_at,summary_json,payload_json FROM latest ORDER BY updated_at DESC").fetchall()
-    prepared = []
-    updated_ip = []
-    for r in rows:
-        d = dict(r)
-        summary = safe_json_loads(d.get("summary_json", "{}"), {})
-        payload = safe_json_loads(d.get("payload_json", "{}"), {})
-        if not isinstance(summary, dict):
-            summary = {}
-        if not isinstance(payload, dict):
-            payload = {}
-        mid = clean_str(d.get("machine_id") or summary.get("machine_id"))
-        host = clean_str(d.get("hostname") or summary.get("hostname"))
-        merge_key = stable_machine_merge_key(payload, summary)
-        host_key = mf_v5_norm_host(host)
-        primary, all_ips, old_bad = mf_v5_best_primary_ip(clean_str(summary.get("primary_ip")), summary.get("all_ips") or [])
-        if primary and primary != summary.get("primary_ip"):
-            summary["primary_ip"] = primary
-            summary["all_ips"] = all_ips
-            summary["ip_auto_fixed"] = True
-            summary["old_primary_ip_reason"] = old_bad
-            con.execute("UPDATE latest SET summary_json=? WHERE machine_id=?", (json.dumps(summary, ensure_ascii=False), mid))
-            updated_ip.append(mid)
-        prepared.append({"machine_id": mid, "hostname": host, "host_key": host_key, "merge_key": merge_key, "updated_at": d.get("updated_at") or "", "ts": mf_v5_dt_score(d.get("updated_at")), "primary_ip": summary.get("primary_ip") or ""})
-    to_delete = set()
-    def keep_newest(group):
-        clean = [x for x in group if x.get("machine_id")]
-        if len(clean) <= 1:
-            return
-        clean.sort(key=lambda x: x.get("ts") or 0, reverse=True)
-        keep = clean[0]["machine_id"]
-        for x in clean[1:]:
-            if x["machine_id"] != keep:
-                to_delete.add(x["machine_id"])
-    by_merge = {}
-    by_host = {}
-    for x in prepared:
-        if x.get("merge_key"):
-            by_merge.setdefault(x["merge_key"], []).append(x)
-        if x.get("host_key"):
-            by_host.setdefault(x["host_key"], []).append(x)
-    for g in by_merge.values():
-        keep_newest(g)
-    for g in by_host.values():
-        keep_newest(g)
-    deleted = []
-    for mid in sorted(to_delete):
-        con.execute("DELETE FROM latest WHERE machine_id=?", (mid,))
-        deleted.append(mid)
-    if deleted or updated_ip:
-        log(f"mf_v5_machine_fleet_cleanup: deleted={deleted} updated_ip={updated_ip}")
-    return {"deleted": deleted, "updated_ip": updated_ip, "deleted_count": len(deleted), "updated_ip_count": len(updated_ip)}
-# MACHINE_FLEET_MERGE_DELETE_NO_FLICKER_V5_END
-
 def cleanup_duplicate_latest_rows(con: sqlite3.Connection, summary: Dict[str, Any], payload: Dict[str, Any]) -> List[str]:
     """Delete repeated/wrong current-state rows for the same client from `latest` only.
 
@@ -1139,8 +1005,6 @@ def summarize_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
         "os": os_name,
         "primary_ip": primary_ip,
         "all_ips": all_ips,
-        "old_primary_ip_reason": old_primary_ip_reason,
-        "ip_auto_fixed": bool(old_primary_ip_reason),
         "cpu_percent": to_float(get_nested(payload, ["hardware.cpu.usage_percent", "cpu_percent", "cpu.usage_percent"]), 0),
         "cpu_temp_c": to_float(get_nested(payload, ["hardware.cpu.temperature_c", "cpu_temp_c", "cpu.temperature_c"])),
         "ram_percent": to_float(get_nested(payload, ["hardware.memory.used_percent", "ram_percent", "memory.used_percent"]), 0),
@@ -1704,14 +1568,7 @@ def load_latest() -> List[Dict[str, Any]]:
         timeout = float(settings.get("offline_timeout_minutes", "0.25"))
     except Exception:
         timeout = 0.25
-    machine_cleanup = {"deleted": [], "updated_ip": [], "deleted_count": 0, "updated_ip_count": 0}
     with DB_LOCK, db_connect() as con:
-        try:
-            machine_cleanup = mf_v5_cleanup_latest_table(con)
-            globals()["_LAST_MACHINE_CLEANUP"] = machine_cleanup
-            con.commit()
-        except Exception as e:
-            log(f"mf_v5 cleanup failed: {e}")
         rows = con.execute("SELECT * FROM latest ORDER BY updated_at DESC").fetchall()
     now_ts = dt.datetime.now(dt.timezone.utc).timestamp()
     out: List[Dict[str, Any]] = []
@@ -1831,8 +1688,7 @@ def overview() -> Dict[str, Any]:
         "internet_health": internet_health,
         "isp_speed_note": internet_health.get("speed_note", ""),
         "isp_speed_source": "server_live_probe" if (probe_down or probe_up) else "client_live_usage",
-        "machines": machines[:500], "notifications": [dict(r) for r in notif], "changes": [humanize_change_row(dict(r)) for r in changes], "settings": settings,
-        "machine_cleanup": globals().get("_LAST_MACHINE_CLEANUP", {"deleted_count": 0, "updated_ip_count": 0})
+        "machines": machines[:500], "notifications": [dict(r) for r in notif], "changes": [humanize_change_row(dict(r)) for r in changes], "settings": settings
     }
 
 
@@ -3236,6 +3092,7 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
 
 
 

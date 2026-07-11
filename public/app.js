@@ -5763,50 +5763,7 @@ if(typeof renderSoftware==='function' && !window.__skSoftwareCleanFixWrapped){
 })();
 /* LOGIN_APPROVED_LAYOUT_ANIMATED_ONLY_END */
 
-/* MACHINE_FLEET_MERGE_DELETE_NO_FLICKER_V5_START */
-function machineFleetIdentityHtml(m){
-  const asset = m.id_value || '';
-  const id = m.machine_id || '';
-  return `<strong class="mfv5-name">${esc(host(m))}</strong>
-    <small class="mfv5-meta">Client: ${esc(id)}</small>
-    ${asset && asset !== id ? `<small class="mfv5-meta">Asset: ${esc(asset)}</small>` : ''}
-    ${attention(m)?`<small class="warn-text">${esc(attentionReason(m))}</small>`:''}`;
-}
-function machineFleetIpHtml(m){
-  const fixed = m.ip_auto_fixed ? `<small class="mfv5-good">Auto fixed main IP</small>` : '';
-  const reason = m.old_primary_ip_reason ? `<small class="mfv5-warn">Old IP: ${esc(m.old_primary_ip_reason)}</small>` : '';
-  const other = (m.all_ips||[]).filter(x=>x && x!==m.primary_ip).slice(0,3);
-  return `<strong class="mfv5-ip">${esc(m.primary_ip||'')}</strong>${fixed}${reason}${other.length?`<small class="mfv5-meta">Other: ${esc(other.join(', '))}</small>`:''}`;
-}
-function renderFleet(){ 
-  const tb=$('#fleetTable tbody'); 
-  if(!tb)return; 
-  const cleanup = (state.overview||{}).machine_cleanup || {};
-  const machines = filteredMachines();
-  tb.innerHTML = machines.map(m=>`<tr>
-    <td data-label="Status">${statusPill(m)}</td>
-    <td data-label="Machine">${machineFleetIdentityHtml(m)}</td>
-    <td data-label="IP">${machineFleetIpHtml(m)}</td>
-    <td data-label="OS">${esc(m.os||'')}</td>
-    <td data-label="CPU">${fmt(m.cpu_percent,'%')}</td>
-    <td data-label="RAM">${ramFleetCell(m)}</td>
-    <td data-label="Disk">${fmt(m.disk_max_percent,'%')}</td>
-    <td data-label="Net Now">${netNowCell(m)}</td>
-    <td data-label="GPU">${esc(gpuBrief(m))}</td>
-    <td data-label="USB">${esc(m.usb_count||0)}</td>
-    <td data-label="Last Seen">${ago(m.updated_at)}</td>
-  </tr>`).join('') || '<tr><td colspan="11" class="empty">No matching machines.</td></tr>';
-  const page = $('#page-fleet') || tb.closest('section') || tb.closest('main');
-  if(page && !page.querySelector('.mfv5-cleanup-note')){
-    const note=document.createElement('div');
-    note.className='mfv5-cleanup-note';
-    note.innerHTML=`<b>Machine Fleet cleanup active</b><span>Duplicate same-host/same-client rows are merged from current count. Old rows are deleted only from latest table, not history.</span><em>${esc(cleanup.deleted_count||0)} merged/deleted</em>`;
-    const table = $('#fleetTable');
-    const holder = table?.parentElement || page.firstElementChild;
-    if(holder && holder.parentElement) holder.parentElement.insertBefore(note, holder);
-  }else if(page){
-    const em=page.querySelector('.mfv5-cleanup-note em');
-    if(em) em.textContent=(cleanup.deleted_count||0)+' merged/deleted';
-  }
-}
-/* MACHINE_FLEET_MERGE_DELETE_NO_FLICKER_V5_END */
+
+
+
+

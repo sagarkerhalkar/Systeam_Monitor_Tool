@@ -1643,103 +1643,6 @@ def load_latest() -> List[Dict[str, Any]]:
 
 
 
-# ROUTER_ISP_SETTINGS_ONLY_START
-from pathlib import Path as _router_Path
-ROUTER_ISP_LOCAL_PATH = _router_Path(__file__).resolve().parent / "config" / "router_isp_settings.local.json"
-
-def router_isp_default_settings() -> Dict[str, Any]:
-    return {"router":{"brand_model":"TP-Link ER8411","login_ip":"192.168.0.1","access_type":"web","username":"admin","password":"","save_password_local":False,"notes":"Password is local-only and never committed to GitHub."},"isp_rows":[],"updated_at":""}
-
-def router_isp_clean_text(v: Any) -> str:
-    return clean_str(v).strip()
-
-def router_isp_to_float(v: Any):
-    try:
-        if v is None or v == "":
-            return None
-        return float(v)
-    except Exception:
-        return None
-
-def router_isp_sanitize_row(row: Dict[str, Any]) -> Dict[str, Any]:
-    return {"provider":router_isp_clean_text(row.get("provider") or row.get("isp") or row.get("name")),"interface_name":router_isp_clean_text(row.get("interface_name") or row.get("interface") or row.get("wan")),"vlan_id":router_isp_clean_text(row.get("vlan_id") or row.get("vlan")),"public_ip":router_isp_clean_text(row.get("public_ip") or row.get("wan_ip")),"latency_ms":router_isp_to_float(row.get("latency_ms") or row.get("latency")),"jitter_ms":router_isp_to_float(row.get("jitter_ms") or row.get("jitter")),"loss_percent":router_isp_to_float(row.get("loss_percent") or row.get("loss")),"down_mbps":router_isp_to_float(row.get("down_mbps") or row.get("download_mbps") or row.get("down")),"up_mbps":router_isp_to_float(row.get("up_mbps") or row.get("upload_mbps") or row.get("up")),"source_label":router_isp_clean_text(row.get("source_label") or "Router manual"),"notes":router_isp_clean_text(row.get("notes"))}
-
-def router_isp_load_settings(include_secret: bool = False) -> Dict[str, Any]:
-    data = router_isp_default_settings()
-    try:
-        if ROUTER_ISP_LOCAL_PATH.exists():
-            raw = json.loads(ROUTER_ISP_LOCAL_PATH.read_text(encoding="utf-8-sig"))
-            if isinstance(raw, dict):
-                data["router"].update(raw.get("router") or {})
-                data["isp_rows"] = raw.get("isp_rows") or []
-                data["updated_at"] = raw.get("updated_at") or ""
-    except Exception as e:
-        data["load_error"] = str(e)
-    rows = []
-    for r in data.get("isp_rows") or []:
-        if isinstance(r, dict):
-            rr = router_isp_sanitize_row(r)
-            if rr.get("provider") or rr.get("public_ip") or rr.get("interface_name"):
-                rows.append(rr)
-    data["isp_rows"] = rows
-    if not include_secret:
-        pwd = data.get("router", {}).get("password") or ""
-        data["router"]["password"] = ""
-        data["router"]["password_saved"] = bool(pwd)
-    return data
-
-def router_isp_save_settings(body: Dict[str, Any]) -> Dict[str, Any]:
-    current = router_isp_load_settings(include_secret=True)
-    router = dict(current.get("router") or {})
-    incoming_router = body.get("router") or {}
-    for key in ["brand_model","login_ip","access_type","username","notes"]:
-        if key in incoming_router:
-            router[key] = router_isp_clean_text(incoming_router.get(key))
-    if incoming_router.get("clear_password") in (True,1,"1","true","True","yes"):
-        router["password"] = ""
-    elif router_isp_clean_text(incoming_router.get("password")):
-        router["password"] = router_isp_clean_text(incoming_router.get("password"))
-    rows = []
-    for r in body.get("isp_rows") or []:
-        if isinstance(r, dict):
-            rr = router_isp_sanitize_row(r)
-            if rr.get("provider") or rr.get("public_ip") or rr.get("interface_name"):
-                rows.append(rr)
-    out = {"router":router,"isp_rows":rows,"updated_at":now_iso()}
-    ROUTER_ISP_LOCAL_PATH.parent.mkdir(parents=True, exist_ok=True)
-    ROUTER_ISP_LOCAL_PATH.write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
-    try:
-        ISP_DEEP_CACHE["ts"] = 0
-        ISP_DEEP_CACHE["data"] = {}
-    except Exception:
-        pass
-    return router_isp_load_settings(include_secret=False)
-
-def router_isp_public_settings() -> Dict[str, Any]:
-    data = router_isp_load_settings(include_secret=False)
-    data["local_config_path"] = str(ROUTER_ISP_LOCAL_PATH)
-    return data
-
-def router_isp_test_router() -> Dict[str, Any]:
-    data = router_isp_load_settings(include_secret=True)
-    router = data.get("router") or {}
-    ip = router_isp_clean_text(router.get("login_ip")) or "192.168.0.1"
-    out = {"ok":False,"ip":ip,"checks":[]}
-    for scheme in ["http","https"]:
-        url = f"{scheme}://{ip}/"
-        item = {"url":url,"ok":False,"status":"","error":""}
-        try:
-            req = urllib.request.Request(url, headers={"User-Agent":"SagarSystemMonitor/RouterCheck"})
-            with urllib.request.urlopen(req, timeout=4) as r:
-                item["ok"] = True
-                item["status"] = str(getattr(r, "status", 200))
-                out["ok"] = True
-        except Exception as e:
-            item["error"] = str(e)
-        out["checks"].append(item)
-    out["note"] = "This only checks router web reachability. Live WAN/interface scraping needs TP-Link ER8411 web/API connector."
-    return out
-# ROUTER_ISP_SETTINGS_ONLY_END
 
 # ISP_DEEP_BOX_ONLY_START
 ISP_DEEP_CACHE: Dict[str, Any] = {"ts": 0.0, "data": {}}
@@ -1829,6 +1732,74 @@ def sk_isp_deep_status(force: bool = False) -> Dict[str, Any]:
     ISP_DEEP_CACHE["data"] = data
     return data
 # ISP_DEEP_BOX_ONLY_END
+
+# ROUTER_ISP_SETTINGS_ONLY_START
+from pathlib import Path as _router_Path
+ROUTER_ISP_LOCAL_PATH = _router_Path(__file__).resolve().parent / "config" / "router_isp_settings.local.json"
+
+def router_isp_default_settings() -> Dict[str, Any]:
+    return {"router":{"brand_model":"TP-Link ER8411","login_ip":"192.168.0.1","access_type":"web","username":"admin","password":"","notes":"Password is local-only and never committed to GitHub."},"updated_at":""}
+
+def router_isp_s(v: Any) -> str:
+    return clean_str(v).strip()
+
+def router_isp_load_settings(include_secret: bool = False) -> Dict[str, Any]:
+    data = router_isp_default_settings()
+    try:
+        if ROUTER_ISP_LOCAL_PATH.exists():
+            raw = json.loads(ROUTER_ISP_LOCAL_PATH.read_text(encoding="utf-8-sig"))
+            if isinstance(raw, dict):
+                data["router"].update(raw.get("router") or {})
+                data["updated_at"] = raw.get("updated_at") or ""
+    except Exception as e:
+        data["load_error"] = str(e)
+    if not include_secret:
+        pwd = data.get("router", {}).get("password") or ""
+        data["router"]["password"] = ""
+        data["router"]["password_saved"] = bool(pwd)
+    data["local_config_path"] = str(ROUTER_ISP_LOCAL_PATH)
+    return data
+
+def router_isp_save_settings(body: Dict[str, Any]) -> Dict[str, Any]:
+    cur = router_isp_load_settings(include_secret=True)
+    router = dict(cur.get("router") or {})
+    inc = body.get("router") or {}
+    for k in ["brand_model","login_ip","access_type","username","notes"]:
+        if k in inc:
+            router[k] = router_isp_s(inc.get(k))
+    if inc.get("clear_password") in (True,1,"1","true","True","yes"):
+        router["password"] = ""
+    elif router_isp_s(inc.get("password")):
+        router["password"] = router_isp_s(inc.get("password"))
+    out = {"router":router, "updated_at":now_iso()}
+    ROUTER_ISP_LOCAL_PATH.parent.mkdir(parents=True, exist_ok=True)
+    ROUTER_ISP_LOCAL_PATH.write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
+    try:
+        ISP_DEEP_CACHE["ts"] = 0
+        ISP_DEEP_CACHE["data"] = {}
+    except Exception:
+        pass
+    return router_isp_load_settings(False)
+
+def router_isp_test_router() -> Dict[str, Any]:
+    data = router_isp_load_settings(True)
+    ip = router_isp_s((data.get("router") or {}).get("login_ip")) or "192.168.0.1"
+    out = {"ok":False, "ip":ip, "checks":[]}
+    for scheme in ["http","https"]:
+        url = f"{scheme}://{ip}/"
+        item = {"url":url, "ok":False, "status":"", "error":""}
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent":"SagarSystemMonitor/RouterCheck"})
+            with urllib.request.urlopen(req, timeout=4) as r:
+                item["ok"] = True
+                item["status"] = str(getattr(r, "status", 200))
+                out["ok"] = True
+        except Exception as e:
+            item["error"] = str(e)
+        out["checks"].append(item)
+    out["note"] = "Router reachable check only. Automatic WAN/VLAN read needs TP-Link ER8411 web/API connector after local page inspection."
+    return out
+# ROUTER_ISP_SETTINGS_ONLY_END
 
 def overview() -> Dict[str, Any]:
     machines = load_latest()

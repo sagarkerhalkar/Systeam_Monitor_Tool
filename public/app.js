@@ -5763,156 +5763,132 @@ if(typeof renderSoftware==='function' && !window.__skSoftwareCleanFixWrapped){
 })();
 /* LOGIN_APPROVED_LAYOUT_ANIMATED_ONLY_END */
 
-/* ISP_TABLE_5_ROWS_FONT_2_START */
+/* ISP_BOX_VISIBLE_AUTO_CLEAN_START */
+window.__cleanIspState = window.__cleanIspState || {ts:0,data:null,loading:false};
+
+function ispCleanMetric(v,suffix='',digits=0){
+  if(v===null || v===undefined || v==='') return 'Auto pending';
+  const n=Number(v);
+  if(Number.isFinite(n)) return n.toFixed(digits).replace(/\.0+$/,'')+suffix;
+  return String(v);
+}
+function ispCleanQuality(r){
+  if(r.latency_ms===null || r.latency_ms===undefined || r.latency_ms==='') return r.probe_note || 'Auto pending';
+  return `${ispCleanMetric(r.latency_ms,' ms',0)} / ${ispCleanMetric(r.jitter_ms,' ms',0)} / ${ispCleanMetric(r.loss_percent,'%',0)}`;
+}
+function ispCleanProbe(r){
+  if(r.down_mbps===null || r.down_mbps===undefined || r.down_mbps==='') return r.probe_note || 'Auto pending';
+  return `${ispCleanMetric(r.down_mbps,' Mbps',2)} / ${ispCleanMetric(r.up_mbps,' Mbps',2)}`;
+}
+function ispCleanRows(data){
+  const rows = ((data && data.isp_groups) || []).filter(r => r && r.provider && !String(r.provider).toLowerCase().includes('pending'));
+  const map = new Map();
+  rows.forEach(r=>{
+    const key = [r.provider||'', r.public_ip||'', r.interface_name||'', r.vlan_id||''].join('|').toLowerCase().replace(/\s+/g,' ');
+    if(!map.has(key)) map.set(key, Object.assign({}, r));
+  });
+  if(map.size) return Array.from(map.values());
+  const o=state.overview||{}, ih=o.internet_health||{};
+  const names=(o.isp_names||[]).length ? o.isp_names : [((o.server_isp||{}).isp || 'ISP auto discovery')];
+  const ips=o.public_ips||[];
+  return names.map((name,i)=>({provider:name, public_ip:ips[i]||ips[0]||((o.server_isp||{}).public_ip)||'Auto pending', latency_ms:ih.avg_latency_ms??ih.latency_ms, jitter_ms:ih.jitter_ms, loss_percent:ih.loss_percent??ih.packet_loss_percent, down_mbps:ih.probe_download_mbps, up_mbps:ih.probe_upload_mbps, source_label:i===0?'Server/client auto':'Client auto'}));
+}
+function showIspHeroSafely(){
+  const hero=document.querySelector('.premium-hero');
+  if(hero){
+    hero.classList.remove('isp-final-hide-old');
+    hero.style.display='';
+    hero.hidden=false;
+    const hm=hero.querySelector('.health-metrics');
+    if(hm) hm.classList.add('isp-clean-hide-metric-cards');
+  }
+  document.querySelectorAll('.isp-final-hide-old').forEach(el=>{
+    if(el.classList.contains('premium-hero') || el.closest('.premium-hero')) el.classList.remove('isp-final-hide-old');
+  });
+}
+function renderCleanIspBox(data){
+  const box=document.querySelector('#ispDeepDetails');
+  if(!box) return;
+  showIspHeroSafely();
+  const rows=ispCleanRows(data);
+  const html=`<div class="isp-clean-table">
+    <div class="isp-clean-head"><span>Provider</span><span>Latency / Jitter / Loss</span><span>Down / Up Probe</span><span>Public IP</span></div>
+    ${rows.map(r=>`<div class="isp-clean-row">
+      <div><strong title="${esc(r.provider||'')}">${esc(r.provider||'Unknown ISP')}</strong><small>${esc([r.source_label||'Auto', r.interface_name?('WAN '+r.interface_name):'', r.vlan_id?('VLAN '+r.vlan_id):''].filter(Boolean).join(' • '))}</small></div>
+      <div><strong>${esc(ispCleanQuality(r))}</strong><small>latency / jitter / loss</small></div>
+      <div><strong>${esc(ispCleanProbe(r))}</strong><small>down / up probe</small></div>
+      <div><strong title="${esc(r.public_ip||'')}">${esc(r.public_ip||'Auto pending')}</strong><small>public IP</small></div>
+    </div>`).join('')}
+  </div><div class="isp-clean-note">Auto ISP discovery: server/client public ISP now. Router WAN/VLAN auto read will use TP-Link ER8411 connector after router web/API inspection.</div>`;
+  if(box.dataset.cleanHtml!==html){box.innerHTML=html; box.dataset.cleanHtml=html;}
+}
+async function refreshCleanIspBox(force=false){
+  const st=window.__cleanIspState;
+  if(st.loading) return;
+  const now=Date.now();
+  if(!force && st.data && now-st.ts<30000){renderCleanIspBox(st.data); return;}
+  st.loading=true;
+  try{
+    st.data=await api('/api/isp-deep'+(force?'?force=1&_='+Date.now():''));
+    st.ts=Date.now();
+    renderCleanIspBox(st.data);
+  }catch(e){
+    renderCleanIspBox(st.data||{});
+  }finally{st.loading=false;}
+}
 (function(){
-  function txt(v, fallback='N/A'){
-    return (v===null || v===undefined || v==='') ? fallback : String(v);
-  }
-  function metric(v, suffix='', decimals=0){
-    if(v===null || v===undefined || v==='') return 'N/A';
-    const n = Number(v);
-    if(Number.isFinite(n)) return n.toFixed(decimals).replace(/\.0+$/,'') + suffix;
-    return String(v);
-  }
-  function quality(r){
-    if(r.latency_ms===null || r.latency_ms===undefined || r.latency_ms==='') return r.probe_note || 'Router details pending';
-    return `${metric(r.latency_ms,' ms',0)} / ${metric(r.jitter_ms,' ms',0)} / ${metric(r.loss_percent,'%',0)}`;
-  }
-  function probe(r){
-    if(r.down_mbps===null || r.down_mbps===undefined || r.down_mbps==='') return r.probe_note || 'Router details pending';
-    return `${metric(r.down_mbps,' Mbps',2)} / ${metric(r.up_mbps,' Mbps',2)}`;
-  }
-  function keyOf(r){
-    return String(r.provider || r.public_ip || 'unknown').toLowerCase().replace(/[^a-z0-9]+/g,'');
-  }
-  function rows5(data){
-    const map = new Map();
-    ((data && data.isp_groups) || []).forEach(r => {
-      const key = keyOf(r);
-      if(!map.has(key)){
-        map.set(key, Object.assign({}, r));
-      }else{
-        const old = map.get(key);
-        const ips = [];
-        String(old.public_ip || '').split(',').map(x=>x.trim()).filter(Boolean).forEach(x=>{if(!ips.includes(x))ips.push(x)});
-        String(r.public_ip || '').split(',').map(x=>x.trim()).filter(Boolean).forEach(x=>{if(!ips.includes(x))ips.push(x)});
-        old.public_ip = ips.join(', ');
-        old.count = (Number(old.count)||0) + (Number(r.count)||0);
-        ['latency_ms','jitter_ms','loss_percent','down_mbps','up_mbps'].forEach(k => {
-          if((old[k]===null || old[k]===undefined || old[k]==='') && r[k]!==null && r[k]!==undefined && r[k]!=='') old[k]=r[k];
-        });
-        old.has_probe = old.has_probe || r.has_probe;
-      }
-    });
-    const rows = Array.from(map.values());
-    while(rows.length < 5){
-      rows.push({
-        provider: `Router ISP ${rows.length + 1} details pending`,
-        public_ip: 'Pending',
-        latency_ms: null,
-        jitter_ms: null,
-        loss_percent: null,
-        down_mbps: null,
-        up_mbps: null,
-        source_label: 'Router pending',
-        count: 0,
-        probe_note: 'Add router ISP details'
-      });
-    }
-    return rows.slice(0, 5);
-  }
-  function hideOld(){
-    const box = document.querySelector('#ispDeepDetails');
-    if(!box) return;
-    const root = box.closest('.hero-card,.internet-card,.card,section,main') || box.parentElement;
-    if(!root) return;
-    Array.from(root.querySelectorAll('div')).forEach(el => {
-      if(el.id === 'ispDeepDetails' || el.closest('#ispDeepDetails')) return;
-      const t=(el.textContent||'').toUpperCase();
-      if((t.includes('PROVIDER') && t.includes('LATENCY') && t.includes('JITTER')) ||
-         (t.includes('DOWN PROBE') && t.includes('UP PROBE') && t.includes('LOSS'))){
-        if(el.children.length >= 2) el.classList.add('isp-final-hide-old');
-      }
-      if(['PROVIDER','LATENCY','JITTER','LOSS','DOWN PROBE','UP PROBE'].some(k => t.trim().startsWith(k))){
-        el.classList.add('isp-final-hide-old');
-      }
-    });
-  }
-  async function load(force=false){
-    window.__isp5State = window.__isp5State || {ts:0,data:null,loading:false};
-    const st = window.__isp5State;
-    if(st.loading) return;
-    const now = Date.now();
-    if(!force && st.data && now - st.ts < 25000){
-      render(st.data);
-      return;
-    }
-    st.loading = true;
-    try{
-      st.data = await api('/api/isp-deep' + (force ? '?force=1&_=' + Date.now() : ''));
-      st.ts = Date.now();
-      render(st.data);
-    }catch(e){
-      console.warn('ISP 5 row table failed', e);
-      render(st.data || {});
-    }finally{
-      st.loading = false;
-    }
-  }
-  function render(data){
-    const box = document.querySelector('#ispDeepDetails');
-    if(!box) return;
-    hideOld();
-    const rows = rows5(data);
-    const html = `
-      <div class="isp-final-table isp-five-table">
-        <div class="isp-final-head">
-          <span>Provider</span>
-          <span>Latency / Jitter / Loss</span>
-          <span>Down / Up Probe</span>
-          <span>Public IP</span>
-        </div>
-        ${rows.map(r => `
-          <div class="isp-final-row ${String(r.public_ip||'').toLowerCase()==='pending'?'isp-pending-row':''}">
-            <div><strong title="${esc(r.provider||'')}">${esc(r.provider||'Unknown ISP')}</strong><small>${esc(r.source_label || 'Router')}</small></div>
-            <div><strong>${esc(quality(r))}</strong><small>latency / jitter / loss</small></div>
-            <div><strong>${esc(probe(r))}</strong><small>down / up probe</small></div>
-            <div><strong title="${esc(r.public_ip||'')}">${esc(r.public_ip || 'Pending')}</strong><small>public IP</small></div>
-          </div>`).join('')}
-      </div>
-      <div class="isp-final-note">Showing 5 ISP slots. Fill missing ISP rows in config/isp_router_sources.json or send router details.</div>
-    `;
-    if(box.dataset.lastHtml !== html){
-      box.innerHTML = html;
-      box.dataset.lastHtml = html;
-    }
-  }
-  const old = window.renderDashboard || (typeof renderDashboard !== 'undefined' ? renderDashboard : null);
-  if(old && !window.__isp5PatchedRenderDashboard){
-    window.__isp5PatchedRenderDashboard = true;
-    window.renderDashboard = function(){
+  const old=window.renderDashboard || (typeof renderDashboard!=='undefined'?renderDashboard:null);
+  if(old && !window.__cleanIspDashboardPatched){
+    window.__cleanIspDashboardPatched=true;
+    window.renderDashboard=function(){
       old.apply(this, arguments);
-      setTimeout(hideOld, 30);
-      setTimeout(hideOld, 250);
-      load(false);
+      showIspHeroSafely();
+      renderCleanIspBox(window.__cleanIspState.data||{});
+      refreshCleanIspBox(false);
     };
   }
-  setInterval(() => {
-    const box = document.querySelector('#ispDeepDetails');
-    if(box) hideOld();
-  }, 2000);
+  setInterval(showIspHeroSafely,1500);
 })();
-/* ISP_TABLE_5_ROWS_FONT_2_END */
+/* ISP_BOX_VISIBLE_AUTO_CLEAN_END */
 
 /* ROUTER_ISP_SETTINGS_UI_START */
-let routerIspSettingsState = {router:{}, isp_rows:[]};
-function routerIspNum(v){const s=String(v??'').trim(); if(!s)return null; const n=Number(s); return Number.isFinite(n)?n:null;}
-function routerIspCurrentFromInputs(){return {router:{brand_model:$('#routerBrandModel')?.value||'',login_ip:$('#routerLoginIp')?.value||'',access_type:$('#routerAccessType')?.value||'web',username:$('#routerUsername')?.value||'',password:$('#routerPassword')?.value||'',clear_password:!!$('#routerClearPassword')?.checked},isp_rows:routerIspSettingsState.isp_rows||[]};}
-async function loadRouterIspSettings(showAlert=false){const panel=$('#routerIspSettingsPanel'); if(!panel)return; try{const d=await api('/api/router-isp-settings'); routerIspSettingsState=d||{router:{},isp_rows:[]}; const r=routerIspSettingsState.router||{}; if($('#routerBrandModel'))$('#routerBrandModel').value=r.brand_model||'TP-Link ER8411'; if($('#routerLoginIp'))$('#routerLoginIp').value=r.login_ip||'192.168.0.1'; if($('#routerAccessType'))$('#routerAccessType').value=r.access_type||'web'; if($('#routerUsername'))$('#routerUsername').value=r.username||'admin'; if($('#routerPassword'))$('#routerPassword').value=''; if($('#routerClearPassword'))$('#routerClearPassword').checked=false; renderRouterIspTable(); const st=$('#routerIspStatus'); if(st)st.textContent=`Loaded ${routerIspSettingsState.isp_rows?.length||0} ISP line(s). Password saved locally: ${r.password_saved?'yes':'no'}. Config: ${d.local_config_path||''}`; if(showAlert)alert('Router ISP settings loaded.');}catch(e){const st=$('#routerIspStatus'); if(st)st.textContent='Failed to load router ISP settings: '+e.message;}}
-function renderRouterIspTable(){const tb=$('#routerIspTable tbody'); if(!tb)return; const rows=routerIspSettingsState.isp_rows||[]; tb.innerHTML=rows.map((r,i)=>`<tr><td><strong>${esc(r.provider||'')}</strong><small>${esc(r.notes||r.source_label||'Router manual')}</small></td><td><strong>${esc(r.interface_name||'')}</strong><small>VLAN: ${esc(r.vlan_id||'none')}</small></td><td>${fmt(r.latency_ms,' ms',0)} / ${fmt(r.jitter_ms,' ms',0)} / ${fmt(r.loss_percent,'%',0)}</td><td>${fmt(r.down_mbps,' Mbps',2)} / ${fmt(r.up_mbps,' Mbps',2)}</td><td>${esc(r.public_ip||'')}</td><td><button class="btn small danger" onclick="deleteRouterIspRow(${i})">Delete</button></td></tr>`).join('')||'<tr><td colspan="6" class="empty">No ISP rows yet. Add all company ISP/WAN/VLAN lines above.</td></tr>';}
-function addRouterIspRow(){routerIspSettingsState.isp_rows=routerIspSettingsState.isp_rows||[]; routerIspSettingsState.isp_rows.push({provider:$('#riProvider')?.value||'',interface_name:$('#riInterface')?.value||'',vlan_id:$('#riVlan')?.value||'',public_ip:$('#riPublicIp')?.value||'',latency_ms:routerIspNum($('#riLatency')?.value),jitter_ms:routerIspNum($('#riJitter')?.value),loss_percent:routerIspNum($('#riLoss')?.value),down_mbps:routerIspNum($('#riDown')?.value),up_mbps:routerIspNum($('#riUp')?.value),source_label:'Router manual'}); ['riProvider','riInterface','riVlan','riPublicIp','riLatency','riJitter','riLoss','riDown','riUp'].forEach(id=>{const el=$('#'+id); if(el)el.value='';}); renderRouterIspTable();}
-function deleteRouterIspRow(i){routerIspSettingsState.isp_rows.splice(i,1); renderRouterIspTable();}
-async function saveRouterIspSettings(){if(!isAdmin())return alert('Admin login required.'); try{const d=await api('/api/router-isp-settings',{method:'POST',body:JSON.stringify(routerIspCurrentFromInputs())}); routerIspSettingsState=d||routerIspCurrentFromInputs(); renderRouterIspTable(); const st=$('#routerIspStatus'); if(st)st.textContent=`Saved ${routerIspSettingsState.isp_rows?.length||0} ISP line(s). Password saved locally: ${(routerIspSettingsState.router||{}).password_saved?'yes':'no'}.`; alert('Router ISP settings saved locally.');}catch(e){alert('Save failed: '+e.message);}}
-async function testRouterIspConnection(){if(!isAdmin())return alert('Admin login required.'); try{await saveRouterIspSettings(); const d=await api('/api/router-isp-test',{method:'POST',body:JSON.stringify({})}); const msg=(d.checks||[]).map(x=>`${x.url}: ${x.ok?'OK '+x.status:'FAILED '+x.error}`).join('\n'); alert('Router test:\n'+msg+'\n\n'+(d.note||''));}catch(e){alert('Router test failed: '+e.message);}}
-(function(){const oldSwitchPage=window.switchPage||switchPage; if(oldSwitchPage&&!window.__routerIspSettingsSwitchPatched){window.__routerIspSettingsSwitchPatched=true; window.switchPage=function(page){oldSwitchPage.apply(this,arguments); if(page==='settings')setTimeout(()=>loadRouterIspSettings(false),100);};}})();
+async function loadRouterIspSettings(showAlert=false){
+  const panel=$('#routerIspSettingsPanel'); if(!panel)return;
+  try{
+    const d=await api('/api/router-isp-settings');
+    const r=(d.router||{});
+    if($('#routerBrandModel')) $('#routerBrandModel').value=r.brand_model||'TP-Link ER8411';
+    if($('#routerLoginIp')) $('#routerLoginIp').value=r.login_ip||'192.168.0.1';
+    if($('#routerAccessType')) $('#routerAccessType').value=r.access_type||'web';
+    if($('#routerUsername')) $('#routerUsername').value=r.username||'admin';
+    if($('#routerPassword')) $('#routerPassword').value='';
+    if($('#routerClearPassword')) $('#routerClearPassword').checked=false;
+    const st=$('#routerIspStatus'); if(st) st.textContent=`Loaded. Password saved locally: ${r.password_saved?'yes':'no'}. Config: ${d.local_config_path||''}`;
+    if(showAlert) alert('Router settings loaded.');
+  }catch(e){const st=$('#routerIspStatus'); if(st) st.textContent='Router settings load failed: '+e.message;}
+}
+function routerIspBody(){return {router:{brand_model:$('#routerBrandModel')?.value||'',login_ip:$('#routerLoginIp')?.value||'',access_type:$('#routerAccessType')?.value||'web',username:$('#routerUsername')?.value||'',password:$('#routerPassword')?.value||'',clear_password:!!$('#routerClearPassword')?.checked}};}
+async function saveRouterIspSettings(){
+  if(!isAdmin()) return alert('Admin login required.');
+  try{
+    const d=await api('/api/router-isp-settings',{method:'POST',body:JSON.stringify(routerIspBody())});
+    const st=$('#routerIspStatus'); if(st) st.textContent=`Saved. Password saved locally: ${(d.router||{}).password_saved?'yes':'no'}.`;
+    alert('Router details saved locally.');
+  }catch(e){alert('Save failed: '+e.message);}
+}
+async function testRouterIspConnection(){
+  if(!isAdmin()) return alert('Admin login required.');
+  try{
+    await saveRouterIspSettings();
+    const d=await api('/api/router-isp-test',{method:'POST',body:JSON.stringify({})});
+    alert('Router test:\n'+(d.checks||[]).map(x=>`${x.url}: ${x.ok?'OK '+x.status:'FAILED '+x.error}`).join('\n')+'\n\n'+(d.note||''));
+  }catch(e){alert('Router test failed: '+e.message);}
+}
+(function(){
+  const oldSwitch=window.switchPage || (typeof switchPage!=='undefined'?switchPage:null);
+  if(oldSwitch && !window.__routerSettingsCleanSwitch){
+    window.__routerSettingsCleanSwitch=true;
+    window.switchPage=function(page){oldSwitch.apply(this,arguments); if(page==='settings') setTimeout(()=>loadRouterIspSettings(false),100);};
+  }
+})();
 /* ROUTER_ISP_SETTINGS_UI_END */

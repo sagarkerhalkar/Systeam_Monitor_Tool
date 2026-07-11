@@ -1,4 +1,4 @@
-:root{
+﻿:root{
 
 
 
@@ -1908,28 +1908,7 @@ table {
 
 /* FINAL_V2_RESPONSIVE_HARDENING_END */
 
-/* MACHINE_FLEET_MERGE_DELETE_NO_FLICKER_V5_CSS_START */
-#fleetTable{width:100%!important;min-width:1120px!important}
-#fleetTable th{position:sticky!important;top:0!important;z-index:2!important}
-#fleetTable td{vertical-align:top!important;overflow-wrap:anywhere!important}
-.mfv5-name{display:block!important;font-weight:950!important;line-height:1.25!important}
-.mfv5-meta{display:block!important;margin-top:3px!important;color:#64748b!important;font-size:11px!important;line-height:1.3!important}
-.mfv5-ip{display:block!important;font-weight:900!important}
-.mfv5-good{display:inline-block!important;margin-top:5px!important;padding:3px 7px!important;border-radius:999px!important;background:#dcfce7!important;color:#166534!important;font-size:10.5px!important;font-weight:900!important}
-.mfv5-warn{display:inline-block!important;margin-top:5px!important;padding:3px 7px!important;border-radius:999px!important;background:#fef3c7!important;color:#92400e!important;font-size:10.5px!important;font-weight:900!important}
-.mfv5-cleanup-note{display:flex!important;align-items:center!important;gap:12px!important;flex-wrap:wrap!important;margin:12px 0!important;padding:12px 14px!important;border:1px solid #c7d2fe!important;border-radius:16px!important;background:linear-gradient(135deg,#eef2ff,#f8fafc)!important;color:#0f172a!important;box-shadow:0 10px 28px rgba(15,23,42,.06)!important}
-.mfv5-cleanup-note b{font-weight:950!important}
-.mfv5-cleanup-note span{color:#475569!important;font-size:13px!important}
-.mfv5-cleanup-note em{margin-left:auto!important;font-style:normal!important;padding:6px 10px!important;border-radius:999px!important;background:#ecfdf5!important;color:#166534!important;font-size:12px!important;font-weight:900!important}
-@media(max-width:920px){
-  #fleetTable{min-width:0!important;display:block!important}
-  #fleetTable thead{display:none!important}
-  #fleetTable tbody{display:grid!important;grid-template-columns:1fr!important;gap:14px!important}
-  #fleetTable tr{display:grid!important;grid-template-columns:1fr 1fr!important;gap:10px!important;padding:14px!important;border:1px solid #dbeafe!important;border-radius:18px!important;background:#fff!important;box-shadow:0 14px 32px rgba(15,23,42,.07)!important}
-  #fleetTable td{display:block!important;border:0!important;padding:0!important;min-width:0!important;font-size:13px!important}
-  #fleetTable td::before{content:attr(data-label)!important;display:block!important;margin-bottom:4px!important;color:#64748b!important;font-size:10px!important;font-weight:950!important;letter-spacing:.08em!important;text-transform:uppercase!important}
-  #fleetTable td[data-label="Status"],#fleetTable td[data-label="Machine"],#fleetTable td[data-label="Net Now"],#fleetTable td[data-label="GPU"]{grid-column:1/-1!important}
-  .mfv5-cleanup-note em{margin-left:0!important}
-}
-@media(max-width:520px){#fleetTable tr{grid-template-columns:1fr!important}}
-/* MACHINE_FLEET_MERGE_DELETE_NO_FLICKER_V5_CSS_END */
+
+
+
+

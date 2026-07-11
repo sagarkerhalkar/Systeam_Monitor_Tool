@@ -1784,20 +1784,39 @@ def router_isp_save_settings(body: Dict[str, Any]) -> Dict[str, Any]:
 def router_isp_test_router() -> Dict[str, Any]:
     data = router_isp_load_settings(True)
     ip = router_isp_s((data.get("router") or {}).get("login_ip")) or "192.168.0.1"
-    out = {"ok":False, "ip":ip, "checks":[]}
-    for scheme in ["http","https"]:
+    out = {"ok": False, "ip": ip, "checks": []}
+
+    http_ok = False
+    for scheme in ["http", "https"]:
         url = f"{scheme}://{ip}/"
-        item = {"url":url, "ok":False, "status":"", "error":""}
+        item = {"url": url, "ok": False, "status": "", "error": "", "note": ""}
         try:
-            req = urllib.request.Request(url, headers={"User-Agent":"SagarSystemMonitor/RouterCheck"})
+            req = urllib.request.Request(url, headers={"User-Agent": "SagarSystemMonitor/RouterCheck"})
             with urllib.request.urlopen(req, timeout=4) as r:
                 item["ok"] = True
                 item["status"] = str(getattr(r, "status", 200))
+                if scheme == "http":
+                    http_ok = True
                 out["ok"] = True
         except Exception as e:
-            item["error"] = str(e)
+            err = str(e)
+            item["error"] = err
+            # TP-Link local routers commonly work on HTTP and fail HTTPS/TLS handshake.
+            # If HTTP is OK, HTTPS handshake failure is not a router failure.
+            if scheme == "https" and http_ok and ("SSL" in err.upper() or "HANDSHAKE" in err.upper() or "CERTIFICATE" in err.upper()):
+                item["ok"] = True
+                item["status"] = "HTTPS not supported/skipped"
+                item["note"] = "HTTP router login is reachable. HTTPS/TLS failed, but this is normal for many local routers."
+                item["error"] = ""
         out["checks"].append(item)
-    out["note"] = "Router reachable check only. Automatic WAN/VLAN read needs TP-Link ER8411 web/API connector after local page inspection."
+
+    out["ok"] = any(x.get("ok") for x in out["checks"])
+    out["note"] = (
+        "Router is reachable on HTTP. HTTPS/TLS may fail on local TP-Link router; this is not a problem. "
+        "Automatic WAN/VLAN read still needs TP-Link ER8411 web/API connector after local page inspection."
+        if out["ok"] else
+        "Router is not reachable from this server. Check router IP, network, and firewall."
+    )
     return out
 # ROUTER_ISP_SETTINGS_ONLY_END
 

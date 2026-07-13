@@ -170,9 +170,46 @@ async function refresh(manual=false){
 }
 
 function machineLabel(m){return `${host(m)} - ${m.primary_ip||((m.all_ips||[])[0]||'No IP')}`;}
-function selectedMachine(selectId){
-  const v = $('#'+selectId)?.value || localStorage.getItem('sagar_'+selectId) || state.selected || '';
-  return state.machines.find(m => m.machine_id === v) || state.machines[0] || null;
+function selectedMachine(){
+  const machines = state.machines || [];
+  const sel = $('#machineSelect');
+
+  let id = '';
+  if(sel && sel.value) id = String(sel.value);
+  if(!id && state.selected) id = String(state.selected);
+  if(!id) id = localStorage.getItem('sagar_machine360_selected') || localStorage.getItem('sagar_selected_machine') || '';
+
+  let m = null;
+  if(id){
+    m = machines.find(x => String(x.machine_id || '') === id) || null;
+  }
+
+  if(!m && sel && sel.selectedIndex >= 0){
+    const label = (sel.options[sel.selectedIndex]?.textContent || '').trim();
+    m = machines.find(x => {
+      const h = (typeof host === 'function' ? host(x) : (x.hostname || x.machine_id || ''));
+      const ip = x.primary_ip || '';
+      return label.includes(h) && (!ip || label.includes(ip));
+    }) || null;
+  }
+
+  if(!m && machines.length){
+    m = machines[0];
+  }
+
+  if(m){
+    const mid = String(m.machine_id || '');
+    if(mid){
+      state.selected = mid;
+      localStorage.setItem('sagar_machine360_selected', mid);
+      localStorage.setItem('sagar_selected_machine', mid);
+      if(sel && sel.value !== mid && Array.from(sel.options || []).some(o => o.value === mid)){
+        sel.value = mid;
+      }
+    }
+  }
+
+  return m;
 }
 function hydrateSelectors(){
   selectorIds.forEach(id=>{
@@ -5893,199 +5930,82 @@ async function testRouterIspConnection(){
 })();
 /* ROUTER_ISP_SETTINGS_UI_END */
 
-/* MACHINE360_COUNT_SELECTOR_FIX_V2_START */
+/* MACHINE360_SELECTED_DROPDOWN_SYNC_V3_START */
 (function(){
-  function q(sel){ return document.querySelector(sel); }
-  function all(sel){ return Array.prototype.slice.call(document.querySelectorAll(sel)); }
-  function safeHost(m){
-    try { return host(m); } catch(e) { return (m && (m.hostname || m.host || m.machine_id)) || ''; }
-  }
-  function machineKey(m){
-    if(!m) return '';
-    return String(m.machine_id || '').trim() || (safeHost(m) + '|' + String(m.primary_ip || ''));
-  }
-  function uniqueMachines(){
-    var seen = {};
-    var out = [];
-    (state.machines || []).forEach(function(m){
-      var k = machineKey(m);
-      if(!k || seen[k]) return;
-      seen[k] = true;
-      out.push(m);
-    });
-    return out;
-  }
-  function findMachine(id){
-    id = String(id || '');
-    var machines = state.machines || [];
-    for(var i=0;i<machines.length;i++){
-      if(String(machines[i].machine_id || '') === id) return machines[i];
-    }
-    return null;
-  }
-  function labelFor(m){
-    try { return machineLabel(m); } catch(e) {
-      return safeHost(m) + (m && m.primary_ip ? (' - ' + m.primary_ip) : '');
-    }
-  }
-  function updateFleetCounts(){
-    var machines = uniqueMachines();
-    var total = machines.length;
-    var online = machines.filter(function(m){ return !!m.online; }).length;
-    var offline = Math.max(0, total - online);
-    var attentionCount = 0;
-    machines.forEach(function(m){
-      try { if(attention(m)) attentionCount++; } catch(e) {}
-    });
+  function bindM360SelectV3(){
+    const sel = document.querySelector('#machineSelect');
+    if(!sel || sel.dataset.m360V3Bound === '1') return;
+    sel.dataset.m360V3Bound = '1';
 
-    var kTotal = q('#kTotal'); if(kTotal) kTotal.textContent = total;
-    var kOnline = q('#kOnline'); if(kOnline) kOnline.textContent = online;
-    var kOffline = q('#kOffline'); if(kOffline) kOffline.textContent = offline;
-    var kCritical = q('#kCritical'); if(kCritical) kCritical.textContent = attentionCount;
-
-    all('.summary-tile').forEach(function(tile){
-      var text = (tile.textContent || '').trim().toLowerCase();
-      if(text.indexOf('fleet') === 0){
-        var strong = tile.querySelector('strong');
-        var small = tile.querySelector('small');
-        if(strong) strong.textContent = total + ' systems';
-        if(small) small.textContent = online + ' online';
-      }
-    });
-  }
-  function hydrateMachineSelect(){
-    var sel = q('#machineSelect');
-    if(!sel) return null;
-    var machines = uniqueMachines();
-    var oldValue = sel.value || localStorage.getItem('sagar_machine360_selected') || state.selected || '';
-    var signature = machines.map(function(m){ return machineKey(m); }).join('|');
-
-    if(sel.getAttribute('data-m360-signature') !== signature){
-      sel.innerHTML = machines.map(function(m){
-        var id = String(m.machine_id || '');
-        return '<option value="' + esc(id) + '">' + esc(labelFor(m)) + '</option>';
-      }).join('');
-      sel.setAttribute('data-m360-signature', signature);
-    }
-
-    if(oldValue && machines.some(function(m){ return String(m.machine_id || '') === String(oldValue); })){
-      sel.value = oldValue;
-    }else if(machines.length && !sel.value){
-      sel.value = String(machines[0].machine_id || '');
-    }
-
-    if(sel.value){
-      state.selected = sel.value;
-      localStorage.setItem('sagar_machine360_selected', sel.value);
-      localStorage.setItem('sagar_selected_machine', sel.value);
-    }
-    return sel;
-  }
-  function selectedMachineFromDropdown(){
-    var sel = hydrateMachineSelect();
-    var id = sel ? sel.value : '';
-    return findMachine(id) || (state.machines || [])[0] || null;
-  }
-  function syncMachine360Details(){
-    if(state.page !== 'machine360') return;
-    var sel = hydrateMachineSelect();
-    if(!sel) return;
-
-    var selectedId = sel.value || '';
-    var current = selectedMachineFromDropdown();
-    if(!current) return;
-
-    state.selected = String(current.machine_id || selectedId || '');
-    localStorage.setItem('sagar_machine360_selected', state.selected);
-    localStorage.setItem('sagar_selected_machine', state.selected);
-
-    var details = q('#machineDetails');
-    if(!details) return;
-
-    var visibleText = (details.textContent || '');
-    var expectedHost = safeHost(current);
-    var expectedIp = String(current.primary_ip || '');
-
-    /* If dropdown and detail are mismatched, call existing original renderer again after state.selected is set. */
-    if(expectedHost && visibleText.indexOf(expectedHost) === -1){
-      if(window.__m360V2Rendering) return;
-      window.__m360V2Rendering = true;
-      try {
-        if(typeof window.renderMachine360 === 'function'){
-          window.renderMachine360();
-        }else if(typeof renderMachine360 === 'function'){
-          renderMachine360();
-        }
-      } catch(e) {
-        console.warn('Machine360 re-render skipped', e);
-      }
-      window.__m360V2Rendering = false;
-    }
-  }
-  function bindMachineSelect(){
-    var sel = q('#machineSelect');
-    if(!sel || sel.getAttribute('data-m360-v2-bound') === '1') return;
-    sel.setAttribute('data-m360-v2-bound','1');
     sel.addEventListener('change', function(){
-      state.selected = sel.value || '';
+      const id = String(sel.value || '');
+      if(id){
+        state.selected = id;
+        localStorage.setItem('sagar_machine360_selected', id);
+        localStorage.setItem('sagar_selected_machine', id);
+      }
+      setTimeout(function(){
+        try{
+          if(typeof renderMachine360 === 'function') renderMachine360();
+        }catch(e){
+          console.warn('Machine 360 refresh after select failed', e);
+        }
+      }, 20);
+    }, true);
+  }
+
+  function forceM360BeforeRender(){
+    const sel = document.querySelector('#machineSelect');
+    if(sel && sel.value){
+      state.selected = String(sel.value);
       localStorage.setItem('sagar_machine360_selected', state.selected);
       localStorage.setItem('sagar_selected_machine', state.selected);
-      try {
-        if(typeof window.renderMachine360 === 'function'){
-          window.renderMachine360();
-        }else if(typeof renderMachine360 === 'function'){
-          renderMachine360();
-        }
-      } catch(e) {
-        console.warn('Machine360 render after dropdown change skipped', e);
-      }
-    });
+    }
   }
 
-  var oldRenderAll = window.renderAll || (typeof renderAll !== 'undefined' ? renderAll : null);
-  if(oldRenderAll && !window.__m360V2RenderAllPatched){
-    window.__m360V2RenderAllPatched = true;
-    window.renderAll = function(){
-      oldRenderAll.apply(this, arguments);
-      updateFleetCounts();
-      bindMachineSelect();
-      if(state.page === 'machine360'){
-        hydrateMachineSelect();
-        setTimeout(syncMachine360Details, 80);
-      }
+  if(typeof renderMachine360 === 'function' && !window.__m360V3RenderWrapped){
+    window.__m360V3RenderWrapped = true;
+    const oldRenderMachine360 = renderMachine360;
+    renderMachine360 = function(){
+      forceM360BeforeRender();
+      return oldRenderMachine360.apply(this, arguments);
     };
+    window.renderMachine360 = renderMachine360;
   }
 
-  var oldRenderDashboard = window.renderDashboard || (typeof renderDashboard !== 'undefined' ? renderDashboard : null);
-  if(oldRenderDashboard && !window.__m360V2DashboardPatched){
-    window.__m360V2DashboardPatched = true;
-    window.renderDashboard = function(){
-      oldRenderDashboard.apply(this, arguments);
-      updateFleetCounts();
-    };
-  }
-
-  var oldSwitchPage = window.switchPage || (typeof switchPage !== 'undefined' ? switchPage : null);
-  if(oldSwitchPage && !window.__m360V2SwitchPatched){
-    window.__m360V2SwitchPatched = true;
+  const oldSwitchPage = window.switchPage || (typeof switchPage !== 'undefined' ? switchPage : null);
+  if(oldSwitchPage && !window.__m360V3SwitchWrapped){
+    window.__m360V3SwitchWrapped = true;
     window.switchPage = function(page){
       oldSwitchPage.apply(this, arguments);
       if(page === 'machine360'){
         setTimeout(function(){
-          hydrateMachineSelect();
-          bindMachineSelect();
-          syncMachine360Details();
+          bindM360SelectV3();
+          forceM360BeforeRender();
+          try{ if(typeof renderMachine360 === 'function') renderMachine360(); }catch(e){}
         }, 120);
       }
     };
+    try{ switchPage = window.switchPage; }catch(e){}
+  }
+
+  const oldRenderAll = window.renderAll || (typeof renderAll !== 'undefined' ? renderAll : null);
+  if(oldRenderAll && !window.__m360V3RenderAllWrapped){
+    window.__m360V3RenderAllWrapped = true;
+    window.renderAll = function(){
+      oldRenderAll.apply(this, arguments);
+      bindM360SelectV3();
+      if(state.page === 'machine360'){
+        forceM360BeforeRender();
+      }
+    };
+    try{ renderAll = window.renderAll; }catch(e){}
   }
 
   setInterval(function(){
-    updateFleetCounts();
     if(state.page === 'machine360'){
-      hydrateMachineSelect();
-      bindMachineSelect();
+      bindM360SelectV3();
     }
-  }, 4000);
+  }, 1500);
 })();
-/* MACHINE360_COUNT_SELECTOR_FIX_V2_END */
+/* MACHINE360_SELECTED_DROPDOWN_SYNC_V3_END */

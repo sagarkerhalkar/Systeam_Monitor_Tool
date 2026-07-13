@@ -1931,3 +1931,15 @@ table {
 @media(max-width:900px){#ispDeepDetails{max-height:360px!important}.isp-clean-head{display:none!important}.isp-clean-row{grid-template-columns:1fr 1fr!important}.router-settings-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.isp-clean-row,.router-settings-grid{grid-template-columns:1fr!important}}
 /* ISP_BOX_VISIBLE_AUTO_CLEAN_CSS_END */
+
+/* MACHINE360_COUNT_SELECTOR_FIX_V2_CSS_START */
+#page-machine360 #machineSelect{
+  min-width:min(520px,60vw);
+}
+@media(max-width:760px){
+  #page-machine360 #machineSelect{
+    min-width:100%;
+    width:100%;
+  }
+}
+/* MACHINE360_COUNT_SELECTOR_FIX_V2_CSS_END */

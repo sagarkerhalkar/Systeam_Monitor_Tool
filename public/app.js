@@ -5892,3 +5892,200 @@ async function testRouterIspConnection(){
   }
 })();
 /* ROUTER_ISP_SETTINGS_UI_END */
+
+/* MACHINE360_COUNT_SELECTOR_FIX_V2_START */
+(function(){
+  function q(sel){ return document.querySelector(sel); }
+  function all(sel){ return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+  function safeHost(m){
+    try { return host(m); } catch(e) { return (m && (m.hostname || m.host || m.machine_id)) || ''; }
+  }
+  function machineKey(m){
+    if(!m) return '';
+    return String(m.machine_id || '').trim() || (safeHost(m) + '|' + String(m.primary_ip || ''));
+  }
+  function uniqueMachines(){
+    var seen = {};
+    var out = [];
+    (state.machines || []).forEach(function(m){
+      var k = machineKey(m);
+      if(!k || seen[k]) return;
+      seen[k] = true;
+      out.push(m);
+    });
+    return out;
+  }
+  function findMachine(id){
+    id = String(id || '');
+    var machines = state.machines || [];
+    for(var i=0;i<machines.length;i++){
+      if(String(machines[i].machine_id || '') === id) return machines[i];
+    }
+    return null;
+  }
+  function labelFor(m){
+    try { return machineLabel(m); } catch(e) {
+      return safeHost(m) + (m && m.primary_ip ? (' - ' + m.primary_ip) : '');
+    }
+  }
+  function updateFleetCounts(){
+    var machines = uniqueMachines();
+    var total = machines.length;
+    var online = machines.filter(function(m){ return !!m.online; }).length;
+    var offline = Math.max(0, total - online);
+    var attentionCount = 0;
+    machines.forEach(function(m){
+      try { if(attention(m)) attentionCount++; } catch(e) {}
+    });
+
+    var kTotal = q('#kTotal'); if(kTotal) kTotal.textContent = total;
+    var kOnline = q('#kOnline'); if(kOnline) kOnline.textContent = online;
+    var kOffline = q('#kOffline'); if(kOffline) kOffline.textContent = offline;
+    var kCritical = q('#kCritical'); if(kCritical) kCritical.textContent = attentionCount;
+
+    all('.summary-tile').forEach(function(tile){
+      var text = (tile.textContent || '').trim().toLowerCase();
+      if(text.indexOf('fleet') === 0){
+        var strong = tile.querySelector('strong');
+        var small = tile.querySelector('small');
+        if(strong) strong.textContent = total + ' systems';
+        if(small) small.textContent = online + ' online';
+      }
+    });
+  }
+  function hydrateMachineSelect(){
+    var sel = q('#machineSelect');
+    if(!sel) return null;
+    var machines = uniqueMachines();
+    var oldValue = sel.value || localStorage.getItem('sagar_machine360_selected') || state.selected || '';
+    var signature = machines.map(function(m){ return machineKey(m); }).join('|');
+
+    if(sel.getAttribute('data-m360-signature') !== signature){
+      sel.innerHTML = machines.map(function(m){
+        var id = String(m.machine_id || '');
+        return '<option value="' + esc(id) + '">' + esc(labelFor(m)) + '</option>';
+      }).join('');
+      sel.setAttribute('data-m360-signature', signature);
+    }
+
+    if(oldValue && machines.some(function(m){ return String(m.machine_id || '') === String(oldValue); })){
+      sel.value = oldValue;
+    }else if(machines.length && !sel.value){
+      sel.value = String(machines[0].machine_id || '');
+    }
+
+    if(sel.value){
+      state.selected = sel.value;
+      localStorage.setItem('sagar_machine360_selected', sel.value);
+      localStorage.setItem('sagar_selected_machine', sel.value);
+    }
+    return sel;
+  }
+  function selectedMachineFromDropdown(){
+    var sel = hydrateMachineSelect();
+    var id = sel ? sel.value : '';
+    return findMachine(id) || (state.machines || [])[0] || null;
+  }
+  function syncMachine360Details(){
+    if(state.page !== 'machine360') return;
+    var sel = hydrateMachineSelect();
+    if(!sel) return;
+
+    var selectedId = sel.value || '';
+    var current = selectedMachineFromDropdown();
+    if(!current) return;
+
+    state.selected = String(current.machine_id || selectedId || '');
+    localStorage.setItem('sagar_machine360_selected', state.selected);
+    localStorage.setItem('sagar_selected_machine', state.selected);
+
+    var details = q('#machineDetails');
+    if(!details) return;
+
+    var visibleText = (details.textContent || '');
+    var expectedHost = safeHost(current);
+    var expectedIp = String(current.primary_ip || '');
+
+    /* If dropdown and detail are mismatched, call existing original renderer again after state.selected is set. */
+    if(expectedHost && visibleText.indexOf(expectedHost) === -1){
+      if(window.__m360V2Rendering) return;
+      window.__m360V2Rendering = true;
+      try {
+        if(typeof window.renderMachine360 === 'function'){
+          window.renderMachine360();
+        }else if(typeof renderMachine360 === 'function'){
+          renderMachine360();
+        }
+      } catch(e) {
+        console.warn('Machine360 re-render skipped', e);
+      }
+      window.__m360V2Rendering = false;
+    }
+  }
+  function bindMachineSelect(){
+    var sel = q('#machineSelect');
+    if(!sel || sel.getAttribute('data-m360-v2-bound') === '1') return;
+    sel.setAttribute('data-m360-v2-bound','1');
+    sel.addEventListener('change', function(){
+      state.selected = sel.value || '';
+      localStorage.setItem('sagar_machine360_selected', state.selected);
+      localStorage.setItem('sagar_selected_machine', state.selected);
+      try {
+        if(typeof window.renderMachine360 === 'function'){
+          window.renderMachine360();
+        }else if(typeof renderMachine360 === 'function'){
+          renderMachine360();
+        }
+      } catch(e) {
+        console.warn('Machine360 render after dropdown change skipped', e);
+      }
+    });
+  }
+
+  var oldRenderAll = window.renderAll || (typeof renderAll !== 'undefined' ? renderAll : null);
+  if(oldRenderAll && !window.__m360V2RenderAllPatched){
+    window.__m360V2RenderAllPatched = true;
+    window.renderAll = function(){
+      oldRenderAll.apply(this, arguments);
+      updateFleetCounts();
+      bindMachineSelect();
+      if(state.page === 'machine360'){
+        hydrateMachineSelect();
+        setTimeout(syncMachine360Details, 80);
+      }
+    };
+  }
+
+  var oldRenderDashboard = window.renderDashboard || (typeof renderDashboard !== 'undefined' ? renderDashboard : null);
+  if(oldRenderDashboard && !window.__m360V2DashboardPatched){
+    window.__m360V2DashboardPatched = true;
+    window.renderDashboard = function(){
+      oldRenderDashboard.apply(this, arguments);
+      updateFleetCounts();
+    };
+  }
+
+  var oldSwitchPage = window.switchPage || (typeof switchPage !== 'undefined' ? switchPage : null);
+  if(oldSwitchPage && !window.__m360V2SwitchPatched){
+    window.__m360V2SwitchPatched = true;
+    window.switchPage = function(page){
+      oldSwitchPage.apply(this, arguments);
+      if(page === 'machine360'){
+        setTimeout(function(){
+          hydrateMachineSelect();
+          bindMachineSelect();
+          syncMachine360Details();
+        }, 120);
+      }
+    };
+  }
+
+  setInterval(function(){
+    updateFleetCounts();
+    if(state.page === 'machine360'){
+      hydrateMachineSelect();
+      bindMachineSelect();
+    }
+  }, 4000);
+})();
+/* MACHINE360_COUNT_SELECTOR_FIX_V2_END */

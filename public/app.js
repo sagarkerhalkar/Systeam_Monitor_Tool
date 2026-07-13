@@ -6112,3 +6112,377 @@ async function testRouterIspConnection(){
   }, 1500);
 })();
 /* MACHINE360_LOCK_V6_NO_SOURCE_CLEAN_END */
+
+/* DAY_HISTORY_USAGE_3D_V2_START */
+(function(){
+  var dhUsageLastSig = '';
+  var dhUsageLastRows = [];
+  var dhUsageLoading = false;
+
+  function dhU$(q, root){
+    return (root || document).querySelector(q);
+  }
+  function dhUNum(v){
+    var n = Number(v || 0);
+    return Number.isFinite(n) ? n : 0;
+  }
+  function dhUEsc(v){
+    try{ return esc(v); }catch(e){
+      return String(v == null ? '' : v).replace(/[&<>"']/g,function(m){
+        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
+      });
+    }
+  }
+  function dhUFmtGb(gb){
+    gb = dhUNum(gb);
+    if(gb >= 1024) return (gb/1024).toFixed(2).replace(/\.00$/,'') + ' TB';
+    return gb.toFixed(2).replace(/\.00$/,'') + ' GB';
+  }
+  function dhUFmtMbps(v){
+    if(typeof fmt === 'function') return fmt(v, ' Mbps', 2);
+    return dhUNum(v).toFixed(2) + ' Mbps';
+  }
+  function dhUPage(){
+    return document.querySelector('#page-history');
+  }
+  function dhUInstallStyle(){
+    if(document.querySelector('#dayHistoryUsage3DV2Style')) return;
+    var css =
+      '#dayHistoryUsage3DV2{margin:14px 0 18px;border-radius:22px;padding:14px;border:1px solid rgba(94,234,212,.22);background:linear-gradient(135deg,rgba(15,23,42,.92),rgba(30,41,59,.82));box-shadow:0 20px 50px rgba(15,23,42,.28);color:#e5f9ff;}' +
+      '#dayHistoryUsage3DV2 .dhu-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:12px;}' +
+      '#dayHistoryUsage3DV2 h2{margin:0;font-size:22px;color:#fff;letter-spacing:-.03em;}' +
+      '#dayHistoryUsage3DV2 p{margin:5px 0 0;color:#a7f3d0;font-weight:650;}' +
+      '#dayHistoryUsage3DV2 .dhu-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:12px 0;}' +
+      '#dayHistoryUsage3DV2 .dhu-card{border-radius:16px;padding:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);}' +
+      '#dayHistoryUsage3DV2 .dhu-card span{display:block;text-transform:uppercase;letter-spacing:.08em;font-size:11px;color:#93c5fd;font-weight:900;}' +
+      '#dayHistoryUsage3DV2 .dhu-card strong{display:block;margin-top:6px;font-size:22px;color:#fff;}' +
+      '#dayHistoryUsage3DV2 .dhu-card small{display:block;margin-top:4px;color:#cbd5e1;font-weight:650;}' +
+      '#dayHistoryUsage3DV2 .dhu-table-wrap{max-height:360px;overflow:auto;border-radius:16px;border:1px solid rgba(255,255,255,.12);}' +
+      '#dayHistoryUsage3DV2 table{width:100%;border-collapse:collapse;min-width:980px;font-size:13px;}' +
+      '#dayHistoryUsage3DV2 th{position:sticky;top:0;background:rgba(15,23,42,.96);color:#bfdbfe;text-align:left;padding:10px;text-transform:uppercase;letter-spacing:.06em;font-size:11px;}' +
+      '#dayHistoryUsage3DV2 td{padding:10px;border-top:1px solid rgba(255,255,255,.08);color:#e2e8f0;font-weight:650;vertical-align:top;}' +
+      '#dayHistoryUsage3DV2 td strong{color:#fff;}' +
+      '#dayHistoryUsage3DV2 .dhu-actions{display:flex;gap:8px;flex-wrap:wrap;}' +
+      '#dayHistoryUsage3DV2 .dhu-btn{border:0;border-radius:14px;padding:10px 12px;font-weight:900;cursor:pointer;background:#5eead4;color:#042f2e;}' +
+      '#dayHistoryUsage3DV2 .dhu-btn.secondary{background:rgba(255,255,255,.10);color:#dbeafe;border:1px solid rgba(255,255,255,.18);}' +
+      '#dayHistoryUsage3DV2 .dhu-note{font-size:12px;color:#cbd5e1!important;margin:8px 0!important;}';
+    var s = document.createElement('style');
+    s.id = 'dayHistoryUsage3DV2Style';
+    s.textContent = css;
+    document.head.appendChild(s);
+  }
+
+  function dhUEnsurePanel(){
+    var page = dhUPage();
+    if(!page) return null;
+    dhUInstallStyle();
+
+    var old = document.querySelector('#historyDataUsageTotalsPanel');
+    if(old) old.remove();
+
+    var panel = document.querySelector('#dayHistoryUsage3DV2');
+    if(panel) return panel;
+
+    var html =
+      '<section id="dayHistoryUsage3DV2">' +
+        '<div class="dhu-head">' +
+          '<div>' +
+            '<h2>Upload / Download Data Usage History</h2>' +
+            '<p>Total and machine-wise internet data usage for selected date range.</p>' +
+          '</div>' +
+          '<div class="dhu-actions">' +
+            '<button class="dhu-btn" id="dhuRefreshBtn" type="button">Refresh Usage</button>' +
+            '<button class="dhu-btn secondary download-only" id="dhuCsvBtn" type="button">Download Machine-wise CSV</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="dhu-cards" id="dhuCards">' +
+          '<div class="dhu-card"><span>Total Download</span><strong>Loading...</strong><small>Selected range</small></div>' +
+          '<div class="dhu-card"><span>Total Upload</span><strong>Loading...</strong><small>Selected range</small></div>' +
+          '<div class="dhu-card"><span>Total Data</span><strong>Loading...</strong><small>Download + Upload</small></div>' +
+          '<div class="dhu-card"><span>Machines</span><strong>0</strong><small>With usage history</small></div>' +
+          '<div class="dhu-card"><span>Days</span><strong>0</strong><small>Stored records</small></div>' +
+        '</div>' +
+        '<p class="dhu-note" id="dhuNote">Loading from existing Day History API...</p>' +
+        '<div class="dhu-table-wrap">' +
+          '<table>' +
+            '<thead><tr>' +
+              '<th>Machine</th><th>LAN / Public IP</th><th>ISP</th><th>Days</th><th>Heartbeats</th>' +
+              '<th>Total Download</th><th>Total Upload</th><th>Total Data</th><th>Max Down</th><th>Max Up</th><th>Last Seen</th>' +
+            '</tr></thead>' +
+            '<tbody id="dhuMachineBody"><tr><td colspan="11">Loading usage...</td></tr></tbody>' +
+          '</table>' +
+        '</div>' +
+      '</section>';
+
+    var hero = page.querySelector('.history-hero, .panel, .history-fast-shell, .history-shell');
+    if(hero){
+      hero.insertAdjacentHTML('afterend', html);
+    }else{
+      page.insertAdjacentHTML('afterbegin', html);
+    }
+
+    panel = document.querySelector('#dayHistoryUsage3DV2');
+
+    var refresh = document.querySelector('#dhuRefreshBtn');
+    if(refresh) refresh.addEventListener('click', function(){ dhUsageLastSig=''; dhULoad(true); });
+
+    var csv = document.querySelector('#dhuCsvBtn');
+    if(csv) csv.addEventListener('click', dhUDownloadCsv);
+
+    try{ applyRoleControls(); }catch(e){}
+    return panel;
+  }
+
+  function dhUGetFilters(){
+    var page = dhUPage();
+    var daysEl = dhU$('#historyDays', page) || dhU$('#historyFastDays', page);
+    var machineEl = dhU$('#historyMachine', page) || dhU$('select', page);
+    var dateInputs = Array.prototype.slice.call(page ? page.querySelectorAll('input[type="date"]') : []);
+    var fromEl = dhU$('#historyDateFrom', page) || dateInputs[0];
+    var toEl = dhU$('#historyDateTo', page) || dateInputs[1];
+
+    return {
+      days: (daysEl && daysEl.value) || '30',
+      date_from: (fromEl && fromEl.value) || '',
+      date_to: (toEl && toEl.value) || '',
+      machine_id: (machineEl && machineEl.value) || ''
+    };
+  }
+
+  function dhUQuery(){
+    var f = dhUGetFilters();
+    var p = new URLSearchParams();
+    p.set('days', f.days || '30');
+    if(f.date_from) p.set('date_from', f.date_from);
+    if(f.date_to) p.set('date_to', f.date_to);
+    if(f.machine_id && f.machine_id !== 'all') p.set('machine_id', f.machine_id);
+    p.set('samples', '0');
+    return p.toString();
+  }
+
+  function dhUMachineKey(x){
+    return String(x.machine_id || x.hostname || x.host || x.primary_ip || x.public_ip || 'Unknown');
+  }
+
+  function dhUBuildMachineTotals(rows){
+    var map = {};
+    (rows || []).forEach(function(x){
+      var key = dhUMachineKey(x);
+      if(!map[key]){
+        map[key] = {
+          machine: x.hostname || x.host || x.machine_id || 'Unknown',
+          primary_ip: x.primary_ip || x.lan_ip || '',
+          public_ip: x.public_ip || '',
+          isp_name: x.isp_name || '',
+          daysMap: {},
+          heartbeats: 0,
+          download_gb: 0,
+          upload_gb: 0,
+          max_down: 0,
+          max_up: 0,
+          last_seen: ''
+        };
+      }
+      var r = map[key];
+      if(x.date) r.daysMap[x.date] = true;
+      r.heartbeats += dhUNum(x.heartbeat_count);
+      r.download_gb += dhUNum(x.download_gb);
+      r.upload_gb += dhUNum(x.upload_gb);
+      r.max_down = Math.max(r.max_down, dhUNum(x.max_current_download_mbps || x.max_down_mbps));
+      r.max_up = Math.max(r.max_up, dhUNum(x.max_current_upload_mbps || x.max_up_mbps));
+      if(x.primary_ip || x.lan_ip) r.primary_ip = x.primary_ip || x.lan_ip;
+      if(x.public_ip) r.public_ip = x.public_ip;
+      if(x.isp_name) r.isp_name = x.isp_name;
+      if(x.last_seen && (!r.last_seen || String(x.last_seen) > String(r.last_seen))) r.last_seen = x.last_seen;
+    });
+    return Object.keys(map).map(function(k){
+      var r = map[k];
+      r.days = Object.keys(r.daysMap).length;
+      r.total_gb = r.download_gb + r.upload_gb;
+      return r;
+    }).sort(function(a,b){ return dhUNum(b.total_gb) - dhUNum(a.total_gb); });
+  }
+
+  function dhURender(d){
+    dhUEnsurePanel();
+
+    var daily = d && Array.isArray(d.daily) ? d.daily : [];
+    var perMachine = d && Array.isArray(d.per_machine) ? d.per_machine : [];
+    var rows = dhUBuildMachineTotals(perMachine);
+
+    var totalDown = 0;
+    var totalUp = 0;
+    var dayCount = 0;
+
+    if(daily.length){
+      daily.forEach(function(x){
+        totalDown += dhUNum(x.download_gb);
+        totalUp += dhUNum(x.upload_gb);
+      });
+      dayCount = daily.length;
+    }else{
+      rows.forEach(function(x){
+        totalDown += dhUNum(x.download_gb);
+        totalUp += dhUNum(x.upload_gb);
+      });
+      var days = {};
+      perMachine.forEach(function(x){ if(x.date) days[x.date] = true; });
+      dayCount = Object.keys(days).length;
+    }
+
+    dhUsageLastRows = rows;
+
+    var cards = document.querySelector('#dhuCards');
+    if(cards){
+      cards.innerHTML =
+        '<div class="dhu-card"><span>Total Download</span><strong>' + dhUFmtGb(totalDown) + '</strong><small>Selected range</small></div>' +
+        '<div class="dhu-card"><span>Total Upload</span><strong>' + dhUFmtGb(totalUp) + '</strong><small>Selected range</small></div>' +
+        '<div class="dhu-card"><span>Total Data</span><strong>' + dhUFmtGb(totalDown + totalUp) + '</strong><small>Download + Upload</small></div>' +
+        '<div class="dhu-card"><span>Machines</span><strong>' + rows.length + '</strong><small>With usage history</small></div>' +
+        '<div class="dhu-card"><span>Days</span><strong>' + dayCount + '</strong><small>Stored records</small></div>';
+    }
+
+    var note = document.querySelector('#dhuNote');
+    if(note) note.textContent = 'Data source: /api/history?' + dhUsageLastSig;
+
+    var body = document.querySelector('#dhuMachineBody');
+    if(body){
+      body.innerHTML = rows.map(function(x){
+        var ipText = [x.primary_ip, x.public_ip].filter(Boolean).join(' / ');
+        var last = x.last_seen ? ((typeof ago === 'function') ? ago(x.last_seen) : String(x.last_seen)) : '';
+        return '<tr>' +
+          '<td><strong>' + dhUEsc(x.machine) + '</strong></td>' +
+          '<td>' + dhUEsc(ipText) + '</td>' +
+          '<td>' + dhUEsc(x.isp_name || '') + '</td>' +
+          '<td>' + dhUEsc(x.days) + '</td>' +
+          '<td>' + dhUEsc(x.heartbeats) + '</td>' +
+          '<td><strong>' + dhUFmtGb(x.download_gb) + '</strong></td>' +
+          '<td><strong>' + dhUFmtGb(x.upload_gb) + '</strong></td>' +
+          '<td><strong>' + dhUFmtGb(x.total_gb) + '</strong></td>' +
+          '<td>' + dhUFmtMbps(x.max_down) + '</td>' +
+          '<td>' + dhUFmtMbps(x.max_up) + '</td>' +
+          '<td>' + dhUEsc(last) + '</td>' +
+        '</tr>';
+      }).join('') || '<tr><td colspan="11">No upload/download data for this range. Try Last 30 days or All stored data.</td></tr>';
+    }
+  }
+
+  async function dhULoad(force){
+    if(state.page !== 'history') return;
+    dhUEnsurePanel();
+    var sig = dhUQuery();
+    if(!force && sig === dhUsageLastSig && dhUsageLastRows.length) return;
+    if(dhUsageLoading) return;
+
+    dhUsageLastSig = sig;
+    dhUsageLoading = true;
+
+    var note = document.querySelector('#dhuNote');
+    if(note) note.textContent = 'Loading usage from /api/history...';
+
+    try{
+      var d = await api('/api/history?' + sig);
+      dhURender(d);
+    }catch(e){
+      console.error(e);
+      var body = document.querySelector('#dhuMachineBody');
+      if(body) body.innerHTML = '<tr><td colspan="11">Usage API error. /api/history is not returning data.</td></tr>';
+      if(note) note.textContent = 'Usage API error. Check server console.';
+    }finally{
+      dhUsageLoading = false;
+    }
+  }
+
+  function dhUDownloadCsv(){
+    try{
+      if(typeof requireAdminDownload === 'function' && !requireAdminDownload()) return;
+    }catch(e){}
+    var rows = dhUsageLastRows || [];
+    if(!rows.length){
+      alert('Load Day History usage first.');
+      return;
+    }
+    var header = ['Machine','LAN IP','Public IP','ISP','Days','Heartbeats','Total Download GB','Total Upload GB','Total Data GB','Max Down Mbps','Max Up Mbps','Last Seen'];
+    var allRows = [header].concat(rows.map(function(x){
+      return [
+        x.machine, x.primary_ip, x.public_ip, x.isp_name, x.days, x.heartbeats,
+        Number(x.download_gb || 0).toFixed(3),
+        Number(x.upload_gb || 0).toFixed(3),
+        Number(x.total_gb || 0).toFixed(3),
+        Number(x.max_down || 0).toFixed(3),
+        Number(x.max_up || 0).toFixed(3),
+        x.last_seen || ''
+      ];
+    }));
+    var csv = allRows.map(function(r){
+      return r.map(function(v){
+        v = String(v == null ? '' : v).replace(/"/g, '""');
+        return '"' + v + '"';
+      }).join(',');
+    }).join('\n');
+
+    var blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'day_history_machine_wise_upload_download_totals.csv';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); }, 500);
+  }
+
+  window.downloadHistoryDataUsageTotalsCsv = dhUDownloadCsv;
+  window.loadDayHistoryUsageTotals = function(){ dhUsageLastSig=''; dhULoad(true); };
+
+  var oldSwitchPage = window.switchPage || (typeof switchPage !== 'undefined' ? switchPage : null);
+  if(oldSwitchPage && !window.__dayHistoryUsage3DV2SwitchWrapped){
+    window.__dayHistoryUsage3DV2SwitchWrapped = true;
+    window.switchPage = function(page){
+      oldSwitchPage.apply(this, arguments);
+      if(page === 'history'){
+        setTimeout(function(){ dhUEnsurePanel(); dhULoad(true); }, 180);
+      }
+    };
+    try{ switchPage = window.switchPage; }catch(e){}
+  }
+
+  var oldRenderHistory = (typeof renderHistory === 'function') ? renderHistory : null;
+  if(oldRenderHistory && !window.__dayHistoryUsage3DV2RenderWrapped){
+    window.__dayHistoryUsage3DV2RenderWrapped = true;
+    renderHistory = async function(){
+      var result = await oldRenderHistory.apply(this, arguments);
+      setTimeout(function(){ dhUEnsurePanel(); dhULoad(true); }, 120);
+      return result;
+    };
+    window.renderHistory = renderHistory;
+  }
+
+  document.addEventListener('change', function(ev){
+    var page = dhUPage();
+    if(page && page.contains(ev.target) && state.page === 'history'){
+      setTimeout(function(){ dhUsageLastSig=''; dhULoad(true); }, 250);
+    }
+  }, true);
+
+  document.addEventListener('click', function(ev){
+    var page = dhUPage();
+    if(page && page.contains(ev.target) && state.page === 'history'){
+      setTimeout(function(){ dhUEnsurePanel(); dhULoad(false); }, 350);
+    }
+  }, true);
+
+  setInterval(function(){
+    if(state.page === 'history'){
+      dhUEnsurePanel();
+      dhULoad(false);
+    }
+  }, 4000);
+
+  setTimeout(function(){
+    if(state.page === 'history'){
+      dhUEnsurePanel();
+      dhULoad(true);
+    }
+  }, 1000);
+})();
+/* DAY_HISTORY_USAGE_3D_V2_END */

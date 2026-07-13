@@ -5930,58 +5930,144 @@ async function testRouterIspConnection(){
 })();
 /* ROUTER_ISP_SETTINGS_UI_END */
 
-/* MACHINE360_SELECTED_DROPDOWN_SYNC_V3_START */
+/* MACHINE360_LOCK_V6_NO_SOURCE_CLEAN_START */
 (function(){
-  function bindM360SelectV3(){
-    const sel = document.querySelector('#machineSelect');
-    if(!sel || sel.dataset.m360V3Bound === '1') return;
-    sel.dataset.m360V3Bound = '1';
+  function m360Select(){
+    var page = document.querySelector('#page-machine360');
+    return (page && page.querySelector('#machineSelect')) || document.querySelector('#machineSelect');
+  }
+  function m360ById(id){
+    id = String(id || '');
+    var list = state.machines || [];
+    for(var i=0;i<list.length;i++){
+      if(String(list[i].machine_id || '') === id) return list[i];
+    }
+    return null;
+  }
+  function m360Lock(id){
+    id = String(id || '');
+    if(!id) return;
+    window.__m360V6LockedId = id;
+    state.selected = id;
+    localStorage.setItem('sagar_machineSelect', id);
+    localStorage.setItem('sagar_selected_machine', id);
+    localStorage.setItem('sagar_machine360_selected', id);
+    localStorage.setItem('sagar_machine360_lock_v6', id);
+  }
+  function m360SavedId(){
+    return window.__m360V6LockedId ||
+      localStorage.getItem('sagar_machineSelect') ||
+      localStorage.getItem('sagar_machine360_lock_v6') ||
+      localStorage.getItem('sagar_machine360_selected') ||
+      localStorage.getItem('sagar_selected_machine') ||
+      state.selected ||
+      '';
+  }
+  function m360ApplySavedToSelect(){
+    if(state.page !== 'machine360') return;
+    var sel = m360Select();
+    if(!sel) return;
+    var id = m360SavedId();
+    if(!id) return;
+    var found = false;
+    for(var i=0;i<(sel.options || []).length;i++){
+      if(sel.options[i].value === id){ found = true; break; }
+    }
+    if(found && sel.value !== id) sel.value = id;
+    if(sel.value) m360Lock(sel.value);
+  }
 
-    sel.addEventListener('change', function(){
-      const id = String(sel.value || '');
-      if(id){
-        state.selected = id;
-        localStorage.setItem('sagar_machine360_selected', id);
-        localStorage.setItem('sagar_selected_machine', id);
+  var originalSelectedMachine = (typeof selectedMachine === 'function') ? selectedMachine : null;
+  selectedMachine = function(){
+    var list = state.machines || [];
+    var sel = m360Select();
+    var id = '';
+
+    if(state.page === 'machine360'){
+      if(sel && sel.value) id = String(sel.value || '');
+      if(!id) id = m360SavedId();
+    }else{
+      if(state.selected) id = String(state.selected || '');
+      if(!id) id = localStorage.getItem('sagar_selected_machine') || '';
+    }
+
+    var m = m360ById(id);
+    if(!m && originalSelectedMachine){
+      try{ m = originalSelectedMachine.apply(this, arguments); }catch(e){ m = null; }
+    }
+    if(!m && list.length) m = list[0];
+
+    if(m && m.machine_id){
+      if(state.page === 'machine360') m360Lock(m.machine_id);
+      else {
+        state.selected = String(m.machine_id || '');
+        localStorage.setItem('sagar_selected_machine', state.selected);
       }
+    }
+    return m;
+  };
+  window.selectedMachine = selectedMachine;
+
+  function m360Bind(){
+    var sel = m360Select();
+    if(!sel || sel.getAttribute('data-m360-v6-bound') === '1') return;
+    sel.setAttribute('data-m360-v6-bound','1');
+    sel.addEventListener('change', function(){
+      m360Lock(sel.value);
       setTimeout(function(){
-        try{
-          if(typeof renderMachine360 === 'function') renderMachine360();
-        }catch(e){
-          console.warn('Machine 360 refresh after select failed', e);
-        }
-      }, 20);
+        try{ if(typeof renderMachine360 === 'function') renderMachine360(); }catch(e){}
+      }, 30);
     }, true);
   }
 
-  function forceM360BeforeRender(){
-    const sel = document.querySelector('#machineSelect');
-    if(sel && sel.value){
-      state.selected = String(sel.value);
-      localStorage.setItem('sagar_machine360_selected', state.selected);
-      localStorage.setItem('sagar_selected_machine', state.selected);
+  function m360FixText(s){
+    return String(s || '')
+      .replace(/\u00C2\u00B7/g, ' - ')
+      .replace(/\u00C2/g, '')
+      .replace(/\u00E2\u0086\u0094/g, ' / ')
+      .replace(/\u00E2\u0086\u0091/g, ' Up ')
+      .replace(/\u00E2\u0086\u0093/g, ' Down ');
+  }
+  function m360CleanVisibleText(){
+    if(state.page !== 'machine360') return;
+    var root = document.querySelector('#page-machine360');
+    if(!root || !document.createTreeWalker) return;
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    var nodes = [];
+    while(walker.nextNode()) nodes.push(walker.currentNode);
+    for(var i=0;i<nodes.length;i++){
+      var oldText = nodes[i].nodeValue;
+      var newText = m360FixText(oldText);
+      if(newText !== oldText) nodes[i].nodeValue = newText;
     }
   }
 
-  if(typeof renderMachine360 === 'function' && !window.__m360V3RenderWrapped){
-    window.__m360V3RenderWrapped = true;
-    const oldRenderMachine360 = renderMachine360;
+  if(typeof renderMachine360 === 'function' && !window.__m360V6RenderWrapped){
+    window.__m360V6RenderWrapped = true;
+    var oldRenderMachine360 = renderMachine360;
     renderMachine360 = function(){
-      forceM360BeforeRender();
-      return oldRenderMachine360.apply(this, arguments);
+      m360ApplySavedToSelect();
+      var out = oldRenderMachine360.apply(this, arguments);
+      setTimeout(function(){
+        m360ApplySavedToSelect();
+        m360Bind();
+        m360CleanVisibleText();
+      }, 40);
+      return out;
     };
     window.renderMachine360 = renderMachine360;
   }
 
-  const oldSwitchPage = window.switchPage || (typeof switchPage !== 'undefined' ? switchPage : null);
-  if(oldSwitchPage && !window.__m360V3SwitchWrapped){
-    window.__m360V3SwitchWrapped = true;
+  var oldSwitch = window.switchPage || (typeof switchPage !== 'undefined' ? switchPage : null);
+  if(oldSwitch && !window.__m360V6SwitchWrapped){
+    window.__m360V6SwitchWrapped = true;
     window.switchPage = function(page){
-      oldSwitchPage.apply(this, arguments);
+      oldSwitch.apply(this, arguments);
       if(page === 'machine360'){
         setTimeout(function(){
-          bindM360SelectV3();
-          forceM360BeforeRender();
+          m360ApplySavedToSelect();
+          m360Bind();
+          m360CleanVisibleText();
           try{ if(typeof renderMachine360 === 'function') renderMachine360(); }catch(e){}
         }, 120);
       }
@@ -5989,23 +6075,40 @@ async function testRouterIspConnection(){
     try{ switchPage = window.switchPage; }catch(e){}
   }
 
-  const oldRenderAll = window.renderAll || (typeof renderAll !== 'undefined' ? renderAll : null);
-  if(oldRenderAll && !window.__m360V3RenderAllWrapped){
-    window.__m360V3RenderAllWrapped = true;
+  var oldRenderAll = window.renderAll || (typeof renderAll !== 'undefined' ? renderAll : null);
+  if(oldRenderAll && !window.__m360V6RenderAllWrapped){
+    window.__m360V6RenderAllWrapped = true;
     window.renderAll = function(){
-      oldRenderAll.apply(this, arguments);
-      bindM360SelectV3();
       if(state.page === 'machine360'){
-        forceM360BeforeRender();
+        var saved = m360SavedId();
+        if(saved) state.selected = saved;
       }
+      var out = oldRenderAll.apply(this, arguments);
+      if(state.page === 'machine360'){
+        setTimeout(function(){
+          m360ApplySavedToSelect();
+          m360Bind();
+          m360CleanVisibleText();
+        }, 80);
+      }
+      return out;
     };
     try{ renderAll = window.renderAll; }catch(e){}
   }
 
+  document.addEventListener('change', function(ev){
+    var t = ev.target;
+    if(t && t.id === 'machineSelect' && state.page === 'machine360'){
+      m360Lock(t.value);
+    }
+  }, true);
+
   setInterval(function(){
     if(state.page === 'machine360'){
-      bindM360SelectV3();
+      m360ApplySavedToSelect();
+      m360Bind();
+      m360CleanVisibleText();
     }
   }, 1500);
 })();
-/* MACHINE360_SELECTED_DROPDOWN_SYNC_V3_END */
+/* MACHINE360_LOCK_V6_NO_SOURCE_CLEAN_END */

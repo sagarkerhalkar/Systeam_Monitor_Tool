@@ -1,1 +1,1 @@
-placeholder
+$(Get-Content -Raw /mnt/data/APPLY_REAL_FIX_V3_SECURITY_LOGIC_PERFORMANCE.ps1)

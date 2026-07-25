@@ -3852,8 +3852,7 @@ if(typeof renderSoftware==='function' && !window.__skSoftwareCleanFixWrapped){
   }
 
   async function savePayload(obj){
-    const p=new URLSearchParams(); p.set('payload', JSON.stringify(obj||{}));
-    const d=await apiGet('/api/hardware-inventory-save?'+p.toString());
+    const d=await api('/api/hardware-inventory-save',{method:'POST',body:JSON.stringify(obj||{})});
     if(!d || d.ok===false) throw new Error((d&&d.error)||'Save failed');
     st().loaded=false;
     return d;
@@ -4243,7 +4242,7 @@ if(typeof renderSoftware==='function' && !window.__skSoftwareCleanFixWrapped){
     if(x.loaded && !force) return Promise.resolve(x.rows);
     return apiGet('/api/software-inventory?limit=20000').then(d=>{ if(!d||d.ok===false) throw new Error((d&&d.error)||'Software Inventory API error'); x.rows=d.rows||[]; x.loaded=true; return x.rows; });
   }
-  function savePayload(obj){const p=new URLSearchParams();p.set('payload',JSON.stringify(obj||{}));return apiGet('/api/software-inventory-save?'+p.toString()).then(d=>{if(!d||d.ok===false)throw new Error((d&&d.error)||'Save failed');st().loaded=false;return d})}
+  function savePayload(obj){return api('/api/software-inventory-save',{method:'POST',body:JSON.stringify(obj||{})}).then(d=>{if(!d||d.ok===false)throw new Error((d&&d.error)||'Save failed');st().loaded=false;return d})}
   function deleteIds(ids){if(!ids.length)return Promise.resolve(); if(!confirm('Delete selected software entry?'))return Promise.resolve(); return apiGet('/api/software-inventory-delete?ids='+encodeURIComponent(ids.join(','))).then(d=>{if(!d||d.ok===false)throw new Error((d&&d.error)||'Delete failed');st().loaded=false;return d})}
   function categories(){return Array.from(new Set((st().rows||[]).map(r=>String(r.category||'Other').trim()||'Other').concat(CATS))).sort()}
   function filterRows(){
@@ -6108,3 +6107,94 @@ async function testRouterIspConnection(){
   setTimeout(()=>{ rf3EnsureSelectorSearches(); if(state.page==='history'){rf3Panel(); rf3LoadHistory(false);} },800);
 })();
 /* REAL_FIX_V3_END */
+
+/* EMERGENCY_ASSET_SAVE_SEARCH_FIX_V1_START */
+(function(){
+  function easCss(){
+    if(document.getElementById('easFixV1Style')) return;
+    var s=document.createElement('style');
+    s.id='easFixV1Style';
+    s.textContent='.eas-search-wrap{display:flex;gap:8px;align-items:center;margin:8px 0;flex-wrap:wrap}.eas-search-wrap input{min-width:240px;max-width:520px;width:100%;border:1px solid rgba(37,99,235,.22);border-radius:14px;padding:10px 12px;font-weight:800;background:#fff;color:#0f172a}.eas-hidden{display:none!important}.eas-select-filter{margin:4px 0 6px!important;width:100%;box-sizing:border-box;border:1px solid rgba(37,99,235,.22);border-radius:12px;padding:8px 10px;font-weight:800}.eas-typing-note{position:fixed;right:16px;bottom:16px;z-index:99999;background:#0f172a;color:#fff;border-radius:14px;padding:10px 12px;font-weight:850;box-shadow:0 14px 40px rgba(15,23,42,.25)}';
+    document.head.appendChild(s);
+  }
+  function isTyping(){var a=document.activeElement;if(!a)return false;var t=(a.tagName||'').toLowerCase();return t==='input'||t==='textarea'||t==='select'||a.isContentEditable;}
+  function postJson(url,obj){return api(String(url).split('?')[0],{method:'POST',body:JSON.stringify(obj||{})});}
+  var oldApiGet=(typeof apiGet==='function')?apiGet:null;
+  if(oldApiGet && !window.__easFixV1ApiGet){
+    window.__easFixV1ApiGet=true;
+    apiGet=function(url){
+      var s=String(url||'');
+      if(s.indexOf('/api/hardware-inventory-save?')>=0 || s.indexOf('/api/software-inventory-save?')>=0){
+        try{var u=new URL(s, location.origin);var payload=u.searchParams.get('payload')||'{}';return postJson(u.pathname, JSON.parse(payload));}
+        catch(e){console.error('Emergency POST conversion failed', e);}
+      }
+      return oldApiGet.apply(this, arguments);
+    };
+    window.apiGet=apiGet;
+  }
+  var oldApiPost=(typeof apiPost==='function')?apiPost:null;
+  if(oldApiPost && !window.__easFixV1ApiPost){
+    window.__easFixV1ApiPost=true;
+    apiPost=function(url,obj){
+      var s=String(url||'');
+      if(s.indexOf('/api/hardware-inventory-save')>=0 || s.indexOf('/api/software-inventory-save')>=0){return postJson(s, obj||{});}
+      return oldApiPost.apply(this, arguments);
+    };
+    window.apiPost=apiPost;
+  }
+  function activePage(){return document.querySelector('.page.active') || document.querySelector('[id^="page-"].active');}
+  function rowText(el){return (el && (el.innerText||el.textContent)||'').toLowerCase();}
+  function filterCurrentPage(q){
+    var page=activePage(); if(!page) return; q=String(q||'').toLowerCase().trim();
+    var items=Array.from(page.querySelectorAll('tbody tr,.card,.panel,.message-card,.timeline-card,.sw-card,.ai9-card,.usb-simple-device,article'));
+    items.forEach(function(el){
+      if(el.closest('form') || el.closest('.ai9-modal') || el.closest('.sw-modal')) return;
+      if(!q){el.classList.remove('eas-hidden'); return;}
+      el.classList.toggle('eas-hidden', rowText(el).indexOf(q)<0);
+    });
+  }
+  function ensureGlobalSearch(){
+    easCss(); if(document.getElementById('easGlobalSearch')) return;
+    var anchor=document.getElementById('pageSubtitle') || document.getElementById('pageTitle') || document.querySelector('.topbar') || document.body.firstElementChild; if(!anchor) return;
+    var wrap=document.createElement('div'); wrap.className='eas-search-wrap'; wrap.innerHTML='<input id="easGlobalSearch" placeholder="Search current tab: client name, IP, asset, software, table text...">';
+    anchor.insertAdjacentElement('afterend', wrap);
+    document.getElementById('easGlobalSearch').addEventListener('input', function(){filterCurrentPage(this.value);});
+  }
+  function filterSelect(sel, q){
+    q=String(q||'').toLowerCase().trim();
+    Array.from(sel.options||[]).forEach(function(o,idx){o.hidden=!!(q && idx!==0 && (o.textContent||'').toLowerCase().indexOf(q)<0);});
+  }
+  function ensureSelectFilters(){
+    easCss();
+    Array.from(document.querySelectorAll('select')).forEach(function(sel){
+      if(sel.dataset.easFilterDone || !sel.options || sel.options.length<8 || sel.closest('.ai9-modal') || sel.closest('.sw-modal')) return;
+      sel.dataset.easFilterDone='1';
+      var input=document.createElement('input'); input.className='eas-select-filter'; input.placeholder='Type to search: client name / IP / option...';
+      input.addEventListener('input', function(){filterSelect(sel, this.value);});
+      sel.parentNode.insertBefore(input, sel);
+    });
+  }
+  var oldRenderAll=(typeof renderAll==='function')?renderAll:null;
+  if(oldRenderAll && !window.__easFixV1RenderAll){
+    window.__easFixV1RenderAll=true;
+    renderAll=function(){
+      if(isTyping()){
+        if(!document.getElementById('easTypingNote')){
+          var n=document.createElement('div'); n.id='easTypingNote'; n.className='eas-typing-note'; n.textContent='Background refresh paused while typing'; document.body.appendChild(n);
+          setTimeout(function(){var x=document.getElementById('easTypingNote'); if(x) x.remove();},1400);
+        }
+        return;
+      }
+      return oldRenderAll.apply(this, arguments);
+    };
+    window.renderAll=renderAll;
+  }
+  function boot(){ensureGlobalSearch(); ensureSelectFilters();}
+  document.addEventListener('DOMContentLoaded', boot);
+  document.addEventListener('click', function(){setTimeout(boot,250);}, true);
+  document.addEventListener('input', function(ev){if(ev.target && ev.target.id==='easGlobalSearch') filterCurrentPage(ev.target.value);}, true);
+  setInterval(boot,1500);
+  window.easFixV1Evidence=function(){return {apiGetWrapped:!!window.__easFixV1ApiGet,apiPostWrapped:!!window.__easFixV1ApiPost,globalSearch:!!document.getElementById('easGlobalSearch'),selectFilters:document.querySelectorAll('.eas-select-filter').length};};
+  boot();
+})();
+/* EMERGENCY_ASSET_SAVE_SEARCH_FIX_V1_END */

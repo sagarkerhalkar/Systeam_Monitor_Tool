@@ -4142,134 +4142,159 @@ except Exception as _dbc_e:
 # DB_COMPACT_NO_REPEATED_HEARTBEATS_V1_END
 
 
-# EMERGENCY_ASSET_SAVE_SEARCH_FIX_V1_START
+
+
+
+# FINAL_ONE_SEARCH_INVENTORY_NOTIFICATION_CLIENT_V4_START
 try:
-    import json as _eas_json
-    import datetime as _eas_dt
-    import urllib.parse as _eas_urlparse
-    import re as _eas_re
+    import json as _f4_json
+    import datetime as _f4_dt
+    import re as _f4_re
 
-    _EAS_HW_DEFAULT_COLS = ["sr_no","tagname_hostname","room_location","person_allocated_to","assets_type","oem_name","model_no","serial_no","configuration","vendor_name","po_invoice_bill_no","bill_path_google_drive_path","purchase_date","warranty_start_date","warranty_end_date","warranty_status","status","remark","source_sheet","source_row","original_section","live_sync_status","live_match_score","live_hostname","live_ip","last_seen"]
-    _EAS_SW_DEFAULT_COLS = ["software_name","category","login_url","username","password_value","license_key","mfa_recovery","machine_asset","allocated_to","vendor_name","po_invoice_bill_no","bill_path_google_drive_path","purchase_date","renewal_expiry_date","status","notes"]
+    _F4_HW_DEFAULT_COLS = ["sr_no","tagname_hostname","room_location","person_allocated_to","assets_type","oem_name","model_no","serial_no","configuration","vendor_name","po_invoice_bill_no","bill_path_google_drive_path","purchase_date","warranty_start_date","warranty_end_date","warranty_status","status","remark","source_sheet","source_row","original_section","live_sync_status","live_match_score","live_hostname","live_ip","last_seen"]
+    _F4_SW_DEFAULT_COLS = ["software_name","category","login_url","username","password_value","license_key","mfa_recovery","machine_asset","allocated_to","vendor_name","po_invoice_bill_no","bill_path_google_drive_path","purchase_date","renewal_expiry_date","status","notes"]
 
-    def _eas_now():
-        return _eas_dt.datetime.now(_eas_dt.timezone.utc).isoformat()
-
-    def _eas_col(name):
-        s = _eas_re.sub(r"[^A-Za-z0-9_]+", "_", str(name or "").strip().lower()).strip("_")
-        if not s: s = "field"
-        if s[0].isdigit(): s = "f_" + s
+    def _f4_col(name):
+        s = _f4_re.sub(r"[^A-Za-z0-9_]+", "_", str(name or "").strip().lower()).strip("_")
+        if not s:
+            s = "field"
+        if s[0].isdigit():
+            s = "f_" + s
         return s[:60]
 
-    def _eas_norm_row(row):
+    def _f4_norm_row(row):
         out = {}
-        if not isinstance(row, dict): return out
+        if not isinstance(row, dict):
+            return out
+        alias = {"name":"software_name", "display_name":"software_name", "asset":"tagname_hostname", "tag":"tagname_hostname"}
         for k, v in row.items():
-            ck = _eas_col(k)
-            out[ck] = "" if v is None else str(v)
+            ck = _f4_col(alias.get(str(k), k))
+            if ck == "id":
+                out[ck] = str(v or "").strip()
+            else:
+                out[ck] = "" if v is None else str(v)
         return out
 
-    def _eas_extract_rows(data):
-        if not isinstance(data, dict): return []
+    def _f4_extract_rows(data):
+        if not isinstance(data, dict):
+            return []
         if isinstance(data.get("row"), dict):
-            return [_eas_norm_row(data.get("row"))]
+            return [_f4_norm_row(data.get("row"))]
         rows = data.get("rows") or data.get("items") or data.get("data")
         if isinstance(rows, list):
-            return [_eas_norm_row(r) for r in rows if isinstance(r, dict)]
+            return [_f4_norm_row(r) for r in rows if isinstance(r, dict)]
         if any(k for k in data.keys() if k not in {"mode","action","ok"}):
-            return [_eas_norm_row(data)]
+            return [_f4_norm_row(data)]
         return []
 
-    def _eas_read_json_body(self):
+    def _f4_read_body(self):
         try:
             n = int(self.headers.get("Content-Length") or 0)
             raw = self.rfile.read(n) if n else b"{}"
-            return _eas_json.loads((raw or b"{}").decode("utf-8-sig"))
+            return _f4_json.loads((raw or b"{}").decode("utf-8-sig", errors="replace") or "{}")
         except Exception:
             return {}
 
-    def _eas_read_save_payload(self):
-        if "?" in self.path:
-            try:
-                qs = _eas_urlparse.parse_qs(self.path.split("?",1)[1])
-                if "payload" in qs:
-                    return _eas_json.loads((qs.get("payload") or ["{}"])[0] or "{}")
-            except Exception:
-                pass
-        return _eas_read_json_body(self)
-
-    def _eas_ensure_table(con, table, default_cols, rows):
+    def _f4_ensure_table(con, table, default_cols, rows):
         con.execute("CREATE TABLE IF NOT EXISTS " + table + " (id INTEGER PRIMARY KEY AUTOINCREMENT, created_at TEXT, updated_at TEXT)")
         existing = {r[1] for r in con.execute("PRAGMA table_info(" + table + ")").fetchall()}
-        cols = list(default_cols)
+        cols = []
+        for c in default_cols:
+            cc = _f4_col(c)
+            if cc != "id" and cc not in cols:
+                cols.append(cc)
         for row in rows:
             for k in row.keys():
-                if k != "id" and k not in cols:
-                    cols.append(k)
+                ck = _f4_col(k)
+                if ck != "id" and ck not in cols:
+                    cols.append(ck)
         for c in cols:
-            cc = _eas_col(c)
-            if cc not in existing and cc != "id":
-                con.execute("ALTER TABLE " + table + " ADD COLUMN " + cc + " TEXT")
-                existing.add(cc)
-        return [c for c in cols if c != "id"]
+            if c not in existing:
+                con.execute("ALTER TABLE " + table + " ADD COLUMN " + c + " TEXT")
+                existing.add(c)
+        return cols
 
-    def _eas_save_inventory(table, default_cols, data):
-        rows = _eas_extract_rows(data)
+    def _f4_save_inventory(table, default_cols, data):
+        rows = _f4_extract_rows(data)
         if not rows:
-            return {"ok": False, "error": "No row data received", "saved": 0, "table": table, "emergency_fix": True}
+            return {"ok": False, "error":"No row data received", "saved":0, "table":table, "final_v4":True}
         with DB_LOCK, db_connect() as con:
-            cols = _eas_ensure_table(con, table, default_cols, rows)
+            cols = _f4_ensure_table(con, table, default_cols, rows)
+            now = _f4_dt.datetime.now(_f4_dt.timezone.utc).isoformat()
             saved = 0
-            now = _eas_now()
             for row in rows:
                 row_id = str(row.get("id") or "").strip()
-                values = {c: row.get(c, "") for c in cols}
+                vals = {c: row.get(c, "") for c in cols}
                 if row_id and con.execute("SELECT id FROM " + table + " WHERE id=?", (row_id,)).fetchone():
                     set_sql = ",".join([c + "=?" for c in cols]) + ",updated_at=?"
-                    con.execute("UPDATE " + table + " SET " + set_sql + " WHERE id=?", list(values.values()) + [now, row_id])
+                    con.execute("UPDATE " + table + " SET " + set_sql + " WHERE id=?", list(vals.values()) + [now, int(row_id)])
                 else:
-                    insert_cols = ["created_at","updated_at"] + cols
+                    insert_cols = ["created_at", "updated_at"] + cols
                     qs = ",".join(["?"] * len(insert_cols))
-                    con.execute("INSERT INTO " + table + "(" + ",".join(insert_cols) + ") VALUES(" + qs + ")", [now, now] + list(values.values()))
+                    con.execute("INSERT INTO " + table + "(" + ",".join(insert_cols) + ") VALUES(" + qs + ")", [now, now] + list(vals.values()))
                 saved += 1
             con.commit()
-        return {"ok": True, "saved": saved, "table": table, "emergency_fix": True}
+        return {"ok": True, "saved": saved, "table": table, "final_v4": True}
 
-    _EAS_OLD_GET = Handler.do_GET
-    _EAS_OLD_POST = Handler.do_POST
+    def _f4_enrich(summary):
+        try:
+            cpu = to_float(summary.get("cpu_percent"), None)
+            ram = to_float(summary.get("ram_percent"), None)
+            gpu_usage = to_float(summary.get("gpu_max_usage"), None)
+            cpu_temp = to_float(summary.get("cpu_temp_c"), None)
+            gpu_temp = to_float(summary.get("gpu_max_temp_c"), None)
+            if cpu is not None and ram is not None:
+                summary["cpu_ram_combined_percent"] = min(cpu, ram)
+                summary["cpu_ram_peak_percent"] = max(cpu, ram)
+            if cpu_temp is not None and gpu_temp is not None:
+                summary["cpu_gpu_temp_combined_c"] = min(cpu_temp, gpu_temp)
+                summary["cpu_gpu_temp_peak_c"] = max(cpu_temp, gpu_temp)
+            if ram is not None and gpu_usage is not None:
+                summary["ram_gpu_usage_combined_percent"] = min(ram, gpu_usage)
+                summary["ram_gpu_usage_peak_percent"] = max(ram, gpu_usage)
+        except Exception:
+            pass
+        return summary
 
-    def _eas_get(self):
+    _F4_OLD_POST = Handler.do_POST
+    _F4_OLD_GET = Handler.do_GET
+
+    def _f4_post(self):
         try:
             path = self.path.split("?", 1)[0]
             if path == "/api/hardware-inventory-save":
                 if not self.require_admin(): return
-                return self.send_json(_eas_save_inventory("hardware_inventory", _EAS_HW_DEFAULT_COLS, _eas_read_save_payload(self)))
+                return self.send_json(_f4_save_inventory("hardware_inventory", _F4_HW_DEFAULT_COLS, _f4_read_body(self)))
             if path == "/api/software-inventory-save":
                 if not self.require_admin(): return
-                return self.send_json(_eas_save_inventory("software_inventory", _EAS_SW_DEFAULT_COLS, _eas_read_save_payload(self)))
-            return _EAS_OLD_GET(self)
+                return self.send_json(_f4_save_inventory("software_inventory", _F4_SW_DEFAULT_COLS, _f4_read_body(self)))
+            return _F4_OLD_POST(self)
         except Exception as e:
-            return self.send_json({"ok": False, "error": str(e), "emergency_fix": True}, 500)
+            return self.send_json({"ok": False, "error": str(e), "final_v4": True}, 500)
 
-    def _eas_post(self):
+    def _f4_get(self):
         try:
             path = self.path.split("?", 1)[0]
-            if path == "/api/hardware-inventory-save":
-                if not self.require_admin(): return
-                return self.send_json(_eas_save_inventory("hardware_inventory", _EAS_HW_DEFAULT_COLS, _eas_read_save_payload(self)))
-            if path == "/api/software-inventory-save":
-                if not self.require_admin(): return
-                return self.send_json(_eas_save_inventory("software_inventory", _EAS_SW_DEFAULT_COLS, _eas_read_save_payload(self)))
-            return _EAS_OLD_POST(self)
+            if path in ("/api/hardware-inventory-save", "/api/software-inventory-save"):
+                return self.send_json({"ok": False, "error":"POST required. GET save is blocked for security.", "final_v4": True}, 405)
+            return _F4_OLD_GET(self)
         except Exception as e:
-            return self.send_json({"ok": False, "error": str(e), "emergency_fix": True}, 500)
+            return self.send_json({"ok": False, "error": str(e), "final_v4": True}, 500)
 
-    Handler.do_GET = _eas_get
-    Handler.do_POST = _eas_post
-    print("EMERGENCY_ASSET_SAVE_SEARCH_FIX_V1_LOADED")
-except Exception as _eas_e:
-    print("EMERGENCY_ASSET_SAVE_SEARCH_FIX_V1_FAILED", _eas_e)
-# EMERGENCY_ASSET_SAVE_SEARCH_FIX_V1_END
+    Handler.do_POST = _f4_post
+    Handler.do_GET = _f4_get
+
+    try:
+        _F4_OLD_EVALUATE = evaluate_notifications
+        def evaluate_notifications(summary):
+            return _F4_OLD_EVALUATE(_f4_enrich(summary if isinstance(summary, dict) else {}))
+    except Exception:
+        pass
+
+    print("FINAL_ONE_SEARCH_INVENTORY_NOTIFICATION_CLIENT_V4_LOADED")
+except Exception as _f4_e:
+    print("FINAL_ONE_SEARCH_INVENTORY_NOTIFICATION_CLIENT_V4_FAILED", _f4_e)
+# FINAL_ONE_SEARCH_INVENTORY_NOTIFICATION_CLIENT_V4_END
 
 def main() -> None:
     parser = argparse.ArgumentParser()

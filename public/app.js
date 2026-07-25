@@ -1,4 +1,4 @@
-﻿const $ = (q) => document.querySelector(q);
+const $ = (q) => document.querySelector(q);
 const $$ = (q) => Array.from(document.querySelectorAll(q));
 
 const state = {
@@ -5584,7 +5584,7 @@ if(typeof renderSoftware==='function' && !window.__skSoftwareCleanFixWrapped){
       }
 
       const search = q('#globalSearch');
-      if(search) search.classList.add('brand-hidden-search');
+      if(search){ search.classList.remove('brand-hidden-search'); search.classList.add('one-global-search'); }
 
       // Keep only one company pill if an older dynamic patch made duplicates.
       const pills = qa('#brandCompanyPill,#ntfixCompanyPill,#ubCompanyPill,#sgbrandCompanyPill,#loginRealCompanyPill,#brandApplyCompanyPill');
@@ -6108,93 +6108,120 @@ async function testRouterIspConnection(){
 })();
 /* REAL_FIX_V3_END */
 
-/* EMERGENCY_ASSET_SAVE_SEARCH_FIX_V1_START */
+
+
+
+/* FINAL_ONE_SEARCH_INVENTORY_NOTIFICATION_CLIENT_V4_START */
 (function(){
-  function easCss(){
-    if(document.getElementById('easFixV1Style')) return;
-    var s=document.createElement('style');
-    s.id='easFixV1Style';
-    s.textContent='.eas-search-wrap{display:flex;gap:8px;align-items:center;margin:8px 0;flex-wrap:wrap}.eas-search-wrap input{min-width:240px;max-width:520px;width:100%;border:1px solid rgba(37,99,235,.22);border-radius:14px;padding:10px 12px;font-weight:800;background:#fff;color:#0f172a}.eas-hidden{display:none!important}.eas-select-filter{margin:4px 0 6px!important;width:100%;box-sizing:border-box;border:1px solid rgba(37,99,235,.22);border-radius:12px;padding:8px 10px;font-weight:800}.eas-typing-note{position:fixed;right:16px;bottom:16px;z-index:99999;background:#0f172a;color:#fff;border-radius:14px;padding:10px 12px;font-weight:850;box-shadow:0 14px 40px rgba(15,23,42,.25)}';
-    document.head.appendChild(s);
-  }
-  function isTyping(){var a=document.activeElement;if(!a)return false;var t=(a.tagName||'').toLowerCase();return t==='input'||t==='textarea'||t==='select'||a.isContentEditable;}
-  function postJson(url,obj){return api(String(url).split('?')[0],{method:'POST',body:JSON.stringify(obj||{})});}
-  var oldApiGet=(typeof apiGet==='function')?apiGet:null;
-  if(oldApiGet && !window.__easFixV1ApiGet){
-    window.__easFixV1ApiGet=true;
-    apiGet=function(url){
-      var s=String(url||'');
-      if(s.indexOf('/api/hardware-inventory-save?')>=0 || s.indexOf('/api/software-inventory-save?')>=0){
-        try{var u=new URL(s, location.origin);var payload=u.searchParams.get('payload')||'{}';return postJson(u.pathname, JSON.parse(payload));}
-        catch(e){console.error('Emergency POST conversion failed', e);}
+  const FINAL_V4_METRICS = [
+    'cpu_ram_combined_percent','cpu_ram_peak_percent',
+    'cpu_gpu_temp_combined_c','cpu_gpu_temp_peak_c',
+    'ram_gpu_usage_combined_percent','ram_gpu_usage_peak_percent'
+  ];
+  const PAGE_SELECT = {dashboard:'dashboardMachine',machine360:'machineSelect',software:'softwareMachine',usb:'usbMachine',history:'historyMachine',messages:'messageMachine',changes:'changeMachine'};
+  function q(s,r){return (r||document).querySelector(s)}
+  function qa(s,r){return Array.from((r||document).querySelectorAll(s))}
+  function txt(x){return String(x==null?'':x).toLowerCase()}
+  function activePage(){return q('.page.active')||q('#page-'+(state&&state.page||''));}
+  function machineText(m){return txt([host(m),m.hostname,m.machine_id,m.primary_ip,m.public_ip,m.os,(m.gpu_names||[]).join(' ')].join(' '));}
+  function currentSearch(){return q('#globalSearch')?.value || state.query || '';}
+  function ensureOneSearch(){
+    const gs=q('#globalSearch'); if(!gs) return;
+    gs.classList.remove('brand-hidden-search'); gs.classList.add('one-global-search');
+    gs.style.display='inline-flex'; gs.placeholder='One Search: client, IP, asset, software, table text...';
+    qa('input').forEach(function(inp){
+      if(inp===gs) return;
+      const meta=txt((inp.id||'')+' '+(inp.className||'')+' '+(inp.placeholder||''));
+      if(meta.includes('search') || inp.classList.contains('eas-select-filter')){
+        inp.classList.add('final-v4-hidden-search');
+        inp.setAttribute('aria-hidden','true');
       }
-      return oldApiGet.apply(this, arguments);
-    };
-    window.apiGet=apiGet;
+    });
+    qa('#easGlobalSearch,.eas-search-wrap,.eas-select-filter').forEach(x=>x.remove());
   }
-  var oldApiPost=(typeof apiPost==='function')?apiPost:null;
-  if(oldApiPost && !window.__easFixV1ApiPost){
-    window.__easFixV1ApiPost=true;
-    apiPost=function(url,obj){
-      var s=String(url||'');
-      if(s.indexOf('/api/hardware-inventory-save')>=0 || s.indexOf('/api/software-inventory-save')>=0){return postJson(s, obj||{});}
-      return oldApiPost.apply(this, arguments);
-    };
-    window.apiPost=apiPost;
-  }
-  function activePage(){return document.querySelector('.page.active') || document.querySelector('[id^="page-"].active');}
-  function rowText(el){return (el && (el.innerText||el.textContent)||'').toLowerCase();}
-  function filterCurrentPage(q){
-    var page=activePage(); if(!page) return; q=String(q||'').toLowerCase().trim();
-    var items=Array.from(page.querySelectorAll('tbody tr,.card,.panel,.message-card,.timeline-card,.sw-card,.ai9-card,.usb-simple-device,article'));
+  function filterDom(query){
+    const page=activePage(); if(!page) return; const s=txt(query).trim();
+    const items=qa('tbody tr,.card,.panel,.message-card,.timeline-card,.sw-card,.ai9-card,.usb-simple-device,article,.item,.net-card,.hw-card,.detail-card',page);
     items.forEach(function(el){
-      if(el.closest('form') || el.closest('.ai9-modal') || el.closest('.sw-modal')) return;
-      if(!q){el.classList.remove('eas-hidden'); return;}
-      el.classList.toggle('eas-hidden', rowText(el).indexOf(q)<0);
+      if(el.closest('.modal')||el.closest('.ai9-modal')||el.closest('.sw-modal')||el.closest('form')) return;
+      if(!s){el.classList.remove('final-v4-filter-hidden'); return;}
+      el.classList.toggle('final-v4-filter-hidden', txt(el.innerText||el.textContent).indexOf(s)<0);
     });
   }
-  function ensureGlobalSearch(){
-    easCss(); if(document.getElementById('easGlobalSearch')) return;
-    var anchor=document.getElementById('pageSubtitle') || document.getElementById('pageTitle') || document.querySelector('.topbar') || document.body.firstElementChild; if(!anchor) return;
-    var wrap=document.createElement('div'); wrap.className='eas-search-wrap'; wrap.innerHTML='<input id="easGlobalSearch" placeholder="Search current tab: client name, IP, asset, software, table text...">';
-    anchor.insertAdjacentElement('afterend', wrap);
-    document.getElementById('easGlobalSearch').addEventListener('input', function(){filterCurrentPage(this.value);});
+  function selectMachineFromSearch(query){
+    const s=txt(query).trim(); if(s.length<2 || !Array.isArray(state.machines)) return false;
+    const match=state.machines.find(m=>machineText(m).includes(s));
+    if(!match) return false;
+    const id=PAGE_SELECT[state.page] || 'machineSelect'; const sel=q('#'+id); if(!sel) return false;
+    if(sel.value!==match.machine_id){
+      sel.value=match.machine_id; localStorage.setItem('sagar_'+id, match.machine_id);
+      try{ if(typeof onMachineSelect==='function') onMachineSelect(id); else renderAll(); }catch(e){ try{renderAll();}catch(_){} }
+    }
+    return true;
   }
-  function filterSelect(sel, q){
-    q=String(q||'').toLowerCase().trim();
-    Array.from(sel.options||[]).forEach(function(o,idx){o.hidden=!!(q && idx!==0 && (o.textContent||'').toLowerCase().indexOf(q)<0);});
+  function syncPageSpecificSearch(query){
+    const s=String(query||'');
+    try{ if(window.__assetInvV9){ window.__assetInvV9.search=s; window.__assetInvV9.page=1; } }catch(e){}
+    try{ if(window.__swInv){ window.__swInv.search=s; window.__swInv.page=1; } }catch(e){}
+    try{ localStorage.setItem('sagar_software_search', s); localStorage.setItem('sagar_usb_search', s); }catch(e){}
   }
-  function ensureSelectFilters(){
-    easCss();
-    Array.from(document.querySelectorAll('select')).forEach(function(sel){
-      if(sel.dataset.easFilterDone || !sel.options || sel.options.length<8 || sel.closest('.ai9-modal') || sel.closest('.sw-modal')) return;
-      sel.dataset.easFilterDone='1';
-      var input=document.createElement('input'); input.className='eas-select-filter'; input.placeholder='Type to search: client name / IP / option...';
-      input.addEventListener('input', function(){filterSelect(sel, this.value);});
-      sel.parentNode.insertBefore(input, sel);
-    });
+  function applyGlobalSearch(query, rerender){
+    state.query=String(query||''); syncPageSpecificSearch(state.query);
+    if(rerender){
+      try{
+        if(state.page==='fleet'||state.page==='dashboard') renderAll();
+        else if(state.page==='hardware' && typeof renderHardware==='function') renderHardware(false);
+        else if(state.page==='software' && typeof renderSoftwareInventory==='function') renderSoftwareInventory(false);
+        else if(state.page==='usb' && typeof renderUsb==='function') renderUsb();
+      }catch(e){console.warn('final v4 page rerender skipped', e);}
+    }
+    selectMachineFromSearch(state.query); setTimeout(()=>filterDom(state.query),80);
   }
-  var oldRenderAll=(typeof renderAll==='function')?renderAll:null;
-  if(oldRenderAll && !window.__easFixV1RenderAll){
-    window.__easFixV1RenderAll=true;
-    renderAll=function(){
-      if(isTyping()){
-        if(!document.getElementById('easTypingNote')){
-          var n=document.createElement('div'); n.id='easTypingNote'; n.className='eas-typing-note'; n.textContent='Background refresh paused while typing'; document.body.appendChild(n);
-          setTimeout(function(){var x=document.getElementById('easTypingNote'); if(x) x.remove();},1400);
-        }
-        return;
-      }
-      return oldRenderAll.apply(this, arguments);
-    };
+  function ensureCompositeMetrics(){
+    try{ if(Array.isArray(metrics)) FINAL_V4_METRICS.forEach(m=>{if(!metrics.includes(m)) metrics.push(m);}); }catch(e){}
+    const sel=q('#ruleMetric'); if(sel){
+      const have=new Set(qa('option',sel).map(o=>o.value||o.textContent));
+      FINAL_V4_METRICS.forEach(m=>{ if(!have.has(m)){ const o=document.createElement('option'); o.value=m; o.textContent=m; sel.appendChild(o); } });
+    }
+  }
+  function bind(){
+    ensureOneSearch(); ensureCompositeMetrics();
+    const gs=q('#globalSearch'); if(gs && !gs.dataset.finalV4Bound){
+      gs.dataset.finalV4Bound='1';
+      gs.addEventListener('input', function(){ clearTimeout(window.__finalV4SearchTimer); window.__finalV4SearchTimer=setTimeout(()=>applyGlobalSearch(this.value,true),120); }, true);
+      gs.addEventListener('keydown', function(ev){ if(ev.key==='Enter'){ ev.preventDefault(); applyGlobalSearch(this.value,true); } }, true);
+    }
+    filterDom(currentSearch());
+  }
+  const oldRenderAll=(typeof renderAll==='function')?renderAll:null;
+  if(oldRenderAll && !window.__finalV4RenderAll){
+    window.__finalV4RenderAll=true;
+    renderAll=function(){ const r=oldRenderAll.apply(this,arguments); setTimeout(bind,80); return r; };
     window.renderAll=renderAll;
   }
-  function boot(){ensureGlobalSearch(); ensureSelectFilters();}
-  document.addEventListener('DOMContentLoaded', boot);
-  document.addEventListener('click', function(){setTimeout(boot,250);}, true);
-  document.addEventListener('input', function(ev){if(ev.target && ev.target.id==='easGlobalSearch') filterCurrentPage(ev.target.value);}, true);
-  setInterval(boot,1500);
-  window.easFixV1Evidence=function(){return {apiGetWrapped:!!window.__easFixV1ApiGet,apiPostWrapped:!!window.__easFixV1ApiPost,globalSearch:!!document.getElementById('easGlobalSearch'),selectFilters:document.querySelectorAll('.eas-select-filter').length};};
-  boot();
+  const oldSwitch=(typeof switchPage==='function')?switchPage:null;
+  if(oldSwitch && !window.__finalV4SwitchPage){
+    window.__finalV4SwitchPage=true;
+    switchPage=function(page){ const r=oldSwitch.apply(this,arguments); setTimeout(()=>applyGlobalSearch(currentSearch(),false),120); return r; };
+    window.switchPage=switchPage;
+  }
+  const oldRules=(typeof renderRules==='function')?renderRules:null;
+  if(oldRules && !window.__finalV4RenderRules){
+    window.__finalV4RenderRules=true;
+    renderRules=function(settings){ const r=oldRules.apply(this,arguments); ensureCompositeMetrics(); return r; };
+    window.renderRules=renderRules;
+  }
+  if(!document.getElementById('finalV4OneSearchStyle')){
+    const st=document.createElement('style'); st.id='finalV4OneSearchStyle'; st.textContent=`
+      #globalSearch.one-global-search{display:inline-flex!important;visibility:visible!important;opacity:1!important;width:420px;max-width:46vw;height:46px;border:1px solid rgba(37,99,235,.22);border-radius:16px;background:#fff;padding:0 16px;font-weight:850;color:#0f172a;box-shadow:0 10px 24px rgba(15,33,60,.08)}
+      .final-v4-hidden-search{display:none!important}.final-v4-filter-hidden{display:none!important}
+      @media(max-width:900px){#globalSearch.one-global-search{width:100%;max-width:none}.top-actions{width:100%}}
+    `; document.head.appendChild(st);
+  }
+  document.addEventListener('DOMContentLoaded',bind); document.addEventListener('click',()=>setTimeout(bind,120),true);
+  document.addEventListener('input',function(ev){ if(ev.target && ev.target.id==='globalSearch') applyGlobalSearch(ev.target.value,false); },true);
+  setInterval(bind,1500); bind();
+  window.finalV4Evidence=function(){return {oneSearch:!!q('#globalSearch'),extraSearches:qa('#easGlobalSearch,.eas-select-filter,input.final-v4-hidden-search').length,metrics:FINAL_V4_METRICS.filter(m=>Array.isArray(metrics)&&metrics.includes(m)),page:state.page,query:currentSearch()};};
 })();
-/* EMERGENCY_ASSET_SAVE_SEARCH_FIX_V1_END */
+/* FINAL_ONE_SEARCH_INVENTORY_NOTIFICATION_CLIENT_V4_END */
+

@@ -1,0 +1,49 @@
+name: Restore verified good server
+
+on:
+  push:
+    branches:
+      - restore-verified-server-20260731
+    paths:
+      - .restore/READY
+
+permissions:
+  contents: write
+
+jobs:
+  restore-server:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout workingcode
+        uses: actions/checkout@v4
+        with:
+          ref: workingcode
+          fetch-depth: 0
+
+      - name: Reconstruct and validate verified server.py
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin restore-verified-server-20260731:refs/remotes/origin/restore-verified-server-20260731
+          : > /tmp/server.py.xz.b64
+          while IFS= read -r part; do
+            git show "origin/restore-verified-server-20260731:${part}" >> /tmp/server.py.xz.b64
+          done < <(git ls-tree -r --name-only origin/restore-verified-server-20260731 .restore | grep '^.restore/server.py.xz.b64.' | sort)
+          base64 --decode /tmp/server.py.xz.b64 | xz --decompress > /tmp/server.py
+          echo "668a30451a67992a8b2012b382e848b46493fa6e163f1838c373b2710060e99e  /tmp/server.py" | sha256sum --check --strict
+          python -m py_compile /tmp/server.py
+          cp /tmp/server.py server.py
+
+      - name: Commit verified server.py to workingcode
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- server.py; then
+            echo "workingcode already has the verified server.py"
+            exit 0
+          fi
+          git config user.name "Sagar Monitor Restore Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add server.py
+          git commit -m "Restore verified working server from good ZIP"
+          git push origin HEAD:workingcode

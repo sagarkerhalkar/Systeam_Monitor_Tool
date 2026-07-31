@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 Sagar Kerhalkar System Monitor Tool - zero dependency receiver + premium dashboard.
 Runs with Python standard library only.
@@ -3265,6 +3265,196 @@ try:
 except Exception as _ret_e:
     print("MAIN_2278_RETENTION_MANAGER_FAILED", _ret_e)
 # === MAIN_2278_RETENTION_MANAGER_END ===
+
+
+
+# DB_COMPACT_NO_REPEATED_HEARTBEATS_V1_START
+try:
+    import json as _dbc_json
+    import datetime as _dbc_dt
+
+    _DBC_SETTINGS_FILE = DATA_DIR / "db_compact_settings.json"
+
+    def _dbc_load_settings():
+        default = {"enabled": True, "heartbeat_min_seconds": 900, "traffic_delta_gb": 0.02, "compact_history_payload": True}
+        try:
+            if _DBC_SETTINGS_FILE.exists():
+                obj = _dbc_json.loads(_DBC_SETTINGS_FILE.read_text(encoding="utf-8-sig"))
+                if isinstance(obj, dict):
+                    default.update(obj)
+        except Exception:
+            pass
+        try:
+            default["heartbeat_min_seconds"] = max(60, min(int(default.get("heartbeat_min_seconds") or 900), 86400))
+        except Exception:
+            default["heartbeat_min_seconds"] = 900
+        try:
+            default["traffic_delta_gb"] = max(0.001, float(default.get("traffic_delta_gb") or 0.02))
+        except Exception:
+            default["traffic_delta_gb"] = 0.02
+        default["enabled"] = bool(default.get("enabled", True))
+        default["compact_history_payload"] = bool(default.get("compact_history_payload", True))
+        return default
+
+    def _dbc_ts(v):
+        try:
+            return _dbc_dt.datetime.fromisoformat(str(v or "").replace("Z", "+00:00")).timestamp()
+        except Exception:
+            return 0.0
+
+    def _dbc_num(v):
+        try:
+            if v is None or v == "":
+                return 0.0
+            return float(v)
+        except Exception:
+            return 0.0
+
+    def _dbc_changed_text(a, b):
+        return str(a or "").strip() != str(b or "").strip()
+
+    def _dbc_should_store_history(con, summary, previous_summary, now_iso_value, settings):
+        if not settings.get("enabled", True):
+            return True, "compact_disabled"
+        if not previous_summary:
+            return True, "first_seen"
+
+        mid = summary.get("machine_id") or ""
+        last = None
+        try:
+            row = con.execute("SELECT received_at FROM heartbeats WHERE machine_id=? ORDER BY id DESC LIMIT 1", (mid,)).fetchone()
+            if row:
+                last = row["received_at"] if hasattr(row, "keys") else row[0]
+        except Exception:
+            last = None
+
+        if not last:
+            return True, "first_history_sample"
+
+        age = max(0, _dbc_ts(now_iso_value) - _dbc_ts(last))
+        if age >= int(settings.get("heartbeat_min_seconds") or 900):
+            return True, "time_sample"
+
+        down_delta = abs(_dbc_num(summary.get("today_download_gb")) - _dbc_num(previous_summary.get("today_download_gb")))
+        up_delta = abs(_dbc_num(summary.get("today_upload_gb")) - _dbc_num(previous_summary.get("today_upload_gb")))
+        if (down_delta + up_delta) >= float(settings.get("traffic_delta_gb") or 0.02):
+            return True, "traffic_delta"
+
+        for f in ["traffic_date", "primary_ip", "public_ip", "isp_name", "vpn_active", "usb_count", "software_count"]:
+            if _dbc_changed_text(summary.get(f), previous_summary.get(f)):
+                return True, "changed_" + f
+
+        return False, "repeated_skipped"
+
+    def _dbc_small_list_count(n, limit=300):
+        try:
+            n = int(n or 0)
+        except Exception:
+            n = 0
+        n = max(0, min(n, limit))
+        return [{} for _ in range(n)]
+
+    def _dbc_compact_history_payload(summary, payload):
+        try:
+            p = payload if isinstance(payload, dict) else {}
+            disks = []
+            try:
+                raw_disks = listify(get_nested(p, ["storage.disks", "disks"], []))
+                for d in raw_disks[:20]:
+                    if isinstance(d, dict):
+                        disks.append({
+                            "mount": clean_str(d.get("mount") or d.get("name") or d.get("drive")),
+                            "used_percent": to_float(d.get("used_percent") or d.get("usage_percent"), 0)
+                        })
+            except Exception:
+                disks = []
+            return {
+                "identity": {"hostname": summary.get("hostname") or "", "machine_id": summary.get("machine_id") or ""},
+                "os": {"name": summary.get("os") or ""},
+                "network": {
+                    "primary_ip": summary.get("primary_ip") or "",
+                    "public_internet": {"public_ip": summary.get("public_ip") or "", "isp": summary.get("isp_name") or ""},
+                    "traffic": {
+                        "today_download_gb": _dbc_num(summary.get("today_download_gb")),
+                        "today_upload_gb": _dbc_num(summary.get("today_upload_gb")),
+                        "current_download_mbps": _dbc_num(summary.get("wan_download_mbps")),
+                        "current_upload_mbps": _dbc_num(summary.get("wan_upload_mbps")),
+                        "date": summary.get("traffic_date") or ""
+                    },
+                    "vpn": {"active": bool(summary.get("vpn_active"))}
+                },
+                "hardware": {
+                    "cpu": {"usage_percent": _dbc_num(summary.get("cpu_percent")), "temperature_c": summary.get("cpu_temp_c")},
+                    "memory": {
+                        "used_percent": _dbc_num(summary.get("ram_percent")),
+                        "total_gb": _dbc_num(summary.get("ram_total_gb")),
+                        "used_gb": _dbc_num(summary.get("ram_used_gb")),
+                        "free_gb": _dbc_num(summary.get("ram_free_gb"))
+                    },
+                    "gpus": [{"name": n} for n in (summary.get("gpu_names") or [])[:20]]
+                },
+                "storage": {"disks": disks},
+                "software": {"installed": _dbc_small_list_count(summary.get("software_count"), 500)},
+                "usb": {"devices": _dbc_small_list_count(summary.get("usb_count"), 100)}
+            }
+        except Exception:
+            return payload if isinstance(payload, dict) else {}
+
+    _DBC_OLD_UPSERT_HEARTBEAT = upsert_heartbeat
+
+    def upsert_heartbeat(payload: Dict[str, Any], client_ip: str) -> Dict[str, Any]:
+        settings = _dbc_load_settings()
+        payload = normalize_payload_inplace(payload)
+        if not isinstance(payload.get("network"), dict):
+            payload["network"] = {}
+        if not payload["network"].get("receiver_seen_ip"):
+            payload["network"]["receiver_seen_ip"] = client_ip
+
+        summary = summarize_payload(payload)
+        received_at = now_iso()
+        history_saved = False
+        history_reason = "not_checked"
+
+        with DB_LOCK, db_connect() as con:
+            cleanup_duplicate_latest_rows(con, summary, payload)
+            previous_summary = {}
+            try:
+                old = con.execute("SELECT summary_json FROM latest WHERE machine_id=?", (summary["machine_id"],)).fetchone()
+                if old:
+                    previous_summary = safe_json_loads(old["summary_json"], {})
+                    if not isinstance(previous_summary, dict):
+                        previous_summary = {}
+            except Exception:
+                previous_summary = {}
+
+            history_saved, history_reason = _dbc_should_store_history(con, summary, previous_summary, received_at, settings)
+
+            if history_saved:
+                history_payload = _dbc_compact_history_payload(summary, payload) if settings.get("compact_history_payload", True) else payload
+                con.execute("INSERT INTO heartbeats(machine_id,received_at,hostname,payload_json) VALUES(?,?,?,?)",
+                            (summary["machine_id"], received_at, summary.get("hostname", ""), _dbc_json.dumps(history_payload, ensure_ascii=False, separators=(",", ":"))))
+
+            con.execute("""INSERT OR REPLACE INTO latest(machine_id,hostname,id_source,id_value,updated_at,summary_json,payload_json)
+                VALUES(?,?,?,?,?,?,?)""",
+                (summary["machine_id"], summary.get("hostname", ""), summary.get("id_source", ""), summary.get("id_value", ""), received_at,
+                 _dbc_json.dumps(summary, ensure_ascii=False, separators=(",", ":")), _dbc_json.dumps(payload, ensure_ascii=False, separators=(",", ":"))))
+
+            pending_messages = take_pending_messages(con, summary["machine_id"], summary.get("hostname", ""))
+            con.commit()
+
+        evaluate_notifications(summary)
+        try:
+            _sk_enrich_notification_metrics(summary, payload)
+        except Exception:
+            pass
+        process_change_events(summary, payload)
+
+        return {"ok": True, "machine_id": summary["machine_id"], "id_source": summary["id_source"], "received_at": received_at, "changes_received": len(payload.get("changes") or []), "pending_messages": pending_messages, "history_saved": bool(history_saved), "history_reason": history_reason, "db_compact": "enabled"}
+
+    print("DB_COMPACT_NO_REPEATED_HEARTBEATS_V1_LOADED")
+except Exception as _dbc_e:
+    print("DB_COMPACT_NO_REPEATED_HEARTBEATS_V1_FAILED", _dbc_e)
+# DB_COMPACT_NO_REPEATED_HEARTBEATS_V1_END
 
 def main() -> None:
     parser = argparse.ArgumentParser()

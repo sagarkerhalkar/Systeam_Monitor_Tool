@@ -1,0 +1,104 @@
+name: Publish commercial identity from verified working baseline
+
+on:
+  push:
+    branches:
+      - commercial-v1-identity-stage-20260804
+    paths:
+      - '.github/workflows/apply-commercial-identity-from-workingcode.yml'
+  pull_request:
+    branches:
+      - commercial-v1
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  apply-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out protected staging branch
+        uses: actions/checkout@v4
+        with:
+          ref: commercial-v1-identity-stage-20260804
+          fetch-depth: 0
+
+      - name: Reconstruct and verify tested identity patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .github/commercial_identity_small/part*.b64 | tr -d '\r\n\t ' > /tmp/commercial_identity_payload.b64
+          if LC_ALL=C grep -q '[^A-Za-z0-9+/=]' /tmp/commercial_identity_payload.b64; then
+            echo 'ERROR: invalid Base64 character detected.'
+            exit 1
+          fi
+          base64 --decode /tmp/commercial_identity_payload.b64 > /tmp/commercial_identity_payload.tar.gz
+          echo 'c319685650c72a9061efe52eb5274e755ea6c75579cc86af3cc77a08c3e50eb5  /tmp/commercial_identity_payload.tar.gz' | sha256sum --check
+          mkdir -p /tmp/commercial_identity_payload
+          tar -xzf /tmp/commercial_identity_payload.tar.gz -C /tmp/commercial_identity_payload
+
+      - name: Restore exact verified V24.1.1 baseline from workingcode
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin workingcode
+          git checkout origin/workingcode -- \
+            server.py \
+            scripts/client_windows.ps1 \
+            scripts/client_ubuntu.sh \
+            scripts/FULL_HW_SW_LICENSE_WINDOWS_CLIENT_2278.ps1 \
+            scripts/FULL_HW_SW_LICENSE_UBUNTU_CLIENT_2278.sh
+          echo '982495b894559d3e0a148e94a9202ead523d36fdd4c2bf4b45031f5e6e9a8bf2  server.py' | sha256sum --check
+
+      - name: Apply exact tested identity changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git apply --check /tmp/commercial_identity_payload/existing.patch
+          git apply /tmp/commercial_identity_payload/existing.patch
+          cp -a /tmp/commercial_identity_payload/newfiles/. .
+
+      - name: Verify exact final source hashes
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > /tmp/identity_hashes.sha256 <<'EOF'
+          d9c9f9283f5485567a1b025223f096fbd47b11a54094e67395e989071d558630  server.py
+          1ea35122d58acb1e22dedc7646f4f74f4e9cfd97d6655020e3e2f34561f5bdec  commercial_identity.py
+          e7183dcc5e85f47768e128e4a35ec86c104e46c4e7f58eef606820c672f59ba3  scripts/client_windows.ps1
+          6676bea4d65b5fa34aed7a975ebe6a85688f1149e6a4bfa95c6b1e3e628b8189  scripts/client_ubuntu.sh
+          2e9513e752629164c750b03f322766ffdf23e07d7aa6c403c72e00804678d6c5  scripts/FULL_HW_SW_LICENSE_WINDOWS_CLIENT_2278.ps1
+          586615194c6690a1ab669353b42139ee0b93f09458bab4bb6e4e146a95674dd8  scripts/FULL_HW_SW_LICENSE_UBUNTU_CLIENT_2278.sh
+          EOF
+          sha256sum --check /tmp/identity_hashes.sha256
+
+      - name: Run compilation and identity regression tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile server.py commercial_identity.py
+          PYTHONPATH=. python -m unittest discover -s tests -v
+          bash -n scripts/client_ubuntu.sh
+          bash -n scripts/FULL_HW_SW_LICENSE_UBUNTU_CLIENT_2278.sh
+          node --check public/app.js
+
+      - name: Remove all temporary transfer files
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .github/commercial_identity_small
+          rm -rf .github/commercial_identity_full
+          rm -rf .github/commercial_identity_payload
+          rm -f .github/workflows/apply-commercial-identity.yml
+          rm -f .github/workflows/apply-commercial-identity-from-workingcode.yml
+
+      - name: Commit verified commercial source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Add commercial permanent client identity foundation'
+          git push origin HEAD:commercial-v1-identity-stage-20260804

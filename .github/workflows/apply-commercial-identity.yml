@@ -7,6 +7,10 @@ on:
     paths:
       - '.github/commercial_identity_small/**'
       - '.github/workflows/apply-commercial-identity.yml'
+  pull_request:
+    branches:
+      - commercial-v1
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: write

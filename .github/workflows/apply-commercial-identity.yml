@@ -29,7 +29,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cat .github/commercial_identity_small/part*.b64 > /tmp/commercial_identity_payload.b64
+          echo 'Chunk sizes and hashes:'
+          wc -c .github/commercial_identity_small/part*.b64
+          sha256sum .github/commercial_identity_small/part*.b64
+          cat .github/commercial_identity_small/part*.b64 | tr -d '\r\n\t ' > /tmp/commercial_identity_payload.b64
+          echo "Combined Base64 bytes: $(wc -c < /tmp/commercial_identity_payload.b64)"
+          if LC_ALL=C grep -q '[^A-Za-z0-9+/=]' /tmp/commercial_identity_payload.b64; then
+            echo 'ERROR: invalid non-Base64 character detected in transfer payload.'
+            LC_ALL=C grep -o '[^A-Za-z0-9+/=]' /tmp/commercial_identity_payload.b64 | od -An -tx1 | head
+            exit 1
+          fi
           base64 --decode /tmp/commercial_identity_payload.b64 > /tmp/commercial_identity_payload.tar.gz
           echo 'c319685650c72a9061efe52eb5274e755ea6c75579cc86af3cc77a08c3e50eb5  /tmp/commercial_identity_payload.tar.gz' | sha256sum --check
           mkdir -p /tmp/commercial_identity_payload

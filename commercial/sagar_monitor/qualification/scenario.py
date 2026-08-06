@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from threading import Lock
 from time import perf_counter
-from typing import Any, Callable, Iterable, Mapping
+from typing import Any, Callable, Mapping
 import hashlib
 import json
 import os
@@ -49,12 +49,12 @@ class QualificationConfig:
     thresholds: QualificationThresholds = QualificationThresholds()
 
     def validate(self) -> None:
-        if self.agent_count < 1 or self.agent_count > 10000:
+        if not 1 <= self.agent_count <= 10000:
             raise ValueError("agent_count must be between 1 and 10000")
-        if self.concurrency < 1 or self.concurrency > 128:
+        if not 1 <= self.concurrency <= 128:
             raise ValueError("concurrency must be between 1 and 128")
-        if self.heartbeat_rounds < 1 or self.heartbeat_rounds > 20:
-            raise ValueError("heartbeat_rounds must be between 1 and 20")
+        if not 1 <= self.heartbeat_rounds <= 1000:
+            raise ValueError("heartbeat_rounds must be between 1 and 1000")
         if self.duplicate_replay_count < 0:
             raise ValueError("duplicate_replay_count cannot be negative")
         if self.message_target_count < 0:
@@ -69,60 +69,79 @@ class OperationRecorder:
         self._latencies: list[float] = []
         self._failures: list[dict[str, Any]] = []
         self._lock = Lock()
-        self.started_at = perf_counter()
-        self.finished_at = self.started_at
+        self._started_at: float | None = None
+        self._finished_at: float | None = None
 
-    def record(self, latency_ms: float, status: int, expected: set[int], payload: Mapping[str, Any] | None) -> None:
-        failure: dict[str, Any] | None = None
+    def _append(self, latency_ms: float, failure: dict[str, Any] | None) -> None:
+        now = perf_counter()
+        with self._lock:
+            if self._started_at is None:
+                self._started_at = now - max(0.0, latency_ms / 1000.0)
+            self._finished_at = now
+            self._latencies.append(float(latency_ms))
+            if failure:
+                self._failures.append(failure)
+
+    def record(
+        self,
+        latency_ms: float,
+        status: int,
+        expected: set[int],
+        payload: Mapping[str, Any] | None,
+    ) -> None:
+        failure = None
         if int(status) not in expected:
             error = payload.get("error") if isinstance(payload, Mapping) else None
             failure = {
                 "status": int(status),
                 "error": error if isinstance(error, Mapping) else {},
             }
-        with self._lock:
-            self._latencies.append(float(latency_ms))
-            if failure:
-                self._failures.append(failure)
-            self.finished_at = perf_counter()
+        self._append(latency_ms, failure)
 
     def exception(self, latency_ms: float, exc: BaseException) -> None:
-        with self._lock:
-            self._latencies.append(float(latency_ms))
-            self._failures.append({"status": 0, "error": {"type": type(exc).__name__, "message": str(exc)}})
-            self.finished_at = perf_counter()
+        self._append(
+            latency_ms,
+            {
+                "status": 0,
+                "error": {"type": type(exc).__name__, "message": str(exc)},
+            },
+        )
 
     @staticmethod
     def _percentile(values: list[float], percentile: float) -> float:
         if not values:
             return 0.0
         ordered = sorted(values)
-        rank = max(0, min(len(ordered) - 1, int((percentile / 100.0) * len(ordered) + 0.999999) - 1))
+        rank = int((percentile / 100.0) * len(ordered) + 0.999999) - 1
+        rank = max(0, min(len(ordered) - 1, rank))
         return round(ordered[rank], 3)
 
     def summary(self) -> dict[str, Any]:
-        elapsed = max(0.000001, self.finished_at - self.started_at)
         count = len(self._latencies)
         failures = len(self._failures)
+        if self._started_at is None or self._finished_at is None:
+            elapsed = 0.0
+        else:
+            elapsed = max(0.000001, self._finished_at - self._started_at)
         return {
             "name": self.name,
             "count": count,
             "failures": failures,
             "error_rate": round(failures / count, 6) if count else 0.0,
-            "throughput_per_second": round(count / elapsed, 3),
+            "throughput_per_second": round(count / elapsed, 3) if count else 0.0,
             "elapsed_seconds": round(elapsed, 3),
             "latency_ms": {
-                "min": round(min(self._latencies), 3) if self._latencies else 0.0,
+                "min": round(min(self._latencies), 3) if count else 0.0,
                 "p50": self._percentile(self._latencies, 50),
                 "p95": self._percentile(self._latencies, 95),
                 "p99": self._percentile(self._latencies, 99),
-                "max": round(max(self._latencies), 3) if self._latencies else 0.0,
+                "max": round(max(self._latencies), 3) if count else 0.0,
             },
             "failure_examples": self._failures[:10],
         }
 
 
-def _json_request(
+def _request(
     method: str,
     target: str,
     payload: Mapping[str, Any] | None = None,
@@ -137,15 +156,14 @@ def _json_request(
 
 
 def _heartbeat_payload(index: int, round_number: int) -> dict[str, Any]:
-    platform_name = "Windows 11" if index % 2 == 0 else "Ubuntu 24.04"
     hostname = f"qualification-{index:05d}"
     return {
         "hostname": hostname,
         "identity": {"hostname": hostname},
-        "os": {"name": platform_name},
+        "os": {"name": "Windows 11" if index % 2 == 0 else "Ubuntu 24.04"},
         "hardware": {
-            "cpu": {"usage_percent": 20 + (index % 60)},
-            "memory": {"used_percent": 30 + (index % 50)},
+            "cpu": {"usage_percent": 20 + index % 60},
+            "memory": {"used_percent": 30 + index % 50},
         },
         "network": {
             "traffic": {
@@ -160,7 +178,18 @@ def _heartbeat_payload(index: int, round_number: int) -> dict[str, Any]:
 
 def _remote_address(index: int) -> str:
     value = index + 1
-    return f"10.{(value // 65536) % 250 + 1}.{(value // 256) % 256}.{value % 254 + 1}"
+    return f"10.{(value // 65025) % 250 + 1}.{(value // 255) % 255}.{value % 255}"
+
+
+def _parallel(count: int, concurrency: int, worker: Callable[[int], Any]) -> list[Any]:
+    if count <= 0:
+        return []
+    results: list[Any] = [None] * count
+    with ThreadPoolExecutor(max_workers=min(concurrency, count)) as executor:
+        futures = {executor.submit(worker, index): index for index in range(count)}
+        for future in as_completed(futures):
+            results[futures[future]] = future.result()
+    return results
 
 
 def _call(
@@ -168,29 +197,15 @@ def _call(
     request: Request,
     recorder: OperationRecorder,
     expected: set[int],
-) -> Any:
+):
     started = perf_counter()
     try:
         response = api.handle(request)
         recorder.record((perf_counter() - started) * 1000.0, response.status, expected, response.payload)
         return response
-    except BaseException as exc:  # qualification evidence must capture every worker failure
+    except BaseException as exc:  # qualification must record every worker failure
         recorder.exception((perf_counter() - started) * 1000.0, exc)
         return None
-
-
-def _concurrent_map(
-    count: int,
-    concurrency: int,
-    worker: Callable[[int], Any],
-) -> list[Any]:
-    results: list[Any] = [None] * count
-    with ThreadPoolExecutor(max_workers=min(concurrency, max(1, count))) as executor:
-        futures = {executor.submit(worker, index): index for index in range(count)}
-        for future in as_completed(futures):
-            index = futures[future]
-            results[index] = future.result()
-    return results
 
 
 def _database_counts(path: Path) -> dict[str, int]:
@@ -200,13 +215,33 @@ def _database_counts(path: Path) -> dict[str, int]:
         "agent_heartbeat_events_v1",
         "history_samples_v1",
         "history_daily_rollup_v1",
-        "messages_v1",
-        "message_deliveries_v1",
-        "message_receipts_v1",
+        "client_messages_v1",
+        "client_message_deliveries_v1",
+        "client_message_receipts_v1",
     )
     connection = sqlite3.connect(path, timeout=10.0)
     try:
-        return {table: int(connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]) for table in tables}
+        return {
+            table: int(connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0])
+            for table in tables
+        }
+    finally:
+        connection.close()
+
+
+def _checkpoint(path: Path) -> dict[str, Any]:
+    connection = sqlite3.connect(path, timeout=10.0)
+    try:
+        mode = str(connection.execute("PRAGMA journal_mode=WAL").fetchone()[0]).lower()
+        connection.execute("PRAGMA synchronous=NORMAL")
+        connection.execute("PRAGMA wal_autocheckpoint=1000")
+        busy, log_frames, checkpointed = connection.execute("PRAGMA wal_checkpoint(PASSIVE)").fetchone()
+        return {
+            "journal_mode": mode,
+            "busy": int(busy),
+            "log_frames": int(log_frames),
+            "checkpointed_frames": int(checkpointed),
+        }
     finally:
         connection.close()
 
@@ -221,24 +256,7 @@ def _fd_count() -> int | None:
         return None
 
 
-def _checkpoint(path: Path) -> dict[str, Any]:
-    connection = sqlite3.connect(path, timeout=10.0)
-    try:
-        mode = str(connection.execute("PRAGMA journal_mode=WAL").fetchone()[0]).lower()
-        connection.execute("PRAGMA synchronous=NORMAL")
-        connection.execute("PRAGMA wal_autocheckpoint=1000")
-        row = connection.execute("PRAGMA wal_checkpoint(PASSIVE)").fetchone()
-        return {
-            "journal_mode": mode,
-            "busy": int(row[0]),
-            "log_frames": int(row[1]),
-            "checkpointed_frames": int(row[2]),
-        }
-    finally:
-        connection.close()
-
-
-def _evidence_hash(document: Mapping[str, Any]) -> str:
+def _hash(document: Mapping[str, Any]) -> str:
     raw = json.dumps(document, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
     return hashlib.sha256(raw).hexdigest()
 
@@ -248,9 +266,12 @@ def write_evidence(path: str | Path, evidence: Mapping[str, Any]) -> Path:
     destination.parent.mkdir(parents=True, exist_ok=True)
     document = dict(evidence)
     document.pop("evidence_sha256", None)
-    document["evidence_sha256"] = _evidence_hash(document)
+    document["evidence_sha256"] = _hash(document)
     temporary = destination.with_suffix(destination.suffix + ".tmp")
-    temporary.write_text(json.dumps(document, ensure_ascii=False, sort_keys=True, indent=2) + "\n", encoding="utf-8")
+    temporary.write_text(
+        json.dumps(document, ensure_ascii=False, sort_keys=True, indent=2) + "\n",
+        encoding="utf-8",
+    )
     os.replace(temporary, destination)
     return destination
 
@@ -278,7 +299,7 @@ def run_qualification_scenario(
 
     connection = sqlite3.connect(database, timeout=10.0)
     try:
-        enrollment_token = create_enrollment_token(
+        enrollment = create_enrollment_token(
             connection,
             organization_id=organization_id,
             ttl_seconds=3600,
@@ -287,30 +308,36 @@ def run_qualification_scenario(
     finally:
         connection.close()
 
+    recorders = {
+        name: OperationRecorder(name)
+        for name in (
+            "registration",
+            "heartbeat",
+            "duplicate_replay",
+            "admin",
+            "message_claim",
+            "message_ack",
+            "restart",
+        )
+    }
     tracemalloc.start()
     fd_before = _fd_count()
     started_at = datetime.now(timezone.utc)
-    recorders: dict[str, OperationRecorder] = {
-        name: OperationRecorder(name)
-        for name in ("registration", "heartbeat", "duplicate_replay", "admin", "message_claim", "message_ack", "restart")
-    }
-
     namespace = uuid.UUID("fb362e8a-4529-4bb2-b22f-aebec712b178")
 
     def register(index: int):
-        agent_id = str(uuid.uuid5(namespace, f"{config.agent_count}:{index}"))
         response = _call(
             api,
-            _json_request(
+            _request(
                 "POST",
                 "/api/v1/agents/register",
                 {
-                    "agent_install_id": agent_id,
+                    "agent_install_id": str(uuid.uuid5(namespace, f"{config.agent_count}:{index}")),
                     "platform": "windows" if index % 2 == 0 else "ubuntu",
                     "hostname": f"qualification-{index:05d}",
                     "metadata": {"scenario": config.agent_count, "index": index},
                 },
-                headers={"Authorization": f"Enrollment {enrollment_token}"},
+                headers={"Authorization": f"Enrollment {enrollment}"},
                 remote_addr=_remote_address(index),
             ),
             recorders["registration"],
@@ -318,73 +345,72 @@ def run_qualification_scenario(
         )
         return dict(response.payload) if response is not None and response.status == 201 else None
 
-    agents = _concurrent_map(config.agent_count, config.concurrency, register)
-    valid_agents = [agent for agent in agents if isinstance(agent, dict) and agent.get("agent_token")]
+    agents = _parallel(config.agent_count, config.concurrency, register)
+    valid_agents = [agent for agent in agents if isinstance(agent, Mapping) and agent.get("agent_token")]
 
-    def agent_headers(agent: Mapping[str, Any]) -> dict[str, str]:
+    def headers(agent: Mapping[str, Any]) -> dict[str, str]:
         return {
             "Authorization": f"Agent {agent['agent_token']}",
             "X-Agent-ID": str(agent["agent_install_id"]),
         }
 
     for round_number in range(config.heartbeat_rounds):
-        def heartbeat(index: int, round_value: int = round_number):
+        def send_heartbeat(index: int, round_value: int = round_number):
             agent = agents[index]
             if not isinstance(agent, Mapping):
                 return None
             return _call(
                 api,
-                _json_request(
+                _request(
                     "POST",
                     "/api/v1/agents/heartbeat",
                     {
-                        "event_id": f"heartbeat-{round_value:02d}-{index:06d}",
+                        "event_id": f"heartbeat-{round_value:04d}-{index:06d}",
                         "timezone_name": config.timezone_name,
                         "payload": _heartbeat_payload(index, round_value),
                     },
-                    headers=agent_headers(agent),
+                    headers=headers(agent),
                     remote_addr=_remote_address(index),
                 ),
                 recorders["heartbeat"],
                 {200},
             )
 
-        _concurrent_map(config.agent_count, config.concurrency, heartbeat)
+        _parallel(config.agent_count, config.concurrency, send_heartbeat)
 
     duplicate_count = min(config.agent_count, config.duplicate_replay_count)
+    final_round = config.heartbeat_rounds - 1
 
-    def duplicate(index: int):
+    def replay(index: int):
         agent = agents[index]
         if not isinstance(agent, Mapping):
             return None
-        final_round = config.heartbeat_rounds - 1
-        response = _call(
+        return _call(
             api,
-            _json_request(
+            _request(
                 "POST",
                 "/api/v1/agents/heartbeat",
                 {
-                    "event_id": f"heartbeat-{final_round:02d}-{index:06d}",
+                    "event_id": f"heartbeat-{final_round:04d}-{index:06d}",
                     "timezone_name": config.timezone_name,
-                    "payload": _heartbeat_payload(index, final_round + 100),
+                    "payload": _heartbeat_payload(index, final_round + 1000),
                 },
-                headers=agent_headers(agent),
+                headers=headers(agent),
             ),
             recorders["duplicate_replay"],
             {200},
         )
-        return response
 
-    duplicate_responses = _concurrent_map(duplicate_count, config.concurrency, duplicate)
+    duplicate_responses = _parallel(duplicate_count, config.concurrency, replay)
     duplicate_insertions = sum(
         1
         for response in duplicate_responses
-        if response is not None and bool(response.payload.get("heartbeat", {}).get("inserted"))
+        if response is not None and response.payload.get("heartbeat", {}).get("inserted")
     )
 
     login = _call(
         api,
-        _json_request(
+        _request(
             "POST",
             "/api/v1/auth/login",
             {
@@ -417,18 +443,17 @@ def run_qualification_scenario(
             {200},
         )
 
-    if config.admin_request_count:
-        _concurrent_map(config.admin_request_count, config.concurrency, admin_read)
+    _parallel(config.admin_request_count, config.concurrency, admin_read)
 
     target_count = min(config.message_target_count, len(valid_agents))
-    target_agents = valid_agents[:target_count]
+    targets = valid_agents[:target_count]
     connection = sqlite3.connect(database, timeout=10.0)
     try:
-        if target_agents:
+        if targets:
             queue_message(
                 connection,
                 organization_id=organization_id,
-                canonical_client_ids=[str(agent["canonical_client_id"]) for agent in target_agents],
+                canonical_client_ids=[str(agent["canonical_client_id"]) for agent in targets],
                 title="Qualification message",
                 body="Display and acknowledge once",
                 severity="info",
@@ -436,14 +461,13 @@ def run_qualification_scenario(
     finally:
         connection.close()
 
-    claimed: list[tuple[Mapping[str, Any], Mapping[str, Any]]] = []
-    claimed_lock = Lock()
+    claims: list[tuple[Mapping[str, Any], Mapping[str, Any]] | None] = [None] * target_count
 
     def claim(index: int):
-        agent = target_agents[index]
+        agent = targets[index]
         response = _call(
             api,
-            _json_request(
+            _request(
                 "POST",
                 "/api/v1/agents/heartbeat",
                 {
@@ -451,7 +475,7 @@ def run_qualification_scenario(
                     "timezone_name": config.timezone_name,
                     "payload": _heartbeat_payload(index, config.heartbeat_rounds + 1),
                 },
-                headers=agent_headers(agent),
+                headers=headers(agent),
             ),
             recorders["message_claim"],
             {200},
@@ -459,18 +483,17 @@ def run_qualification_scenario(
         if response is not None and response.status == 200:
             messages = response.payload.get("messages") or []
             if messages:
-                with claimed_lock:
-                    claimed.append((agent, dict(messages[0])))
+                claims[index] = (agent, dict(messages[0]))
         return response
 
-    if target_count:
-        _concurrent_map(target_count, config.concurrency, claim)
+    _parallel(target_count, config.concurrency, claim)
+    claimed = [claim_value for claim_value in claims if claim_value is not None]
 
     def acknowledge(index: int):
         agent, message = claimed[index]
         return _call(
             api,
-            _json_request(
+            _request(
                 "POST",
                 f"/api/v1/agents/messages/{message['delivery_id']}/ack",
                 {
@@ -478,22 +501,20 @@ def run_qualification_scenario(
                     "client_receipt_id": f"qualification-receipt-{index:06d}",
                     "detail": {"displayed": True, "source": "qualification"},
                 },
-                headers=agent_headers(agent),
+                headers=headers(agent),
             ),
             recorders["message_ack"],
             {200},
         )
 
-    if claimed:
-        _concurrent_map(len(claimed), config.concurrency, acknowledge)
+    _parallel(len(claimed), config.concurrency, acknowledge)
 
-    # Recreate the complete API object over the same database to prove restart continuity.
     api = CombinedAPI(database, max_body_bytes=2 * 1024 * 1024)
     if valid_agents:
         first = valid_agents[0]
         _call(
             api,
-            _json_request(
+            _request(
                 "POST",
                 "/api/v1/agents/heartbeat",
                 {
@@ -501,7 +522,7 @@ def run_qualification_scenario(
                     "timezone_name": config.timezone_name,
                     "payload": _heartbeat_payload(0, config.heartbeat_rounds + 2),
                 },
-                headers=agent_headers(first),
+                headers=headers(first),
             ),
             recorders["restart"],
             {200},
@@ -510,7 +531,6 @@ def run_qualification_scenario(
     checkpoint_after = _checkpoint(database)
     wal_path = Path(str(database) + "-wal")
     wal_bytes = wal_path.stat().st_size if wal_path.exists() else 0
-    database_bytes = database.stat().st_size
     source_counts = _database_counts(database)
 
     backup_path = database.parent / "backup" / f"qualification-{config.agent_count}.db"
@@ -525,39 +545,35 @@ def run_qualification_scenario(
     fd_after = _fd_count()
     finished_at = datetime.now(timezone.utc)
 
-    operation_summaries = {name: recorder.summary() for name, recorder in recorders.items()}
-    total_operations = sum(int(summary["count"]) for summary in operation_summaries.values())
-    total_failures = sum(int(summary["failures"]) for summary in operation_summaries.values())
+    operations = {name: recorder.summary() for name, recorder in recorders.items()}
+    total_operations = sum(int(value["count"]) for value in operations.values())
+    total_failures = sum(int(value["failures"]) for value in operations.values())
     error_rate = round(total_failures / total_operations, 6) if total_operations else 0.0
+    expected_heartbeats = len(valid_agents) * config.heartbeat_rounds + target_count + (1 if valid_agents else 0)
 
-    expected_heartbeat_rows = (
-        len(valid_agents) * config.heartbeat_rounds
-        + target_count
-        + (1 if valid_agents else 0)
-    )
     invariants = {
         "all_agents_registered": len(valid_agents) == config.agent_count,
         "agent_credentials_exact": source_counts["agent_credentials_v1"] == config.agent_count,
         "current_clients_exact": source_counts["agent_current_v1"] == config.agent_count,
-        "heartbeat_rows_exact": source_counts["agent_heartbeat_events_v1"] == expected_heartbeat_rows,
-        "history_samples_exact": source_counts["history_samples_v1"] == expected_heartbeat_rows,
+        "heartbeat_rows_exact": source_counts["agent_heartbeat_events_v1"] == expected_heartbeats,
+        "history_samples_exact": source_counts["history_samples_v1"] == expected_heartbeats,
         "daily_rollups_exact": source_counts["history_daily_rollup_v1"] == config.agent_count,
         "duplicate_replay_idempotent": duplicate_insertions == 0,
         "all_target_messages_claimed": len(claimed) == target_count,
-        "all_target_messages_acknowledged": source_counts["message_receipts_v1"] == target_count,
+        "all_target_messages_acknowledged": source_counts["client_message_receipts_v1"] == target_count,
         "backup_verified": bool(verified.get("ok")),
         "restore_counts_match": source_counts == restored_counts,
         "wal_checkpoint_not_busy": int(checkpoint_after["busy"]) == 0,
     }
 
-    thresholds = config.thresholds
+    limits = config.thresholds
     threshold_results = {
-        "error_rate": error_rate <= thresholds.max_error_rate,
-        "registration_p95": operation_summaries["registration"]["latency_ms"]["p95"] <= thresholds.max_registration_p95_ms,
-        "heartbeat_p95": operation_summaries["heartbeat"]["latency_ms"]["p95"] <= thresholds.max_heartbeat_p95_ms,
-        "admin_p95": operation_summaries["admin"]["latency_ms"]["p95"] <= thresholds.max_admin_p95_ms,
-        "wal_size": wal_bytes <= thresholds.max_wal_bytes,
-        "peak_memory": peak_memory <= thresholds.max_peak_traced_memory_bytes,
+        "error_rate": error_rate <= limits.max_error_rate,
+        "registration_p95": operations["registration"]["latency_ms"]["p95"] <= limits.max_registration_p95_ms,
+        "heartbeat_p95": operations["heartbeat"]["latency_ms"]["p95"] <= limits.max_heartbeat_p95_ms,
+        "admin_p95": operations["admin"]["latency_ms"]["p95"] <= limits.max_admin_p95_ms,
+        "wal_size": wal_bytes <= limits.max_wal_bytes,
+        "peak_memory": peak_memory <= limits.max_peak_traced_memory_bytes,
     }
 
     evidence: dict[str, Any] = {
@@ -571,9 +587,8 @@ def run_qualification_scenario(
             "python": sys.version,
             "processor": platform.processor(),
             "cpu_count": os.cpu_count(),
-            "process_id": os.getpid(),
         },
-        "operations": operation_summaries,
+        "operations": operations,
         "totals": {
             "operations": total_operations,
             "failures": total_failures,
@@ -583,19 +598,14 @@ def run_qualification_scenario(
             "duplicate_insertions": duplicate_insertions,
         },
         "database": {
-            "path_name": database.name,
-            "database_bytes": database_bytes,
+            "database_bytes": database.stat().st_size,
             "wal_bytes": wal_bytes,
             "checkpoint_before": checkpoint_before,
             "checkpoint_after": checkpoint_after,
             "source_counts": source_counts,
             "restored_counts": restored_counts,
         },
-        "backup": {
-            "backup": backup,
-            "verified": verified,
-            "restore": restore,
-        },
+        "backup": {"backup": backup, "verified": verified, "restore": restore},
         "resources": {
             "peak_traced_memory_bytes": peak_memory,
             "file_descriptors_before": fd_before,
@@ -605,5 +615,5 @@ def run_qualification_scenario(
         "threshold_results": threshold_results,
     }
     evidence["passed"] = all(invariants.values()) and all(threshold_results.values())
-    evidence["evidence_sha256"] = _evidence_hash(evidence)
+    evidence["evidence_sha256"] = _hash(evidence)
     return evidence

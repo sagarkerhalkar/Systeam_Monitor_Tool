@@ -92,7 +92,7 @@ def sqlite_probe(database_path: str | Path) -> dict[str, Any]:
     database = Path(database_path).expanduser().resolve()
     if not database.is_file():
         raise FileNotFoundError(f"database is missing: {database}")
-    connection = sqlite3.connect(f"file:{database.as_posix()}?mode=ro", uri=True, timeout=10.0)
+    connection = sqlite3.connect(database.as_uri() + "?mode=ro", uri=True, timeout=10.0)
     try:
         quick_check = str(connection.execute("PRAGMA quick_check").fetchone()[0])
         integrity_check = str(connection.execute("PRAGMA integrity_check").fetchone()[0])
@@ -198,11 +198,13 @@ def tls_certificate_probe(
         expires = datetime.fromtimestamp(ssl.cert_time_to_seconds(not_after_text), timezone.utc)
         expires_at = expires.isoformat().replace("+00:00", "Z")
         days_remaining = round((expires - datetime.now(timezone.utc)).total_seconds() / 86400.0, 3)
+    protocol_ok = protocol in {"TLSv1.2", "TLSv1.3"}
     return {
-        "ok": bool(certificate_binary) and (days_remaining is None or days_remaining > 0),
+        "ok": bool(certificate_binary) and protocol_ok and (days_remaining is None or days_remaining > 0),
         "hostname": parsed.hostname,
         "port": port,
         "protocol": protocol,
+        "protocol_ok": protocol_ok,
         "cipher": cipher[0] if cipher else None,
         "certificate_sha256": hashlib.sha256(certificate_binary).hexdigest(),
         "subject": certificate.get("subject"),
@@ -236,7 +238,8 @@ def service_probe(*, platform_name: str, service_name: str) -> dict[str, Any]:
     stdout = completed.stdout.strip()
     stderr = completed.stderr.strip()
     if platform_value == "windows":
-        ok = completed.returncode == 0 and "ready" in stdout.lower() or "running" in stdout.lower()
+        lowered = stdout.lower()
+        ok = completed.returncode == 0 and ("ready" in lowered or "running" in lowered)
     else:
         ok = completed.returncode == 0 and stdout.lower() == "active"
     return {

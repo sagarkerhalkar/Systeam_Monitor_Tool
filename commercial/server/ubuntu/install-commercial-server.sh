@@ -53,6 +53,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPOSITORY_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 COMMERCIAL_SOURCE="$REPOSITORY_ROOT/commercial"
 OLD_TARGET=''
+DATABASE_EXISTED_BEFORE=false
+[[ -f "$DATABASE_FILE" ]] && DATABASE_EXISTED_BEFORE=true
 [[ -L "$INSTALL_ROOT/current" ]] && OLD_TARGET="$(readlink -f "$INSTALL_ROOT/current")"
 
 [[ -d "$COMMERCIAL_SOURCE/sagar_monitor" ]] || { echo "Commercial source is missing: $COMMERCIAL_SOURCE" >&2; exit 1; }
@@ -76,6 +78,10 @@ rollback() {
   else
     rm -f "$INSTALL_ROOT/current"
   fi
+  if ! $DATABASE_EXISTED_BEFORE; then
+    rm -f "$DATABASE_FILE" "$DATABASE_FILE-wal" "$DATABASE_FILE-shm"
+  fi
+  rm -f "$CONFIG_ROOT/.bootstrap-password"
   rm -rf "$VERSION_ROOT"
   exit "$exit_code"
 }
@@ -120,15 +126,15 @@ PYTHON="$VERSION_ROOT/venv/bin/python"
 ENTRYPOINT="$VERSION_ROOT/commercial/tools/run_commercial_server.py"
 export PYTHONPATH="$VERSION_ROOT/commercial"
 
-if [[ -f "$DATABASE_FILE" ]]; then
+if $DATABASE_EXISTED_BEFORE; then
   BACKUP_FILE="$BACKUP_ROOT/pre-upgrade-$(date -u +%Y%m%dT%H%M%SZ).db"
   runuser -u "$SERVICE_USER" -- "$PYTHON" "$ENTRYPOINT" --config "$CONFIG_FILE" backup --output "$BACKUP_FILE"
   runuser -u "$SERVICE_USER" -- "$PYTHON" "$ENTRYPOINT" --config "$CONFIG_FILE" migrate
 else
-  [[ -n "$ORGANIZATION_NAME" && -n "$ADMIN_USERNAME" && -f "$ADMIN_PASSWORD_FILE" ]] || {
+  if [[ -z "$ORGANIZATION_NAME" || -z "$ADMIN_USERNAME" || ! -f "$ADMIN_PASSWORD_FILE" ]]; then
     echo 'First installation requires --organization-name, --admin-username and --admin-password-file.' >&2
-    exit 1
-  }
+    false
+  fi
   TEMP_PASSWORD="$CONFIG_ROOT/.bootstrap-password"
   install -m 0600 -o "$SERVICE_USER" -g "$SERVICE_GROUP" "$ADMIN_PASSWORD_FILE" "$TEMP_PASSWORD"
   BOOTSTRAP_ARGS=(

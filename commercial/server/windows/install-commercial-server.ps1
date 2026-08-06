@@ -58,6 +58,7 @@ $VersionPython = ''
 $Entrypoint = ''
 $InstalledCommercial = ''
 $PreUpgradeBackup = ''
+$ConfigurationRollbackRoot = ''
 if (Test-Path -LiteralPath $PointerFile) {
     $OldVersion = (Get-Content -LiteralPath $PointerFile -Raw -Encoding UTF8).Trim([char]0xFEFF).Trim()
 }
@@ -93,6 +94,17 @@ try {
     $VersionPython = Join-Path $VersionRoot 'venv\Scripts\python.exe'
     & $VersionPython -m pip install --disable-pip-version-check --require-hashes -r (Join-Path $InstalledCommercial 'requirements.lock')
     if ($LASTEXITCODE -ne 0) { throw 'Failed to install locked commercial dependencies.' }
+    & $VersionPython -c 'import ssl,sys; c=ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER); c.load_cert_chain(sys.argv[1],sys.argv[2])' $CertificateFile $PrivateKeyFile
+    if ($LASTEXITCODE -ne 0) { throw 'TLS certificate and private key do not form a valid server pair.' }
+
+    if ((Test-Path -LiteralPath $ConfigFile) -or (Test-Path -LiteralPath (Join-Path $TlsRoot 'server.crt')) -or (Test-Path -LiteralPath (Join-Path $TlsRoot 'server.key'))) {
+        $ConfigurationRollbackRoot = Join-Path $BackupRoot ('pre-upgrade-config-' + (Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmssZ'))
+        New-Item -ItemType Directory -Path $ConfigurationRollbackRoot -Force | Out-Null
+        if (Test-Path -LiteralPath $ConfigFile) { Copy-Item -LiteralPath $ConfigFile -Destination (Join-Path $ConfigurationRollbackRoot 'server.json') -Force }
+        if (Test-Path -LiteralPath (Join-Path $TlsRoot 'server.crt')) { Copy-Item -LiteralPath (Join-Path $TlsRoot 'server.crt') -Destination (Join-Path $ConfigurationRollbackRoot 'server.crt') -Force }
+        if (Test-Path -LiteralPath (Join-Path $TlsRoot 'server.key')) { Copy-Item -LiteralPath (Join-Path $TlsRoot 'server.key') -Destination (Join-Path $ConfigurationRollbackRoot 'server.key') -Force }
+        Set-ProtectedAcl $ConfigurationRollbackRoot
+    }
 
     Copy-Item -LiteralPath $CertificateFile -Destination (Join-Path $TlsRoot 'server.crt') -Force
     Copy-Item -LiteralPath $PrivateKeyFile -Destination (Join-Path $TlsRoot 'server.key') -Force
@@ -173,6 +185,7 @@ try {
 catch {
     $OriginalError = $_
     $DatabaseRollbackError = $null
+    $ConfigurationRollbackError = $null
     Stop-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
     if ($DatabaseExistedBefore -and $PreUpgradeBackup -and $VersionPython -and $Entrypoint -and (Test-Path -LiteralPath $PreUpgradeBackup)) {
         try {
@@ -184,9 +197,21 @@ catch {
             $DatabaseRollbackError = $_
         }
     }
+    if ($ConfigurationRollbackRoot) {
+        try {
+            if (Test-Path -LiteralPath (Join-Path $ConfigurationRollbackRoot 'server.json')) { Copy-Item -LiteralPath (Join-Path $ConfigurationRollbackRoot 'server.json') -Destination $ConfigFile -Force }
+            if (Test-Path -LiteralPath (Join-Path $ConfigurationRollbackRoot 'server.crt')) { Copy-Item -LiteralPath (Join-Path $ConfigurationRollbackRoot 'server.crt') -Destination (Join-Path $TlsRoot 'server.crt') -Force }
+            if (Test-Path -LiteralPath (Join-Path $ConfigurationRollbackRoot 'server.key')) { Copy-Item -LiteralPath (Join-Path $ConfigurationRollbackRoot 'server.key') -Destination (Join-Path $TlsRoot 'server.key') -Force }
+            Set-ProtectedAcl $ConfigRoot
+            Set-ProtectedAcl $TlsRoot
+        }
+        catch {
+            $ConfigurationRollbackError = $_
+        }
+    }
     if ($OldVersion) {
         Write-Utf8NoBom $PointerFile $OldVersion
-        if ($ExistingTask -and -not $DatabaseRollbackError) {
+        if ($ExistingTask -and -not $DatabaseRollbackError -and -not $ConfigurationRollbackError) {
             Start-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
         }
     } else {
@@ -199,8 +224,8 @@ catch {
     }
     Remove-Item -LiteralPath (Join-Path $ConfigRoot '.bootstrap-password') -Force -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath $VersionRoot -Recurse -Force -ErrorAction SilentlyContinue
-    if ($DatabaseRollbackError) {
-        throw "Installation failed and database rollback also failed. Old service remains stopped. Original: $OriginalError Rollback: $DatabaseRollbackError"
+    if ($DatabaseRollbackError -or $ConfigurationRollbackError) {
+        throw "Installation failed and rollback was incomplete. Old service remains stopped. Original: $OriginalError Database: $DatabaseRollbackError Configuration: $ConfigurationRollbackError"
     }
     throw $OriginalError
 }

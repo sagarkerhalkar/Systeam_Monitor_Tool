@@ -64,7 +64,7 @@ jobs:
         run: python commercial/tools/verify_release_foundation.py
 
   browser-contracts:
-    name: Browser, Ubuntu agent and server syntax
+    name: Browser, Ubuntu agent, server and certification syntax
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -89,6 +89,7 @@ jobs:
             commercial/server/ubuntu/run-commercial-server.sh
             commercial/server/ubuntu/install-commercial-server.sh
             commercial/server/ubuntu/uninstall-commercial-server.sh
+            commercial/server/ubuntu/run-physical-certification.sh
           )
           for file in "${required[@]}"; do
             test -f "$file"
@@ -101,7 +102,7 @@ jobs:
           grep -q '^ProtectSystem=strict$' commercial/server/ubuntu/sagar-monitor-commercial-server.service
 
   windows-contracts:
-    name: Windows agent and server PowerShell syntax
+    name: Windows agent, server and certification PowerShell syntax
     runs-on: windows-latest
     timeout-minutes: 10
     steps:
@@ -122,7 +123,8 @@ jobs:
             'commercial/agents/windows/uninstall-commercial-agent.ps1',
             'commercial/server/windows/run-commercial-server.ps1',
             'commercial/server/windows/install-commercial-server.ps1',
-            'commercial/server/windows/uninstall-commercial-server.ps1'
+            'commercial/server/windows/uninstall-commercial-server.ps1',
+            'commercial/server/windows/run-physical-certification.ps1'
           )
           foreach ($file in $required) {
             if (-not (Test-Path -LiteralPath $file)) {

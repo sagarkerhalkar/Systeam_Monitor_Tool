@@ -23,7 +23,7 @@ from sagar_monitor.security.foundation import (
     verify_password,
 )
 
-NOW = datetime(2026, 8, 6, 12, 0, tzinfo=timezone.utc)
+NOW = datetime.now(timezone.utc).replace(microsecond=0)
 PASSWORD = "Commercial#Secure2026"
 
 

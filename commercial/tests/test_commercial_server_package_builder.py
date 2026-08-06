@@ -23,8 +23,11 @@ class CommercialServerPackageBuilderTests(unittest.TestCase):
                 names = archive.namelist()
             self.assertTrue(any(name.endswith("/MANIFEST.json") for name in names))
             self.assertTrue(any(name.endswith("/commercial/tools/run_physical_certification.py") for name in names))
+            self.assertTrue(any(name.endswith("/commercial/tools/run_staging_lab.py") for name in names))
             self.assertTrue(any(name.endswith("/commercial/server/windows/run-physical-certification.ps1") for name in names))
             self.assertTrue(any(name.endswith("/commercial/server/ubuntu/run-physical-certification.sh") for name in names))
+            self.assertTrue(any(name.endswith("/commercial/staging/windows/install-ephemeral-runner.ps1") for name in names))
+            self.assertTrue(any(name.endswith("/commercial/staging/ubuntu/install-ephemeral-runner.sh") for name in names))
             self.assertFalse(any(name.endswith("/server.py") and "/commercial/" not in name for name in names))
             self.assertFalse(any("workingcode" in name.lower() for name in names))
 

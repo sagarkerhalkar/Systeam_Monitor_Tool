@@ -21,7 +21,7 @@ jobs:
   python-contracts:
     name: Python ${{ matrix.python-version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 20
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
@@ -53,11 +53,18 @@ jobs:
           PYTHONPATH: commercial
         run: python -m unittest discover -s commercial/tests -v
 
+      - name: Build and verify deterministic server package
+        env:
+          PYTHONPATH: commercial
+        run: |
+          python commercial/tools/build_commercial_server_package.py build --repository-root . --output commercial-server-ci.zip --version ci-${{ github.sha }}
+          python commercial/tools/build_commercial_server_package.py verify --package commercial-server-ci.zip
+
       - name: Verify commercial release foundation
         run: python commercial/tools/verify_release_foundation.py
 
   browser-contracts:
-    name: Browser and Ubuntu agent syntax
+    name: Browser, Ubuntu agent and server syntax
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -67,7 +74,7 @@ jobs:
       - name: Validate dashboard JavaScript
         run: node --check public/app.js
 
-      - name: Validate required Ubuntu scripts
+      - name: Validate required Ubuntu scripts and services
         shell: bash
         run: |
           set -euo pipefail
@@ -79,6 +86,9 @@ jobs:
             commercial/agents/ubuntu/run-user-notifier.sh
             commercial/agents/ubuntu/install-commercial-agent.sh
             commercial/agents/ubuntu/uninstall-commercial-agent.sh
+            commercial/server/ubuntu/run-commercial-server.sh
+            commercial/server/ubuntu/install-commercial-server.sh
+            commercial/server/ubuntu/uninstall-commercial-server.sh
           )
           for file in "${required[@]}"; do
             test -f "$file"
@@ -86,9 +96,12 @@ jobs:
           done
           grep -q '^\[Service\]$' commercial/agents/ubuntu/sagar-monitor-commercial-agent.service
           grep -q '^Exec=' commercial/agents/ubuntu/sagar-monitor-commercial-notifier.desktop
+          grep -q '^\[Service\]$' commercial/server/ubuntu/sagar-monitor-commercial-server.service
+          grep -q '^NoNewPrivileges=true$' commercial/server/ubuntu/sagar-monitor-commercial-server.service
+          grep -q '^ProtectSystem=strict$' commercial/server/ubuntu/sagar-monitor-commercial-server.service
 
-  windows-agent-contracts:
-    name: Windows agent PowerShell syntax
+  windows-contracts:
+    name: Windows agent and server PowerShell syntax
     runs-on: windows-latest
     timeout-minutes: 10
     steps:
@@ -106,11 +119,14 @@ jobs:
             'commercial/agents/windows/run-system-agent.ps1',
             'commercial/agents/windows/run-user-notifier.ps1',
             'commercial/agents/windows/install-commercial-agent.ps1',
-            'commercial/agents/windows/uninstall-commercial-agent.ps1'
+            'commercial/agents/windows/uninstall-commercial-agent.ps1',
+            'commercial/server/windows/run-commercial-server.ps1',
+            'commercial/server/windows/install-commercial-server.ps1',
+            'commercial/server/windows/uninstall-commercial-server.ps1'
           )
           foreach ($file in $required) {
             if (-not (Test-Path -LiteralPath $file)) {
-              throw "Required Windows agent file is missing: $file"
+              throw "Required Windows file is missing: $file"
             }
             $tokens = $null
             $errors = $null

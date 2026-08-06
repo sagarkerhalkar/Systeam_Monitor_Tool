@@ -1,0 +1,13 @@
+{
+  "bind_host": "0.0.0.0",
+  "port": 8443,
+  "database_path": "data/commercial.db",
+  "certificate_file": "tls/server.crt",
+  "private_key_file": "tls/server.key",
+  "backup_directory": "backups",
+  "max_body_bytes": 2097152,
+  "max_header_bytes": 32768,
+  "socket_timeout_seconds": 30,
+  "allow_loopback_http": false,
+  "server_label": "Sagar Monitor Commercial Server"
+}

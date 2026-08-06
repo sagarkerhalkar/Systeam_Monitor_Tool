@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 import sys
 from pathlib import Path
@@ -85,10 +86,55 @@ def verify_required_identity_files() -> None:
         fail("required identity foundation files are missing: " + ", ".join(missing))
 
 
+def verify_server_package() -> None:
+    required = (
+        ROOT / "commercial" / "sagar_monitor" / "server" / "runtime.py",
+        ROOT / "commercial" / "sagar_monitor" / "server" / "bootstrap.py",
+        ROOT / "commercial" / "sagar_monitor" / "server" / "backup.py",
+        ROOT / "commercial" / "sagar_monitor" / "server" / "package.py",
+        ROOT / "commercial" / "tools" / "run_commercial_server.py",
+        ROOT / "commercial" / "tools" / "build_commercial_server_package.py",
+        ROOT / "commercial" / "server" / "windows" / "install-commercial-server.ps1",
+        ROOT / "commercial" / "server" / "windows" / "uninstall-commercial-server.ps1",
+        ROOT / "commercial" / "server" / "ubuntu" / "install-commercial-server.sh",
+        ROOT / "commercial" / "server" / "ubuntu" / "uninstall-commercial-server.sh",
+        ROOT / "commercial" / "server" / "ubuntu" / "sagar-monitor-commercial-server.service",
+    )
+    missing = [str(path.relative_to(ROOT)) for path in required if not path.is_file()]
+    if missing:
+        fail("required commercial server files are missing: " + ", ".join(missing))
+
+    config_path = ROOT / "commercial" / "server" / "server-config.example.json"
+    config = json.loads(config_path.read_text(encoding="utf-8"))
+    if config.get("allow_loopback_http") is not False:
+        fail("commercial server example must require HTTPS")
+    if not config.get("certificate_file") or not config.get("private_key_file"):
+        fail("commercial server example must declare certificate and private key paths")
+
+    runtime = (ROOT / "commercial" / "sagar_monitor" / "server" / "runtime.py").read_text(encoding="utf-8")
+    for marker in ("ssl.PROTOCOL_TLS_SERVER", "TLSv1_2", "Strict-Transport-Security"):
+        if marker not in runtime:
+            fail(f"commercial server runtime is missing security marker: {marker}")
+
+    windows = (ROOT / "commercial" / "server" / "windows" / "install-commercial-server.ps1").read_text(encoding="utf-8")
+    ubuntu = (ROOT / "commercial" / "server" / "ubuntu" / "install-commercial-server.sh").read_text(encoding="utf-8")
+    service = (ROOT / "commercial" / "server" / "ubuntu" / "sagar-monitor-commercial-server.service").read_text(encoding="utf-8")
+    for marker in ("pre-upgrade-", ".bootstrap-password", "DatabaseExistedBefore"):
+        if marker not in windows:
+            fail(f"Windows server installer is missing rollback marker: {marker}")
+    for marker in ("pre-upgrade-", ".bootstrap-password", "DATABASE_EXISTED_BEFORE"):
+        if marker not in ubuntu:
+            fail(f"Ubuntu server installer is missing rollback marker: {marker}")
+    for marker in ("NoNewPrivileges=true", "ProtectSystem=strict", "ReadWritePaths="):
+        if marker not in service:
+            fail(f"Ubuntu server service is missing hardening marker: {marker}")
+
+
 def main() -> int:
     verify_no_payload_injection()
     verify_migrations()
     verify_required_identity_files()
+    verify_server_package()
     print("Commercial release foundation verification passed.")
     return 0
 

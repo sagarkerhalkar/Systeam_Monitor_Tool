@@ -4,7 +4,6 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
-import json
 import logging
 import socket
 import ssl
@@ -53,7 +52,7 @@ class CommercialRequestHandler(BaseHTTPRequestHandler):
                 "remote_addr": self.client_address[0] if self.client_address else "",
                 "method": self.command,
                 "path": self.path.split("?", 1)[0],
-                "message": format % args,
+                "request_summary": format % args,
             },
         )
 
@@ -118,7 +117,7 @@ class CommercialRequestHandler(BaseHTTPRequestHandler):
             return
         headers = {str(key): str(value) for key, value in self.headers.items()}
         request = Request(
-            method=self.command,
+            method="GET" if self.command.upper() == "HEAD" else self.command,
             target=self.path,
             headers=headers,
             body=body,

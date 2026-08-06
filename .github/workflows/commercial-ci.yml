@@ -40,6 +40,9 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Install locked commercial dependencies
+        run: python -m pip install --disable-pip-version-check --require-hashes -r commercial/requirements.lock
+
       - name: Compile production and commercial Python
         run: |
           python -m py_compile server.py

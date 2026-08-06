@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
-from typing import Any, Iterable
+from typing import Any
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 import hashlib
 import json
@@ -33,6 +32,7 @@ def _source_files(repository_root: Path) -> list[Path]:
         commercial / "requirements.lock",
         commercial / "tools" / "run_commercial_server.py",
         commercial / "tools" / "run_physical_certification.py",
+        commercial / "tools" / "run_staging_lab.py",
         commercial / "server" / "server-config.example.json",
     ]
     roots = [
@@ -40,6 +40,7 @@ def _source_files(repository_root: Path) -> list[Path]:
         commercial / "migrations",
         commercial / "server" / "windows",
         commercial / "server" / "ubuntu",
+        commercial / "staging",
     ]
     files: list[Path] = []
     for item in required_files:
@@ -80,9 +81,7 @@ def build_source_package(
     for path in _source_files(root):
         relative = path.relative_to(root).as_posix()
         data = path.read_bytes()
-        manifest_files.append(
-            {"path": relative, "size_bytes": len(data), "sha256": _sha256_bytes(data)}
-        )
+        manifest_files.append({"path": relative, "size_bytes": len(data), "sha256": _sha256_bytes(data)})
         source_entries.append((f"{prefix}/{relative}", data, _mode(path)))
     manifest = {
         "format": "sagar-monitor-commercial-server-source-v1",
@@ -90,12 +89,7 @@ def build_source_package(
         "created_at": "2026-01-01T00:00:00+00:00",
         "files": manifest_files,
     }
-    manifest_data = json.dumps(
-        manifest,
-        ensure_ascii=False,
-        sort_keys=True,
-        separators=(",", ":"),
-    ).encode("utf-8")
+    manifest_data = json.dumps(manifest, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
     source_entries.append((f"{prefix}/MANIFEST.json", manifest_data, 0o644))
 
     descriptor, temporary_name = tempfile.mkstemp(prefix=output.name + ".", suffix=".tmp", dir=output.parent)

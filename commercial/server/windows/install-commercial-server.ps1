@@ -54,6 +54,10 @@ $VersionRoot = Join-Path $VersionsRoot $VersionName
 $DatabaseFile = Join-Path $DatabaseRoot 'commercial.db'
 $DatabaseExistedBefore = Test-Path -LiteralPath $DatabaseFile
 $OldVersion = ''
+$VersionPython = ''
+$Entrypoint = ''
+$InstalledCommercial = ''
+$PreUpgradeBackup = ''
 if (Test-Path -LiteralPath $PointerFile) {
     $OldVersion = (Get-Content -LiteralPath $PointerFile -Raw -Encoding UTF8).Trim([char]0xFEFF).Trim()
 }
@@ -114,7 +118,8 @@ try {
     $Entrypoint = Join-Path $InstalledCommercial 'tools\run_commercial_server.py'
     if ($DatabaseExistedBefore) {
         $backupName = 'pre-upgrade-' + (Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmssZ') + '.db'
-        & $VersionPython $Entrypoint --config $ConfigFile backup --output (Join-Path $BackupRoot $backupName)
+        $PreUpgradeBackup = Join-Path $BackupRoot $backupName
+        & $VersionPython $Entrypoint --config $ConfigFile backup --output $PreUpgradeBackup
         if ($LASTEXITCODE -ne 0) { throw 'Pre-upgrade database backup failed.' }
         & $VersionPython $Entrypoint --config $ConfigFile migrate
         if ($LASTEXITCODE -ne 0) { throw 'Commercial database migration failed.' }
@@ -166,10 +171,24 @@ try {
     Write-Host "Database: $DatabaseFile"
 }
 catch {
+    $OriginalError = $_
+    $DatabaseRollbackError = $null
     Stop-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
+    if ($DatabaseExistedBefore -and $PreUpgradeBackup -and $VersionPython -and $Entrypoint -and (Test-Path -LiteralPath $PreUpgradeBackup)) {
+        try {
+            $env:PYTHONPATH = $InstalledCommercial
+            & $VersionPython $Entrypoint --config $ConfigFile restore --backup $PreUpgradeBackup --confirm-service-stopped
+            if ($LASTEXITCODE -ne 0) { throw 'Verified pre-upgrade database restore returned an error.' }
+        }
+        catch {
+            $DatabaseRollbackError = $_
+        }
+    }
     if ($OldVersion) {
         Write-Utf8NoBom $PointerFile $OldVersion
-        if ($ExistingTask) { Start-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue }
+        if ($ExistingTask -and -not $DatabaseRollbackError) {
+            Start-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
+        }
     } else {
         Remove-Item -LiteralPath $PointerFile -Force -ErrorAction SilentlyContinue
     }
@@ -180,5 +199,8 @@ catch {
     }
     Remove-Item -LiteralPath (Join-Path $ConfigRoot '.bootstrap-password') -Force -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath $VersionRoot -Recurse -Force -ErrorAction SilentlyContinue
-    throw
+    if ($DatabaseRollbackError) {
+        throw "Installation failed and database rollback also failed. Old service remains stopped. Original: $OriginalError Rollback: $DatabaseRollbackError"
+    }
+    throw $OriginalError
 }

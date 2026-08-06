@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Sagar Monitor Notifications
+Comment=Display acknowledged Sagar Monitor client messages
+Exec=/opt/sagar-monitor-agent/run-user-notifier.sh
+Terminal=false
+NoDisplay=true
+X-GNOME-Autostart-enabled=true

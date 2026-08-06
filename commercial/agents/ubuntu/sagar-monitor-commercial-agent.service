@@ -1,0 +1,28 @@
+[Unit]
+Description=Sagar Monitor Commercial Agent
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=sagar-monitor
+Group=sagar-monitor
+SupplementaryGroups=sagar-monitor-notify
+UMask=0007
+ExecStart=/opt/sagar-monitor-agent/run-system-agent.sh
+Restart=always
+RestartSec=30
+StartLimitIntervalSec=0
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/sagar-monitor-agent
+ReadOnlyPaths=/etc/sagar-monitor-agent /opt/sagar-monitor-agent
+LockPersonality=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target

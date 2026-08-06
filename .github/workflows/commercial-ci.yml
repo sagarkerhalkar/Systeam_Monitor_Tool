@@ -21,7 +21,7 @@ jobs:
   python-contracts:
     name: Python ${{ matrix.python-version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -75,11 +75,17 @@ jobs:
             scripts/client_ubuntu.sh
             scripts/install_ubuntu_client_2278.sh
             scripts/BOOTSTRAP_UBUNTU_CLIENT_2278.sh
+            commercial/agents/ubuntu/run-system-agent.sh
+            commercial/agents/ubuntu/run-user-notifier.sh
+            commercial/agents/ubuntu/install-commercial-agent.sh
+            commercial/agents/ubuntu/uninstall-commercial-agent.sh
           )
           for file in "${required[@]}"; do
             test -f "$file"
             bash -n "$file"
           done
+          grep -q '^\[Service\]$' commercial/agents/ubuntu/sagar-monitor-commercial-agent.service
+          grep -q '^Exec=' commercial/agents/ubuntu/sagar-monitor-commercial-notifier.desktop
 
   windows-agent-contracts:
     name: Windows agent PowerShell syntax
@@ -96,7 +102,11 @@ jobs:
           $required = @(
             'scripts/client_windows.ps1',
             'scripts/install_windows_client_2278.ps1',
-            'scripts/BOOTSTRAP_WINDOWS_CLIENT_2278.ps1'
+            'scripts/BOOTSTRAP_WINDOWS_CLIENT_2278.ps1',
+            'commercial/agents/windows/run-system-agent.ps1',
+            'commercial/agents/windows/run-user-notifier.ps1',
+            'commercial/agents/windows/install-commercial-agent.ps1',
+            'commercial/agents/windows/uninstall-commercial-agent.ps1'
           )
           foreach ($file in $required) {
             if (-not (Test-Path -LiteralPath $file)) {

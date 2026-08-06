@@ -1,0 +1,39 @@
+[Unit]
+Description=Sagar Monitor Commercial Server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=sagarmonitor-server
+Group=sagarmonitor-server
+WorkingDirectory=/var/lib/sagar-monitor-commercial-server
+ExecStart=/opt/sagar-monitor-commercial-server/run-commercial-server.sh
+Restart=on-failure
+RestartSec=10s
+TimeoutStartSec=60s
+TimeoutStopSec=30s
+KillSignal=SIGINT
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+ProtectProc=invisible
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+ReadOnlyPaths=/opt/sagar-monitor-commercial-server /etc/sagar-monitor-commercial-server
+ReadWritePaths=/var/lib/sagar-monitor-commercial-server /var/backups/sagar-monitor-commercial-server
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

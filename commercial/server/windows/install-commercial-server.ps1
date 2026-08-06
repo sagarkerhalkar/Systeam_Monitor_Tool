@@ -124,7 +124,6 @@ try {
         }
         $BootstrapPasswordFile = Join-Path $ConfigRoot '.bootstrap-password'
         Copy-Item -LiteralPath $AdminPasswordFile -Destination $BootstrapPasswordFile -Force
-        Set-ProtectedAcl $BootstrapPasswordFile
         $bootstrapArgs = @(
             $Entrypoint,'--config',$ConfigFile,'bootstrap',
             '--organization-name',$OrganizationName,

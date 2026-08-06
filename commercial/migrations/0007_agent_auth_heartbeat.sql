@@ -22,7 +22,8 @@ CREATE INDEX IF NOT EXISTS ix_agent_credentials_v1_org_status
 ON agent_credentials_v1(organization_id, status, last_seen_at);
 
 CREATE TABLE IF NOT EXISTS agent_heartbeat_events_v1 (
-    event_key TEXT PRIMARY KEY,
+    sequence_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_key TEXT NOT NULL UNIQUE,
     client_event_id TEXT NOT NULL,
     organization_id TEXT NOT NULL,
     canonical_client_id TEXT NOT NULL,
@@ -37,7 +38,9 @@ CREATE TABLE IF NOT EXISTS agent_heartbeat_events_v1 (
 );
 
 CREATE INDEX IF NOT EXISTS ix_agent_heartbeat_events_v1_client_time
-ON agent_heartbeat_events_v1(organization_id, canonical_client_id, received_at, event_key);
+ON agent_heartbeat_events_v1(
+    organization_id, canonical_client_id, received_at, sequence_id
+);
 
 CREATE TABLE IF NOT EXISTS agent_current_v1 (
     organization_id TEXT NOT NULL,

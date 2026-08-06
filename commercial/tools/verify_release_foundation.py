@@ -130,11 +130,46 @@ def verify_server_package() -> None:
             fail(f"Ubuntu server service is missing hardening marker: {marker}")
 
 
+def verify_qualification_gate() -> None:
+    required = (
+        ROOT / "commercial" / "sagar_monitor" / "qualification" / "scenario.py",
+        ROOT / "commercial" / "sagar_monitor" / "qualification" / "recovery.py",
+        ROOT / "commercial" / "tools" / "run_staging_qualification.py",
+        ROOT / "commercial" / "tests" / "test_staging_qualification.py",
+        ROOT / ".github" / "workflows" / "commercial-staging-qualification.yml",
+    )
+    missing = [str(path.relative_to(ROOT)) for path in required if not path.is_file()]
+    if missing:
+        fail("required staging qualification files are missing: " + ", ".join(missing))
+
+    scenario = required[0].read_text(encoding="utf-8")
+    for marker in (
+        "duplicate_replay_idempotent",
+        "restore_counts_match",
+        "wal_checkpoint_not_busy",
+        "max_heartbeat_p95_ms",
+        "evidence_sha256",
+    ):
+        if marker not in scenario:
+            fail(f"qualification scenario is missing release marker: {marker}")
+
+    recovery = required[1].read_text(encoding="utf-8")
+    for marker in ("process.terminate()", "/api/v1/agents/status", "PRAGMA quick_check"):
+        if marker not in recovery:
+            fail(f"forced recovery probe is missing marker: {marker}")
+
+    workflow = required[4].read_text(encoding="utf-8")
+    for marker in ("--agents 100,500,1000", "actions/upload-artifact@v4", "--max-admin-p95-ms 300"):
+        if marker not in workflow:
+            fail(f"qualification workflow is missing release marker: {marker}")
+
+
 def main() -> int:
     verify_no_payload_injection()
     verify_migrations()
     verify_required_identity_files()
     verify_server_package()
+    verify_qualification_gate()
     print("Commercial release foundation verification passed.")
     return 0
 

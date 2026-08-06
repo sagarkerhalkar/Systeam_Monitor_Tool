@@ -219,7 +219,7 @@ def _append_event(
 
     if enforce_step:
         step = require_step(step_id)
-        if step.platform not in {normalized_platform, "cross-platform"} and normalized_platform != "cross-platform":
+        if step.platform != "cross-platform" and normalized_platform != step.platform:
             raise ValueError(f"step {step_id} requires platform {step.platform}")
         if normalized_status == "PASS" and duration < step.minimum_duration_seconds:
             raise ValueError(

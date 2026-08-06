@@ -1,0 +1,73 @@
+name: Commercial Staging Qualification
+
+on:
+  pull_request:
+    branches:
+      - commercial-v1
+    paths:
+      - 'commercial/sagar_monitor/qualification/**'
+      - 'commercial/sagar_monitor/api/**'
+      - 'commercial/sagar_monitor/agents/**'
+      - 'commercial/sagar_monitor/history/**'
+      - 'commercial/sagar_monitor/messaging/**'
+      - 'commercial/sagar_monitor/security/**'
+      - 'commercial/sagar_monitor/server/**'
+      - 'commercial/tests/test_staging_qualification.py'
+      - 'commercial/tools/run_staging_qualification.py'
+      - '.github/workflows/commercial-staging-qualification.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: commercial-staging-qualification-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  full-agent-scale:
+    name: 100, 500 and 1000 agent qualification
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+
+      - name: Install locked commercial dependencies
+        run: python -m pip install --disable-pip-version-check --require-hashes -r commercial/requirements.lock
+
+      - name: Compile qualification source
+        run: python -m compileall -q commercial/sagar_monitor/qualification commercial/tools/run_staging_qualification.py
+
+      - name: Run complete staging qualification
+        env:
+          PYTHONPATH: commercial
+        run: >-
+          python commercial/tools/run_staging_qualification.py
+          --agents 100,500,1000
+          --concurrency 12
+          --heartbeat-rounds 2
+          --duplicate-replay-count 25
+          --message-target-count 10
+          --admin-request-count 100
+          --workspace "${{ runner.temp }}/qualification-work"
+          --output-dir qualification-evidence
+          --max-registration-p95-ms 5000
+          --max-heartbeat-p95-ms 2000
+          --max-admin-p95-ms 300
+          --max-wal-mb 512
+          --max-memory-mb 512
+
+      - name: Upload qualification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: commercial-staging-qualification-${{ github.run_id }}
+          path: qualification-evidence
+          if-no-files-found: error
+          retention-days: 30

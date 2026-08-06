@@ -12,7 +12,7 @@ param(
     [ValidatePattern('^[0-9a-fA-F]{64}$')]
     [string]$RunnerArchiveSha256,
 
-    [string]$RunnerName = "$env:COMPUTERNAME-sagar-staging",
+    [string]$RunnerName = "$($env:COMPUTERNAME)-sagar-staging",
     [string]$InstallRoot = 'C:\actions-runner-sagar-staging',
     [string]$WorkRoot = 'C:\ProgramData\SagarMonitorStaging',
     [string]$PythonExe = 'python',

@@ -1,6 +1,6 @@
 """Commercial agent enrollment, authentication and heartbeat processing."""
 
-from .registry import (
+from .service import (
     AgentIdentity,
     apply_agent_migration,
     authenticate_agent,

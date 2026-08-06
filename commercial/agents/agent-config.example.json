@@ -1,0 +1,17 @@
+{
+  "server_url": "https://monitor.example.com",
+  "state_directory": "/var/lib/sagar-monitor-agent",
+  "enrollment_token_file": "/var/lib/sagar-monitor-agent/enrollment.token",
+  "timezone_name": "Asia/Kolkata",
+  "heartbeat_interval_seconds": 60,
+  "max_heartbeats_per_cycle": 20,
+  "max_receipts_per_cycle": 50,
+  "queue_limit": 10000,
+  "timeout_seconds": 20,
+  "ca_bundle": "",
+  "allow_loopback_http": false,
+  "notifier_poll_seconds": 5,
+  "registration_metadata": {
+    "site": "pilot"
+  }
+}

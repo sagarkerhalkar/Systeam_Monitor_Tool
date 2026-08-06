@@ -69,6 +69,7 @@ def parser() -> argparse.ArgumentParser:
 
     health = subcommands.add_parser("health", help="Check local state and optionally the running endpoint")
     health.add_argument("--remote", action="store_true")
+    health.add_argument("--url", help="Explicit HTTPS health URL whose certificate name matches")
     health.add_argument("--ca-bundle")
 
     backup = subcommands.add_parser("backup", help="Create a verified online database backup")
@@ -125,9 +126,10 @@ def main(argv: list[str] | None = None) -> int:
         if arguments.command == "health":
             result = local_health(config)
             if arguments.remote:
+                target_url = arguments.url or config.local_url
                 result["remote"] = remote_health(
-                    config.local_url,
-                    ca_bundle=arguments.ca_bundle or (config.certificate_file if not config.allow_loopback_http else None),
+                    target_url,
+                    ca_bundle=arguments.ca_bundle,
                 )
                 result["ok"] = bool(result["ok"] and result["remote"].get("ok"))
             _print(result)

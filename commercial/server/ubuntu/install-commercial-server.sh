@@ -54,6 +54,7 @@ REPOSITORY_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 COMMERCIAL_SOURCE="$REPOSITORY_ROOT/commercial"
 OLD_TARGET=''
 PRE_UPGRADE_BACKUP=''
+CONFIG_ROLLBACK_ROOT=''
 DATABASE_EXISTED_BEFORE=false
 [[ -f "$DATABASE_FILE" ]] && DATABASE_EXISTED_BEFORE=true
 [[ -L "$INSTALL_ROOT/current" ]] && OLD_TARGET="$(readlink -f "$INSTALL_ROOT/current")"
@@ -72,20 +73,28 @@ systemctl stop "$SERVICE_NAME" >/dev/null 2>&1 || true
 rollback() {
   local exit_code=$?
   local database_restore_ok=true
-  systemctl stop "$SERVICE_NAME" >/dev/null 2>&1 || true
+  local configuration_restore_ok=true
+  set +e
+  systemctl stop "$SERVICE_NAME" >/dev/null 2>&1
   if $DATABASE_EXISTED_BEFORE && [[ -n "$PRE_UPGRADE_BACKUP" && -f "$PRE_UPGRADE_BACKUP" && -x "$VERSION_ROOT/venv/bin/python" ]]; then
-    if ! runuser -u "$SERVICE_USER" -- env PYTHONPATH="$VERSION_ROOT/commercial" \
+    runuser -u "$SERVICE_USER" -- env PYTHONPATH="$VERSION_ROOT/commercial" \
       "$VERSION_ROOT/venv/bin/python" "$VERSION_ROOT/commercial/tools/run_commercial_server.py" \
-      --config "$CONFIG_FILE" restore --backup "$PRE_UPGRADE_BACKUP" --confirm-service-stopped; then
-      database_restore_ok=false
-      echo 'Verified pre-upgrade database restore failed. Old service remains stopped.' >&2
-    fi
+      --config "$CONFIG_FILE" restore --backup "$PRE_UPGRADE_BACKUP" --confirm-service-stopped
+    [[ $? -eq 0 ]] || database_restore_ok=false
+  fi
+  if [[ -n "$CONFIG_ROLLBACK_ROOT" && -d "$CONFIG_ROLLBACK_ROOT" ]]; then
+    [[ -f "$CONFIG_ROLLBACK_ROOT/server.json" ]] && cp -f "$CONFIG_ROLLBACK_ROOT/server.json" "$CONFIG_FILE"
+    [[ -f "$CONFIG_ROLLBACK_ROOT/server.crt" ]] && cp -f "$CONFIG_ROLLBACK_ROOT/server.crt" "$TLS_ROOT/server.crt"
+    [[ -f "$CONFIG_ROLLBACK_ROOT/server.key" ]] && cp -f "$CONFIG_ROLLBACK_ROOT/server.key" "$TLS_ROOT/server.key"
+    chown root:"$SERVICE_GROUP" "$CONFIG_FILE" "$TLS_ROOT/server.crt" "$TLS_ROOT/server.key" 2>/dev/null
+    chmod 0640 "$CONFIG_FILE" "$TLS_ROOT/server.crt" "$TLS_ROOT/server.key" 2>/dev/null
+    [[ $? -eq 0 ]] || configuration_restore_ok=false
   fi
   if [[ -n "$OLD_TARGET" && -d "$OLD_TARGET" ]]; then
     ln -sfn "$OLD_TARGET" "$INSTALL_ROOT/current.rollback"
     mv -Tf "$INSTALL_ROOT/current.rollback" "$INSTALL_ROOT/current"
-    if $database_restore_ok; then
-      systemctl start "$SERVICE_NAME" >/dev/null 2>&1 || true
+    if $database_restore_ok && $configuration_restore_ok; then
+      systemctl start "$SERVICE_NAME" >/dev/null 2>&1
     fi
   else
     rm -f "$INSTALL_ROOT/current"
@@ -95,6 +104,9 @@ rollback() {
   fi
   rm -f "$CONFIG_ROOT/.bootstrap-password"
   rm -rf "$VERSION_ROOT"
+  if ! $database_restore_ok || ! $configuration_restore_ok; then
+    echo 'Installation failed and rollback was incomplete. Old service remains stopped.' >&2
+  fi
   exit "$exit_code"
 }
 trap rollback ERR
@@ -111,6 +123,17 @@ chmod -R go-w "$VERSION_ROOT"
 
 "$PYTHON_BIN" -m venv "$VERSION_ROOT/venv"
 "$VERSION_ROOT/venv/bin/python" -m pip install --disable-pip-version-check --require-hashes -r "$VERSION_ROOT/commercial/requirements.lock"
+"$VERSION_ROOT/venv/bin/python" -c 'import ssl,sys; c=ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER); c.load_cert_chain(sys.argv[1],sys.argv[2])' "$CERTIFICATE_FILE" "$PRIVATE_KEY_FILE"
+
+if [[ -f "$CONFIG_FILE" || -f "$TLS_ROOT/server.crt" || -f "$TLS_ROOT/server.key" ]]; then
+  CONFIG_ROLLBACK_ROOT="$BACKUP_ROOT/pre-upgrade-config-$(date -u +%Y%m%dT%H%M%SZ)"
+  install -d -m 0700 -o "$SERVICE_USER" -g "$SERVICE_GROUP" "$CONFIG_ROLLBACK_ROOT"
+  [[ -f "$CONFIG_FILE" ]] && cp -f "$CONFIG_FILE" "$CONFIG_ROLLBACK_ROOT/server.json"
+  [[ -f "$TLS_ROOT/server.crt" ]] && cp -f "$TLS_ROOT/server.crt" "$CONFIG_ROLLBACK_ROOT/server.crt"
+  [[ -f "$TLS_ROOT/server.key" ]] && cp -f "$TLS_ROOT/server.key" "$CONFIG_ROLLBACK_ROOT/server.key"
+  chown -R "$SERVICE_USER":"$SERVICE_GROUP" "$CONFIG_ROLLBACK_ROOT"
+  chmod -R go-rwx "$CONFIG_ROLLBACK_ROOT"
+fi
 
 install -m 0640 -o root -g "$SERVICE_GROUP" "$CERTIFICATE_FILE" "$TLS_ROOT/server.crt"
 install -m 0640 -o root -g "$SERVICE_GROUP" "$PRIVATE_KEY_FILE" "$TLS_ROOT/server.key"

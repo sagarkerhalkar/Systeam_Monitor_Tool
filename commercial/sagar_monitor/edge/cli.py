@@ -15,7 +15,7 @@ from .transport import HTTPAgentTransport
 
 def _load_config(path: Path) -> dict[str, Any]:
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
+        value = json.loads(path.read_text(encoding="utf-8-sig"))
     except OSError as exc:
         raise RuntimeError(f"cannot read configuration: {exc}") from exc
     except (ValueError, TypeError, json.JSONDecodeError) as exc:
@@ -42,7 +42,7 @@ def _read_enrollment_token(config: dict[str, Any]) -> str:
     if path is None or not path.exists():
         return ""
     try:
-        return path.read_text(encoding="utf-8").strip()
+        return path.read_text(encoding="utf-8-sig").strip()
     except OSError:
         return ""
 

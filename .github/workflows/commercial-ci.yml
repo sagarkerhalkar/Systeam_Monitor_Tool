@@ -21,7 +21,7 @@ jobs:
   python-contracts:
     name: Python ${{ matrix.python-version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 25
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -60,11 +60,18 @@ jobs:
           python commercial/tools/build_commercial_server_package.py build --repository-root . --output commercial-server-ci.zip --version ci-${{ github.sha }}
           python commercial/tools/build_commercial_server_package.py verify --package commercial-server-ci.zip
 
+      - name: Build and verify deterministic staging release candidate
+        env:
+          PYTHONPATH: commercial
+        run: |
+          python commercial/tools/run_staging_lab.py build-rc --repository-root . --output commercial-staging-rc-ci.zip --version ci-${{ github.sha }} --source-commit ${{ github.sha }}
+          python commercial/tools/run_staging_lab.py verify-rc --package commercial-staging-rc-ci.zip
+
       - name: Verify commercial release foundation
         run: python commercial/tools/verify_release_foundation.py
 
   browser-contracts:
-    name: Browser, Ubuntu agent, server and certification syntax
+    name: Browser, Ubuntu agent, server, certification and staging syntax
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -90,6 +97,9 @@ jobs:
             commercial/server/ubuntu/install-commercial-server.sh
             commercial/server/ubuntu/uninstall-commercial-server.sh
             commercial/server/ubuntu/run-physical-certification.sh
+            commercial/staging/ubuntu/prepare-staging-host.sh
+            commercial/staging/ubuntu/install-ephemeral-runner.sh
+            commercial/staging/ubuntu/remove-staging-runner.sh
           )
           for file in "${required[@]}"; do
             test -f "$file"
@@ -100,9 +110,11 @@ jobs:
           grep -q '^\[Service\]$' commercial/server/ubuntu/sagar-monitor-commercial-server.service
           grep -q '^NoNewPrivileges=true$' commercial/server/ubuntu/sagar-monitor-commercial-server.service
           grep -q '^ProtectSystem=strict$' commercial/server/ubuntu/sagar-monitor-commercial-server.service
+          grep -q -- '--ephemeral' commercial/staging/ubuntu/install-ephemeral-runner.sh
+          grep -q 'repository-check' commercial/staging/ubuntu/install-ephemeral-runner.sh
 
   windows-contracts:
-    name: Windows agent, server and certification PowerShell syntax
+    name: Windows agent, server, certification and staging PowerShell syntax
     runs-on: windows-latest
     timeout-minutes: 10
     steps:
@@ -124,7 +136,10 @@ jobs:
             'commercial/server/windows/run-commercial-server.ps1',
             'commercial/server/windows/install-commercial-server.ps1',
             'commercial/server/windows/uninstall-commercial-server.ps1',
-            'commercial/server/windows/run-physical-certification.ps1'
+            'commercial/server/windows/run-physical-certification.ps1',
+            'commercial/staging/windows/prepare-staging-host.ps1',
+            'commercial/staging/windows/install-ephemeral-runner.ps1',
+            'commercial/staging/windows/remove-staging-runner.ps1'
           )
           foreach ($file in $required) {
             if (-not (Test-Path -LiteralPath $file)) {
@@ -141,4 +156,8 @@ jobs:
               $errors | ForEach-Object { Write-Error $_.Message }
               throw "PowerShell syntax validation failed: $file"
             }
+          }
+          $runnerScript = Get-Content -LiteralPath 'commercial/staging/windows/install-ephemeral-runner.ps1' -Raw
+          if ($runnerScript -notmatch '--ephemeral' -or $runnerScript -notmatch 'repository-check') {
+            throw 'Windows staging runner must remain private-repository gated and ephemeral.'
           }

@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from pathlib import Path
 import argparse
 import json
 import shutil
-import sys
+import traceback
 
 from sagar_monitor.qualification import (
     QualificationConfig,
@@ -22,7 +23,7 @@ def _agent_counts(value: str) -> list[int]:
             count = int(item.strip())
         except ValueError as exc:
             raise argparse.ArgumentTypeError("agents must be comma-separated integers") from exc
-        if count < 1 or count > 10000:
+        if not 1 <= count <= 10000:
             raise argparse.ArgumentTypeError("each agent count must be between 1 and 10000")
         if count not in result:
             result.append(count)
@@ -50,6 +51,54 @@ def parser() -> argparse.ArgumentParser:
     return result
 
 
+def _failure_report(count: int, config: QualificationConfig, exc: BaseException) -> dict:
+    return {
+        "schema": "sagar-monitor-qualification-v1",
+        "scenario": {
+            "agent_count": count,
+            "concurrency": config.concurrency,
+            "heartbeat_rounds": config.heartbeat_rounds,
+            "duplicate_replay_count": config.duplicate_replay_count,
+            "message_target_count": config.message_target_count,
+            "admin_request_count": config.admin_request_count,
+        },
+        "finished_at": datetime.now(timezone.utc).isoformat(),
+        "passed": False,
+        "fatal_error": {
+            "type": type(exc).__name__,
+            "message": str(exc),
+            "traceback": traceback.format_exc(limit=20),
+        },
+    }
+
+
+def _summary_row(report: dict) -> dict:
+    operations = report.get("operations") or {}
+    totals = report.get("totals") or {}
+    database = report.get("database") or {}
+
+    def p95(name: str) -> float | None:
+        try:
+            return float(operations[name]["latency_ms"]["p95"])
+        except (KeyError, TypeError, ValueError):
+            return None
+
+    return {
+        "agent_count": int(report.get("scenario", {}).get("agent_count", 0)),
+        "passed": bool(report.get("passed")),
+        "duration_seconds": report.get("duration_seconds"),
+        "total_operations": totals.get("operations", 0),
+        "failures": totals.get("failures", 1 if report.get("fatal_error") else 0),
+        "registration_p95_ms": p95("registration"),
+        "heartbeat_p95_ms": p95("heartbeat"),
+        "admin_p95_ms": p95("admin"),
+        "database_bytes": database.get("database_bytes"),
+        "wal_bytes": database.get("wal_bytes"),
+        "evidence_sha256": report.get("evidence_sha256"),
+        "fatal_error": report.get("fatal_error"),
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     arguments = parser().parse_args(argv)
     workspace = Path(arguments.workspace).expanduser().resolve()
@@ -70,8 +119,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         for count in arguments.agents:
             scenario_root = workspace / f"agents-{count}"
-            if scenario_root.exists():
-                shutil.rmtree(scenario_root)
+            shutil.rmtree(scenario_root, ignore_errors=True)
             scenario_root.mkdir(parents=True)
             config = QualificationConfig(
                 agent_count=count,
@@ -82,45 +130,23 @@ def main(argv: list[str] | None = None) -> int:
                 admin_request_count=int(arguments.admin_request_count),
                 thresholds=thresholds,
             )
-            report = run_qualification_scenario(scenario_root / "commercial.db", config)
+            try:
+                report = run_qualification_scenario(scenario_root / "commercial.db", config)
+            except BaseException as exc:  # evidence must survive every scenario failure
+                report = _failure_report(count, config, exc)
             evidence_path = write_evidence(output / f"qualification-{count}-agents.json", report)
-            reports.append(report)
-            print(
-                json.dumps(
-                    {
-                        "agents": count,
-                        "passed": report["passed"],
-                        "duration_seconds": report["duration_seconds"],
-                        "heartbeat_p95_ms": report["operations"]["heartbeat"]["latency_ms"]["p95"],
-                        "errors": report["totals"]["failures"],
-                        "evidence": str(evidence_path),
-                    },
-                    sort_keys=True,
-                ),
-                flush=True,
-            )
+            stored = json.loads(evidence_path.read_text(encoding="utf-8"))
+            reports.append(stored)
+            row = _summary_row(stored)
+            row["evidence"] = str(evidence_path)
+            print(json.dumps(row, ensure_ascii=False, sort_keys=True), flush=True)
 
         summary = {
             "schema": "sagar-monitor-qualification-summary-v1",
             "passed": all(bool(report.get("passed")) for report in reports),
             "scenario_count": len(reports),
-            "agent_counts": [int(report["scenario"]["agent_count"]) for report in reports],
-            "reports": [
-                {
-                    "agent_count": int(report["scenario"]["agent_count"]),
-                    "passed": bool(report["passed"]),
-                    "duration_seconds": report["duration_seconds"],
-                    "total_operations": report["totals"]["operations"],
-                    "failures": report["totals"]["failures"],
-                    "registration_p95_ms": report["operations"]["registration"]["latency_ms"]["p95"],
-                    "heartbeat_p95_ms": report["operations"]["heartbeat"]["latency_ms"]["p95"],
-                    "admin_p95_ms": report["operations"]["admin"]["latency_ms"]["p95"],
-                    "database_bytes": report["database"]["database_bytes"],
-                    "wal_bytes": report["database"]["wal_bytes"],
-                    "evidence_sha256": report["evidence_sha256"],
-                }
-                for report in reports
-            ],
+            "agent_counts": [int(report.get("scenario", {}).get("agent_count", 0)) for report in reports],
+            "reports": [_summary_row(report) for report in reports],
         }
         write_evidence(output / "qualification-summary.json", summary)
         return 0 if summary["passed"] else 2

@@ -1,0 +1,180 @@
+name: Commercial Physical Certification Preflight
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_os:
+        description: Staging operating system to certify
+        required: true
+        type: choice
+        options:
+          - windows
+          - ubuntu
+          - both
+      release_candidate:
+        description: Exact release-candidate identifier
+        required: true
+        type: string
+      site:
+        description: Physical staging site name
+        required: true
+        type: string
+      operator:
+        description: Person executing the physical test
+        required: true
+        type: string
+      server_url:
+        description: HTTPS commercial server base URL
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: commercial-physical-certification-${{ inputs.release_candidate }}
+  cancel-in-progress: false
+
+jobs:
+  windows-preflight:
+    if: ${{ inputs.target_os == 'windows' || inputs.target_os == 'both' }}
+    name: Windows physical staging preflight
+    runs-on: [self-hosted, windows, x64, sagar-monitor-staging]
+    timeout-minutes: 45
+    steps:
+      - name: Check out release candidate
+        uses: actions/checkout@v6
+
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+
+      - name: Install locked dependencies
+        shell: pwsh
+        run: python -m pip install --disable-pip-version-check --require-hashes -r commercial/requirements.lock
+
+      - name: Create Windows physical evidence
+        shell: pwsh
+        env:
+          PYTHONPATH: commercial
+          STAGING_CA_BUNDLE_PEM: ${{ secrets.STAGING_CA_BUNDLE_PEM }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $evidenceRoot = Join-Path $env:RUNNER_TEMP 'physical-evidence-windows'
+          New-Item -ItemType Directory -Path $evidenceRoot -Force | Out-Null
+          $evidence = Join-Path $evidenceRoot 'windows-evidence.json'
+          $log = Join-Path $evidenceRoot 'windows-preflight.txt'
+          $caFile = Join-Path $evidenceRoot 'staging-ca.pem'
+          Get-ComputerInfo | Out-File -LiteralPath $log -Encoding utf8
+          Get-ScheduledTask -TaskName 'SagarMonitorCommercialServer' -ErrorAction SilentlyContinue |
+            Format-List * | Out-File -LiteralPath $log -Encoding utf8 -Append
+          if ($env:STAGING_CA_BUNDLE_PEM) {
+            [IO.File]::WriteAllText($caFile, $env:STAGING_CA_BUNDLE_PEM, (New-Object Text.UTF8Encoding($false)))
+          }
+          python commercial/tools/run_physical_certification.py init `
+            --evidence $evidence `
+            --release-candidate '${{ inputs.release_candidate }}' `
+            --site '${{ inputs.site }}' `
+            --operator '${{ inputs.operator }}'
+          python commercial/tools/run_physical_certification.py snapshot `
+            --evidence $evidence `
+            --operator '${{ inputs.operator }}' `
+            --platform windows `
+            --path $env:ProgramData
+          $probe = @(
+            'commercial/tools/run_physical_certification.py','probe-server',
+            '--evidence',$evidence,
+            '--step-id','windows_server_clean_install',
+            '--platform','windows',
+            '--operator','${{ inputs.operator }}',
+            '--server-url','${{ inputs.server_url }}',
+            '--database',(Join-Path $env:ProgramData 'SagarMonitorCommercialServer\data\commercial.db'),
+            '--service-name','SagarMonitorCommercialServer',
+            '--disk-path',$env:ProgramData,
+            '--attachment',$log
+          )
+          if (Test-Path -LiteralPath $caFile) { $probe += @('--ca-bundle',$caFile) }
+          python @probe
+
+      - name: Upload Windows physical evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: physical-certification-windows-${{ github.run_id }}
+          path: ${{ runner.temp }}/physical-evidence-windows
+          if-no-files-found: error
+          retention-days: 90
+
+  ubuntu-preflight:
+    if: ${{ inputs.target_os == 'ubuntu' || inputs.target_os == 'both' }}
+    name: Ubuntu physical staging preflight
+    runs-on: [self-hosted, linux, x64, sagar-monitor-staging]
+    timeout-minutes: 45
+    steps:
+      - name: Check out release candidate
+        uses: actions/checkout@v6
+
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+
+      - name: Install locked dependencies
+        run: python -m pip install --disable-pip-version-check --require-hashes -r commercial/requirements.lock
+
+      - name: Create Ubuntu physical evidence
+        shell: bash
+        env:
+          PYTHONPATH: commercial
+          STAGING_CA_BUNDLE_PEM: ${{ secrets.STAGING_CA_BUNDLE_PEM }}
+        run: |
+          set -euo pipefail
+          evidence_root="${RUNNER_TEMP}/physical-evidence-ubuntu"
+          mkdir -p "$evidence_root"
+          evidence="$evidence_root/ubuntu-evidence.json"
+          log="$evidence_root/ubuntu-preflight.txt"
+          ca_file="$evidence_root/staging-ca.pem"
+          {
+            uname -a
+            cat /etc/os-release
+            systemctl status sagar-monitor-commercial-server.service --no-pager || true
+            df -h /var/lib/sagar-monitor-commercial-server || true
+          } >"$log" 2>&1
+          if [[ -n "${STAGING_CA_BUNDLE_PEM:-}" ]]; then
+            printf '%s' "$STAGING_CA_BUNDLE_PEM" >"$ca_file"
+            chmod 0600 "$ca_file"
+          fi
+          python commercial/tools/run_physical_certification.py init \
+            --evidence "$evidence" \
+            --release-candidate '${{ inputs.release_candidate }}' \
+            --site '${{ inputs.site }}' \
+            --operator '${{ inputs.operator }}'
+          python commercial/tools/run_physical_certification.py snapshot \
+            --evidence "$evidence" \
+            --operator '${{ inputs.operator }}' \
+            --platform ubuntu \
+            --path /var/lib/sagar-monitor-commercial-server
+          probe=(
+            commercial/tools/run_physical_certification.py probe-server
+            --evidence "$evidence"
+            --step-id ubuntu_server_clean_install
+            --platform ubuntu
+            --operator '${{ inputs.operator }}'
+            --server-url '${{ inputs.server_url }}'
+            --database /var/lib/sagar-monitor-commercial-server/commercial.db
+            --service-name sagar-monitor-commercial-server.service
+            --disk-path /var/lib/sagar-monitor-commercial-server
+            --attachment "$log"
+          )
+          [[ -f "$ca_file" ]] && probe+=(--ca-bundle "$ca_file")
+          python "${probe[@]}"
+
+      - name: Upload Ubuntu physical evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: physical-certification-ubuntu-${{ github.run_id }}
+          path: ${{ runner.temp }}/physical-evidence-ubuntu
+          if-no-files-found: error
+          retention-days: 90

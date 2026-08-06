@@ -45,6 +45,10 @@ def build_release_candidate(repository_root: str | Path, output_path: str | Path
     if not _COMMIT_RE.fullmatch(commit_value):
         raise ValueError("source_commit must be a hexadecimal Git commit SHA")
 
+    runbook_path = root / "docs" / "STAGING_LAB_BOOTSTRAP_V1.md"
+    if not runbook_path.is_file():
+        raise FileNotFoundError(f"staging runbook is missing: {runbook_path}")
+
     output.parent.mkdir(parents=True, exist_ok=True)
     prefix = f"sagar-monitor-staging-rc-{version_value}"
     with TemporaryDirectory(dir=output.parent) as temporary_directory:
@@ -53,9 +57,11 @@ def build_release_candidate(repository_root: str | Path, output_path: str | Path
         server_bytes = server_package.read_bytes()
         plan = staging_plan_document()
         plan_data = json.dumps(plan, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        runbook_data = runbook_path.read_bytes()
         readme = (
             "Sagar Monitor Commercial Staging Release Candidate\n"
             "This archive contains no registration tokens, passwords, certificates or production data.\n"
+            "Read STAGING-LAB-RUNBOOK.md before preparing any machine.\n"
             "Run commercial/tools/run_staging_lab.py verify-rc before extraction or installation.\n"
         ).encode("utf-8")
         manifest = {
@@ -75,6 +81,11 @@ def build_release_candidate(repository_root: str | Path, output_path: str | Path
                 "sha256": _sha256_bytes(plan_data),
                 "plan_sha256": plan["plan_sha256"],
             },
+            "runbook": {
+                "path": "STAGING-LAB-RUNBOOK.md",
+                "size_bytes": len(runbook_data),
+                "sha256": _sha256_bytes(runbook_data),
+            },
             "contains_secrets": False,
             "production_deployment_authorized": False,
         }
@@ -82,6 +93,7 @@ def build_release_candidate(repository_root: str | Path, output_path: str | Path
         entries = [
             _entry(f"{prefix}/commercial-server.zip", server_bytes),
             _entry(f"{prefix}/STAGING-PLAN.json", plan_data),
+            _entry(f"{prefix}/STAGING-LAB-RUNBOOK.md", runbook_data),
             _entry(f"{prefix}/README.txt", readme),
             _entry(f"{prefix}/RC-MANIFEST.json", manifest_data),
         ]
@@ -141,6 +153,7 @@ def verify_release_candidate(package_path: str | Path) -> dict[str, Any]:
         expected_names = {
             prefix + "commercial-server.zip",
             prefix + "STAGING-PLAN.json",
+            prefix + "STAGING-LAB-RUNBOOK.md",
             prefix + "README.txt",
             manifest_name,
         }
@@ -164,6 +177,13 @@ def verify_release_candidate(package_path: str | Path) -> dict[str, Any]:
         if plan.get("plan_sha256") != plan_item.get("plan_sha256"):
             raise RuntimeError("staging plan identity mismatch")
 
+        runbook_data = archive.read(prefix + "STAGING-LAB-RUNBOOK.md")
+        runbook_item = manifest.get("runbook") or {}
+        if len(runbook_data) != int(runbook_item.get("size_bytes") or -1):
+            raise RuntimeError("staging runbook size mismatch")
+        if _sha256_bytes(runbook_data) != str(runbook_item.get("sha256") or ""):
+            raise RuntimeError("staging runbook SHA-256 mismatch")
+
         with TemporaryDirectory() as directory:
             nested = Path(directory) / "commercial-server.zip"
             nested.write_bytes(server_data)
@@ -177,4 +197,5 @@ def verify_release_candidate(package_path: str | Path) -> dict[str, Any]:
             "source_commit": str(manifest.get("source_commit") or ""),
             "server_file_count": int(nested_result["file_count"]),
             "plan_sha256": str(plan.get("plan_sha256") or ""),
+            "runbook_sha256": str(runbook_item.get("sha256") or ""),
         }

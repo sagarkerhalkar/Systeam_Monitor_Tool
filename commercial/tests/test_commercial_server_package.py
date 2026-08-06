@@ -69,7 +69,7 @@ class CommercialServerPackageTests(unittest.TestCase):
         )
         config = load_server_config(config_path)
         self.assertEqual(config.port, 9443)
-        self.assertEqual(config.database_path, self.root / "data" / "server.db")
+        self.assertEqual(config.database_path, (self.root / "data" / "server.db").resolve())
         with self.assertRaises(ValueError):
             ServerConfig(
                 bind_host="0.0.0.0",

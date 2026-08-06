@@ -36,10 +36,42 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  repository-safety:
+    name: Private repository and release-ref gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require commercial-v1
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = "refs/heads/commercial-v1"
+
+      - name: Require private repository
+        shell: bash
+        env:
+          REPOSITORY_PRIVATE: ${{ github.event.repository.private }}
+        run: |
+          set -euo pipefail
+          test "$REPOSITORY_PRIVATE" = "true"
+
+      - name: Require HTTPS staging URL
+        shell: bash
+        env:
+          SERVER_URL: ${{ inputs.server_url }}
+        run: |
+          set -euo pipefail
+          case "$SERVER_URL" in
+            https://*) ;;
+            *) echo "Physical staging requires an HTTPS server URL." >&2; exit 2 ;;
+          esac
+
   windows-preflight:
+    needs: repository-safety
     if: ${{ inputs.target_os == 'windows' || inputs.target_os == 'both' }}
     name: Windows physical staging preflight
-    runs-on: [self-hosted, windows, x64, sagar-monitor-staging]
+    environment: commercial-staging-certification
+    runs-on: [self-hosted, windows, x64, sagar-monitor-staging, commercial-certification]
     timeout-minutes: 45
     steps:
       - name: Check out release candidate
@@ -53,6 +85,21 @@ jobs:
       - name: Install locked dependencies
         shell: pwsh
         run: python -m pip install --disable-pip-version-check --require-hashes -r commercial/requirements.lock
+
+      - name: Verify Windows staging marker and ephemeral receipt
+        shell: pwsh
+        env:
+          PYTHONPATH: commercial
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $marker = Join-Path $env:ProgramData 'SagarMonitorStaging\host-marker.json'
+          $receipt = Join-Path $env:ProgramData 'SagarMonitorStaging\runner-receipt.json'
+          python commercial/tools/run_staging_lab.py verify-marker --marker $marker
+          python commercial/tools/run_staging_lab.py verify-runner-receipt `
+            --receipt $receipt `
+            --marker $marker `
+            --repository '${{ github.repository }}' `
+            --platform windows
 
       - name: Create Windows physical evidence
         shell: pwsh
@@ -107,9 +154,11 @@ jobs:
           retention-days: 90
 
   ubuntu-preflight:
+    needs: repository-safety
     if: ${{ inputs.target_os == 'ubuntu' || inputs.target_os == 'both' }}
     name: Ubuntu physical staging preflight
-    runs-on: [self-hosted, linux, x64, sagar-monitor-staging]
+    environment: commercial-staging-certification
+    runs-on: [self-hosted, linux, x64, sagar-monitor-staging, commercial-certification]
     timeout-minutes: 45
     steps:
       - name: Check out release candidate
@@ -122,6 +171,20 @@ jobs:
 
       - name: Install locked dependencies
         run: python -m pip install --disable-pip-version-check --require-hashes -r commercial/requirements.lock
+
+      - name: Verify Ubuntu staging marker and ephemeral receipt
+        shell: bash
+        env:
+          PYTHONPATH: commercial
+        run: |
+          set -euo pipefail
+          python commercial/tools/run_staging_lab.py verify-marker \
+            --marker /var/lib/sagar-monitor-staging/host-marker.json
+          python commercial/tools/run_staging_lab.py verify-runner-receipt \
+            --receipt /var/lib/sagar-monitor-staging/runner-receipt.json \
+            --marker /var/lib/sagar-monitor-staging/host-marker.json \
+            --repository '${{ github.repository }}' \
+            --platform ubuntu
 
       - name: Create Ubuntu physical evidence
         shell: bash

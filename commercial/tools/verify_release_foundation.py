@@ -94,10 +94,13 @@ def verify_server_package() -> None:
         ROOT / "commercial" / "sagar_monitor" / "server" / "package.py",
         ROOT / "commercial" / "tools" / "run_commercial_server.py",
         ROOT / "commercial" / "tools" / "build_commercial_server_package.py",
+        ROOT / "commercial" / "tools" / "run_physical_certification.py",
         ROOT / "commercial" / "server" / "windows" / "install-commercial-server.ps1",
         ROOT / "commercial" / "server" / "windows" / "uninstall-commercial-server.ps1",
+        ROOT / "commercial" / "server" / "windows" / "run-physical-certification.ps1",
         ROOT / "commercial" / "server" / "ubuntu" / "install-commercial-server.sh",
         ROOT / "commercial" / "server" / "ubuntu" / "uninstall-commercial-server.sh",
+        ROOT / "commercial" / "server" / "ubuntu" / "run-physical-certification.sh",
         ROOT / "commercial" / "server" / "ubuntu" / "sagar-monitor-commercial-server.service",
     )
     missing = [str(path.relative_to(ROOT)) for path in required if not path.is_file()]
@@ -164,12 +167,72 @@ def verify_qualification_gate() -> None:
             fail(f"qualification workflow is missing release marker: {marker}")
 
 
+def verify_physical_certification_gate() -> None:
+    required = (
+        ROOT / "commercial" / "sagar_monitor" / "certification" / "plan.py",
+        ROOT / "commercial" / "sagar_monitor" / "certification" / "evidence.py",
+        ROOT / "commercial" / "sagar_monitor" / "certification" / "probes.py",
+        ROOT / "commercial" / "sagar_monitor" / "certification" / "cli.py",
+        ROOT / "commercial" / "tests" / "test_physical_certification.py",
+        ROOT / ".github" / "workflows" / "commercial-physical-certification.yml",
+        ROOT / "docs" / "PHYSICAL_STAGING_CERTIFICATION_V1.md",
+    )
+    missing = [str(path.relative_to(ROOT)) for path in required if not path.is_file()]
+    if missing:
+        fail("required physical certification files are missing: " + ", ".join(missing))
+
+    plan = required[0].read_text(encoding="utf-8")
+    for marker in (
+        "windows_server_clean_install",
+        "ubuntu_server_clean_install",
+        "windows_failed_upgrade_rollback",
+        "ubuntu_failed_upgrade_rollback",
+        "soak_8_hours",
+        "soak_24_hours",
+        "controlled_pilot",
+    ):
+        if marker not in plan:
+            fail(f"physical certification plan is missing required step: {marker}")
+
+    evidence = required[1].read_text(encoding="utf-8")
+    for marker in (
+        "attachment hash changed",
+        "approver must be different from the original operator",
+        "finalized certification evidence cannot be modified",
+        "ledger_sha256",
+        "event_sha256",
+    ):
+        if marker not in evidence:
+            fail(f"physical certification ledger is missing safety marker: {marker}")
+
+    probes = required[2].read_text(encoding="utf-8")
+    for marker in (
+        "physical certification requires an HTTPS server URL",
+        "PRAGMA quick_check",
+        "certificate_sha256",
+        "run_https_soak",
+    ):
+        if marker not in probes:
+            fail(f"physical certification probes are missing marker: {marker}")
+
+    workflow = required[5].read_text(encoding="utf-8")
+    for marker in (
+        "workflow_dispatch",
+        "sagar-monitor-staging",
+        "STAGING_CA_BUNDLE_PEM",
+        "retention-days: 90",
+    ):
+        if marker not in workflow:
+            fail(f"physical certification workflow is missing marker: {marker}")
+
+
 def main() -> int:
     verify_no_payload_injection()
     verify_migrations()
     verify_required_identity_files()
     verify_server_package()
     verify_qualification_gate()
+    verify_physical_certification_gate()
     print("Commercial release foundation verification passed.")
     return 0
 

@@ -1,0 +1,113 @@
+name: Commercial CI
+
+on:
+  pull_request:
+    branches:
+      - commercial-v1
+  push:
+    branches:
+      - commercial-v1
+      - 'agent/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: commercial-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python-contracts:
+    name: Python ${{ matrix.python-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+        python-version:
+          - '3.12'
+          - '3.14'
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Compile production and commercial Python
+        run: |
+          python -m py_compile server.py
+          python -m compileall -q commercial
+
+      - name: Run commercial unit and migration tests
+        env:
+          PYTHONPATH: commercial
+        run: python -m unittest discover -s commercial/tests -v
+
+      - name: Verify commercial release foundation
+        run: python commercial/tools/verify_release_foundation.py
+
+  browser-contracts:
+    name: Browser and Ubuntu agent syntax
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Validate dashboard JavaScript
+        run: node --check public/app.js
+
+      - name: Validate required Ubuntu scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+          required=(
+            scripts/client_ubuntu.sh
+            scripts/install_ubuntu_client_2278.sh
+            scripts/BOOTSTRAP_UBUNTU_CLIENT_2278.sh
+          )
+          for file in "${required[@]}"; do
+            test -f "$file"
+            bash -n "$file"
+          done
+
+  windows-agent-contracts:
+    name: Windows agent PowerShell syntax
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Validate required Windows scripts
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $required = @(
+            'scripts/client_windows.ps1',
+            'scripts/install_windows_client_2278.ps1',
+            'scripts/BOOTSTRAP_WINDOWS_CLIENT_2278.ps1'
+          )
+          foreach ($file in $required) {
+            if (-not (Test-Path -LiteralPath $file)) {
+              throw "Required Windows agent file is missing: $file"
+            }
+            $tokens = $null
+            $errors = $null
+            [void][System.Management.Automation.Language.Parser]::ParseFile(
+              (Resolve-Path -LiteralPath $file),
+              [ref]$tokens,
+              [ref]$errors
+            )
+            if ($errors.Count -gt 0) {
+              $errors | ForEach-Object { Write-Error $_.Message }
+              throw "PowerShell syntax validation failed: $file"
+            }
+          }

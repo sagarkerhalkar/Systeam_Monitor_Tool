@@ -8,7 +8,8 @@ param(
     [string]$OrganizationId = '',
     [string]$AdminUsername = '',
     [string]$AdminPasswordFile = '',
-    [string]$HealthUrl = ''
+    [string]$HealthUrl = '',
+    [string]$CaBundle = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -36,6 +37,7 @@ Assert-Administrator
 $CertificateFile = (Resolve-Path -LiteralPath $CertificateFile).Path
 $PrivateKeyFile = (Resolve-Path -LiteralPath $PrivateKeyFile).Path
 if ($AdminPasswordFile) { $AdminPasswordFile = (Resolve-Path -LiteralPath $AdminPasswordFile).Path }
+if ($CaBundle) { $CaBundle = (Resolve-Path -LiteralPath $CaBundle).Path }
 
 $InstallRoot = Join-Path $env:ProgramFiles 'SagarMonitorCommercialServer'
 $VersionsRoot = Join-Path $InstallRoot 'versions'
@@ -49,6 +51,8 @@ $PointerFile = Join-Path $InstallRoot 'current.txt'
 $TaskName = 'SagarMonitorCommercialServer'
 $VersionName = (Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmssZ')
 $VersionRoot = Join-Path $VersionsRoot $VersionName
+$DatabaseFile = Join-Path $DatabaseRoot 'commercial.db'
+$DatabaseExistedBefore = Test-Path -LiteralPath $DatabaseFile
 $OldVersion = ''
 if (Test-Path -LiteralPath $PointerFile) {
     $OldVersion = (Get-Content -LiteralPath $PointerFile -Raw -Encoding UTF8).Trim([char]0xFEFF).Trim()
@@ -93,7 +97,7 @@ try {
     $config = [ordered]@{
         bind_host = $BindHost
         port = $Port
-        database_path = (Join-Path $DatabaseRoot 'commercial.db')
+        database_path = $DatabaseFile
         certificate_file = (Join-Path $TlsRoot 'server.crt')
         private_key_file = (Join-Path $TlsRoot 'server.key')
         backup_directory = $BackupRoot
@@ -108,8 +112,7 @@ try {
 
     $env:PYTHONPATH = $InstalledCommercial
     $Entrypoint = Join-Path $InstalledCommercial 'tools\run_commercial_server.py'
-    $DatabaseFile = Join-Path $DatabaseRoot 'commercial.db'
-    if (Test-Path -LiteralPath $DatabaseFile) {
+    if ($DatabaseExistedBefore) {
         $backupName = 'pre-upgrade-' + (Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmssZ') + '.db'
         & $VersionPython $Entrypoint --config $ConfigFile backup --output (Join-Path $BackupRoot $backupName)
         if ($LASTEXITCODE -ne 0) { throw 'Pre-upgrade database backup failed.' }
@@ -119,11 +122,14 @@ try {
         if (-not $OrganizationName -or -not $AdminUsername -or -not $AdminPasswordFile) {
             throw 'First installation requires OrganizationName, AdminUsername, and AdminPasswordFile.'
         }
+        $BootstrapPasswordFile = Join-Path $ConfigRoot '.bootstrap-password'
+        Copy-Item -LiteralPath $AdminPasswordFile -Destination $BootstrapPasswordFile -Force
+        Set-ProtectedAcl $BootstrapPasswordFile
         $bootstrapArgs = @(
             $Entrypoint,'--config',$ConfigFile,'bootstrap',
             '--organization-name',$OrganizationName,
             '--admin-username',$AdminUsername,
-            '--password-file',$AdminPasswordFile
+            '--password-file',$BootstrapPasswordFile
         )
         if ($OrganizationId) { $bootstrapArgs += @('--organization-id',$OrganizationId) }
         & $VersionPython @bootstrapArgs
@@ -147,7 +153,9 @@ try {
     Start-Sleep -Seconds 4
 
     if ($HealthUrl) {
-        & $VersionPython $Entrypoint --config $ConfigFile health --remote --url $HealthUrl
+        $healthArgs = @($Entrypoint,'--config',$ConfigFile,'health','--remote','--url',$HealthUrl)
+        if ($CaBundle) { $healthArgs += @('--ca-bundle',$CaBundle) }
+        & $VersionPython @healthArgs
         if ($LASTEXITCODE -ne 0) { throw 'Running HTTPS endpoint failed the health check.' }
     } else {
         $test = Test-NetConnection -ComputerName '127.0.0.1' -Port $Port -WarningAction SilentlyContinue
@@ -166,6 +174,12 @@ catch {
     } else {
         Remove-Item -LiteralPath $PointerFile -Force -ErrorAction SilentlyContinue
     }
+    if (-not $DatabaseExistedBefore) {
+        Remove-Item -LiteralPath $DatabaseFile -Force -ErrorAction SilentlyContinue
+        Remove-Item -LiteralPath ($DatabaseFile + '-wal') -Force -ErrorAction SilentlyContinue
+        Remove-Item -LiteralPath ($DatabaseFile + '-shm') -Force -ErrorAction SilentlyContinue
+    }
+    Remove-Item -LiteralPath (Join-Path $ConfigRoot '.bootstrap-password') -Force -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath $VersionRoot -Recurse -Force -ErrorAction SilentlyContinue
     throw
 }

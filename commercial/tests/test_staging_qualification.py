@@ -9,6 +9,7 @@ import unittest
 from sagar_monitor.qualification import (
     QualificationConfig,
     QualificationThresholds,
+    run_forced_process_recovery,
     run_qualification_scenario,
     write_evidence,
 )
@@ -55,6 +56,15 @@ class StagingQualificationTests(unittest.TestCase):
             report["database"]["restored_counts"],
         )
         self.assertEqual(report["database"]["checkpoint_after"]["busy"], 0)
+
+    def test_forced_process_restart_preserves_authenticated_agent_state(self) -> None:
+        report = run_forced_process_recovery(self.root / "process-recovery")
+        self.assertTrue(report["passed"], report)
+        self.assertEqual(report["sqlite_quick_check"].lower(), "ok")
+        self.assertEqual(report["counts"]["credentials"], 1)
+        self.assertEqual(report["counts"]["heartbeats"], 1)
+        self.assertEqual(report["counts"]["history_samples"], 1)
+        self.assertEqual(report["counts"]["current_clients"], 1)
 
     def test_evidence_file_has_reproducible_integrity_hash(self) -> None:
         document = {

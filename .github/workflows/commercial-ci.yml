@@ -70,6 +70,9 @@ jobs:
       - name: Verify commercial release foundation
         run: python commercial/tools/verify_release_foundation.py
 
+      - name: Verify staging lab foundation
+        run: python commercial/tools/verify_staging_lab_foundation.py
+
   browser-contracts:
     name: Browser, Ubuntu agent, server, certification and staging syntax
     runs-on: ubuntu-latest

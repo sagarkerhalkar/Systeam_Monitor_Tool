@@ -1,6 +1,6 @@
 """Commercial client-message delivery lifecycle."""
 
-from .delivery import (
+from .service import (
     DeliveryClaim,
     acknowledge_delivery,
     apply_message_migration,

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from types import SimpleNamespace
 from unittest.mock import patch
 import json
 import sqlite3
@@ -16,6 +17,7 @@ from sagar_monitor.certification import (
     record_machine_snapshot,
     record_step,
     run_https_soak,
+    service_probe,
     sqlite_probe,
     verify_evidence,
 )
@@ -42,12 +44,11 @@ class PhysicalCertificationTests(unittest.TestCase):
     def _record_all_required(self) -> None:
         for step in CERTIFICATION_STEPS:
             attachments = [self.attachment] if step.attachment_required else []
-            platform_name = step.platform
             record_step(
                 self.evidence,
                 step_id=step.step_id,
                 status="PASS",
-                platform_name=platform_name,
+                platform_name=step.platform,
                 operator="Operator One",
                 notes=f"Verified {step.title}",
                 duration_seconds=step.minimum_duration_seconds,
@@ -67,6 +68,18 @@ class PhysicalCertificationTests(unittest.TestCase):
         self.assertFalse(result["complete"])
         self.assertEqual(result["event_count"], 1)
         self.assertGreater(len(result["missing_steps"]), 0)
+
+    def test_platform_specific_step_rejects_generic_platform(self) -> None:
+        with self.assertRaises(ValueError):
+            record_step(
+                self.evidence,
+                step_id="windows_server_clean_install",
+                status="PASS",
+                platform_name="cross-platform",
+                operator="Operator One",
+                notes="Wrong platform label",
+                attachments=[self.attachment],
+            )
 
     def test_required_attachment_is_copied_and_tamper_is_detected(self) -> None:
         event = record_step(
@@ -163,6 +176,20 @@ class PhysicalCertificationTests(unittest.TestCase):
         snapshot = machine_snapshot(self.root)
         self.assertTrue(snapshot["hostname"])
         self.assertGreater(snapshot["disk"]["total_bytes"], 0)
+
+    def test_windows_service_probe_requires_successful_command(self) -> None:
+        with patch(
+            "sagar_monitor.certification.probes.subprocess.run",
+            return_value=SimpleNamespace(returncode=1, stdout="Status: Running", stderr="query failed"),
+        ):
+            failed = service_probe(platform_name="windows", service_name="SagarMonitorCommercialServer")
+        self.assertFalse(failed["ok"])
+        with patch(
+            "sagar_monitor.certification.probes.subprocess.run",
+            return_value=SimpleNamespace(returncode=0, stdout="Status: Running", stderr=""),
+        ):
+            passed = service_probe(platform_name="windows", service_name="SagarMonitorCommercialServer")
+        self.assertTrue(passed["ok"])
 
     def test_short_soak_uses_real_loop_logic_with_mocked_https_probe(self) -> None:
         with patch(

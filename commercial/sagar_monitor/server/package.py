@@ -32,6 +32,7 @@ def _source_files(repository_root: Path) -> list[Path]:
     required_files = [
         commercial / "requirements.lock",
         commercial / "tools" / "run_commercial_server.py",
+        commercial / "tools" / "run_physical_certification.py",
         commercial / "server" / "server-config.example.json",
     ]
     roots = [

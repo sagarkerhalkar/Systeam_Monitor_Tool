@@ -29,10 +29,10 @@ def _atomic_json(path: Path, value: Mapping[str, Any]) -> None:
             handle.flush()
             os.fsync(handle.fileno())
         if os.name != "nt":
-            temporary.chmod(0o600)
+            temporary.chmod(0o660)
         os.replace(temporary, path)
         if os.name != "nt":
-            path.chmod(0o600)
+            path.chmod(0o660)
     finally:
         try:
             temporary.unlink(missing_ok=True)
@@ -65,9 +65,11 @@ class LocalInbox:
         self.pending.mkdir(parents=True, exist_ok=True)
         self.displayed.mkdir(parents=True, exist_ok=True)
         if os.name != "nt":
-            self.directory.chmod(0o700)
-            self.pending.chmod(0o700)
-            self.displayed.chmod(0o700)
+            # The installer assigns these setgid directories to a dedicated
+            # notifier group. Credentials and queue data remain outside them.
+            self.directory.chmod(0o770)
+            self.pending.chmod(0o770)
+            self.displayed.chmod(0o770)
 
     @staticmethod
     def _delivery_id(message: Mapping[str, Any]) -> str:
@@ -195,8 +197,8 @@ class UserNotifier:
     @staticmethod
     def _command(title: str, body: str) -> list[str]:
         if os.name == "nt":
-            # The notifier is installed as an at-logon user task. msg.exe then
-            # targets that interactive session and automatically closes at 120s.
+            # The notifier task runs as SYSTEM at user logon. msg.exe targets
+            # the interactive session and automatically closes at 120 seconds.
             safe = f"{title}\n\n{body}".replace("\x00", "")
             return ["msg.exe", "*", "/TIME:120", safe]
         return ["notify-send", "--expire-time=120000", "--app-name=Sagar Monitor", title, body]

@@ -53,6 +53,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPOSITORY_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 COMMERCIAL_SOURCE="$REPOSITORY_ROOT/commercial"
 OLD_TARGET=''
+PRE_UPGRADE_BACKUP=''
 DATABASE_EXISTED_BEFORE=false
 [[ -f "$DATABASE_FILE" ]] && DATABASE_EXISTED_BEFORE=true
 [[ -L "$INSTALL_ROOT/current" ]] && OLD_TARGET="$(readlink -f "$INSTALL_ROOT/current")"
@@ -70,11 +71,22 @@ systemctl stop "$SERVICE_NAME" >/dev/null 2>&1 || true
 
 rollback() {
   local exit_code=$?
+  local database_restore_ok=true
   systemctl stop "$SERVICE_NAME" >/dev/null 2>&1 || true
+  if $DATABASE_EXISTED_BEFORE && [[ -n "$PRE_UPGRADE_BACKUP" && -f "$PRE_UPGRADE_BACKUP" && -x "$VERSION_ROOT/venv/bin/python" ]]; then
+    if ! runuser -u "$SERVICE_USER" -- env PYTHONPATH="$VERSION_ROOT/commercial" \
+      "$VERSION_ROOT/venv/bin/python" "$VERSION_ROOT/commercial/tools/run_commercial_server.py" \
+      --config "$CONFIG_FILE" restore --backup "$PRE_UPGRADE_BACKUP" --confirm-service-stopped; then
+      database_restore_ok=false
+      echo 'Verified pre-upgrade database restore failed. Old service remains stopped.' >&2
+    fi
+  fi
   if [[ -n "$OLD_TARGET" && -d "$OLD_TARGET" ]]; then
     ln -sfn "$OLD_TARGET" "$INSTALL_ROOT/current.rollback"
     mv -Tf "$INSTALL_ROOT/current.rollback" "$INSTALL_ROOT/current"
-    systemctl start "$SERVICE_NAME" >/dev/null 2>&1 || true
+    if $database_restore_ok; then
+      systemctl start "$SERVICE_NAME" >/dev/null 2>&1 || true
+    fi
   else
     rm -f "$INSTALL_ROOT/current"
   fi
@@ -127,8 +139,8 @@ ENTRYPOINT="$VERSION_ROOT/commercial/tools/run_commercial_server.py"
 export PYTHONPATH="$VERSION_ROOT/commercial"
 
 if $DATABASE_EXISTED_BEFORE; then
-  BACKUP_FILE="$BACKUP_ROOT/pre-upgrade-$(date -u +%Y%m%dT%H%M%SZ).db"
-  runuser -u "$SERVICE_USER" -- "$PYTHON" "$ENTRYPOINT" --config "$CONFIG_FILE" backup --output "$BACKUP_FILE"
+  PRE_UPGRADE_BACKUP="$BACKUP_ROOT/pre-upgrade-$(date -u +%Y%m%dT%H%M%SZ).db"
+  runuser -u "$SERVICE_USER" -- "$PYTHON" "$ENTRYPOINT" --config "$CONFIG_FILE" backup --output "$PRE_UPGRADE_BACKUP"
   runuser -u "$SERVICE_USER" -- "$PYTHON" "$ENTRYPOINT" --config "$CONFIG_FILE" migrate
 else
   if [[ -z "$ORGANIZATION_NAME" || -z "$ADMIN_USERNAME" || ! -f "$ADMIN_PASSWORD_FILE" ]]; then

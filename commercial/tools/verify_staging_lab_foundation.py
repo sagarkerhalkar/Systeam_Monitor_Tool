@@ -19,17 +19,24 @@ def require_files() -> tuple[Path, ...]:
         ROOT / "commercial" / "sagar_monitor" / "staging" / "preflight.py",
         ROOT / "commercial" / "sagar_monitor" / "staging" / "repository.py",
         ROOT / "commercial" / "sagar_monitor" / "staging" / "release.py",
+        ROOT / "commercial" / "sagar_monitor" / "staging" / "mirror.py",
         ROOT / "commercial" / "sagar_monitor" / "staging" / "cli.py",
         ROOT / "commercial" / "tools" / "run_staging_lab.py",
         ROOT / "commercial" / "staging" / "windows" / "prepare-staging-host.ps1",
         ROOT / "commercial" / "staging" / "windows" / "install-ephemeral-runner.ps1",
         ROOT / "commercial" / "staging" / "windows" / "remove-staging-runner.ps1",
+        ROOT / "commercial" / "staging" / "windows" / "bootstrap-private-staging.ps1",
+        ROOT / "commercial" / "staging" / "windows" / "issue-private-runner-token.ps1",
         ROOT / "commercial" / "staging" / "ubuntu" / "prepare-staging-host.sh",
         ROOT / "commercial" / "staging" / "ubuntu" / "install-ephemeral-runner.sh",
         ROOT / "commercial" / "staging" / "ubuntu" / "remove-staging-runner.sh",
+        ROOT / "commercial" / "staging" / "ubuntu" / "bootstrap-private-staging.sh",
+        ROOT / "commercial" / "staging" / "ubuntu" / "issue-private-runner-token.sh",
         ROOT / "commercial" / "tests" / "test_staging_lab.py",
+        ROOT / "commercial" / "tests" / "test_private_staging_mirror.py",
         ROOT / ".github" / "workflows" / "commercial-physical-certification.yml",
         ROOT / ".github" / "workflows" / "commercial-staging-rc.yml",
+        ROOT / "docs" / "PRIVATE_STAGING_MIRROR_V1.md",
     )
     missing = [str(path.relative_to(ROOT)) for path in required if not path.is_file()]
     if missing:
@@ -57,6 +64,42 @@ def verify_plan_and_repository_gate() -> None:
     for marker in ("gh", "repo", "view", "visibility", "use a private repository"):
         if marker not in repository:
             fail(f"private repository gate is missing marker: {marker}")
+
+
+def verify_private_mirror() -> None:
+    mirror = (ROOT / "commercial/sagar_monitor/staging/mirror.py").read_text(encoding="utf-8")
+    for marker in (
+        "private staging target must be different from the public source repository",
+        "source checkout must be clean",
+        "certified source commit mismatch",
+        "--private",
+        "commercial-staging-certification",
+        "private mirror SHA verification failed",
+        "runner registration token file must be stored outside the source repository",
+        "runner token issuance is blocked",
+        "token_printed",
+    ):
+        if marker not in mirror:
+            fail(f"private staging mirror is missing safety marker: {marker}")
+
+    wrappers = (
+        ROOT / "commercial/staging/windows/bootstrap-private-staging.ps1",
+        ROOT / "commercial/staging/windows/issue-private-runner-token.ps1",
+        ROOT / "commercial/staging/ubuntu/bootstrap-private-staging.sh",
+        ROOT / "commercial/staging/ubuntu/issue-private-runner-token.sh",
+    )
+    for wrapper in wrappers:
+        text = wrapper.read_text(encoding="utf-8")
+        if "ghp_" in text or "github_pat_" in text:
+            fail(f"{wrapper.relative_to(ROOT)} contains a forbidden token pattern")
+    if "private-mirror-sync" not in wrappers[0].read_text(encoding="utf-8"):
+        fail("Windows private mirror launcher is missing private-mirror-sync")
+    if "private-mirror-sync" not in wrappers[2].read_text(encoding="utf-8"):
+        fail("Ubuntu private mirror launcher is missing private-mirror-sync")
+    if "issue-runner-token" not in wrappers[1].read_text(encoding="utf-8"):
+        fail("Windows runner-token launcher is missing issue-runner-token")
+    if "issue-runner-token" not in wrappers[3].read_text(encoding="utf-8"):
+        fail("Ubuntu runner-token launcher is missing issue-runner-token")
 
 
 def verify_runner_scripts() -> None:
@@ -144,6 +187,7 @@ def verify_packaging() -> None:
 def main() -> int:
     require_files()
     verify_plan_and_repository_gate()
+    verify_private_mirror()
     verify_runner_scripts()
     verify_workflows()
     verify_packaging()

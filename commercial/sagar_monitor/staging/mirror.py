@@ -79,7 +79,7 @@ def _target_visibility(gh: str, repository: str) -> str | None:
     )
     if completed.returncode != 0:
         text = (completed.stderr or completed.stdout or "").lower()
-        if "could not resolve to a repository" in text or "not found" in text or "graphql" in text:
+        if "could not resolve to a repository" in text or "repository not found" in text:
             return None
         raise RuntimeError("cannot inspect target repository: " + (completed.stderr or completed.stdout).strip()[-1000:])
     try:
@@ -110,7 +110,7 @@ def private_mirror_plan(*, source_repository: str, target_repository: str, expec
         "production_deployment_authorized": False,
         "contains_secrets": False,
         "steps": [
-            "verify authenticated GitHub CLI and clean source checkout",
+            "verify authenticated GitHub CLI and clean non-shallow source checkout",
             "verify origin repository and exact commercial-v1 source commit",
             "create private target when absent or reject non-private target",
             "push exact certified source commit to target commercial-v1",
@@ -150,6 +150,9 @@ def sync_private_mirror(
     status = _run([git, "status", "--porcelain=v1"], cwd=root).stdout.strip()
     if status:
         raise RuntimeError("source checkout must be clean before staging mirror synchronization")
+    shallow = _run([git, "rev-parse", "--is-shallow-repository"], cwd=root).stdout.strip().lower()
+    if shallow != "false":
+        raise RuntimeError("source checkout must be a complete non-shallow clone before staging mirror synchronization")
     origin_url = _run([git, "remote", "get-url", "origin"], cwd=root).stdout.strip()
     detected_source = _origin_repository(origin_url)
     if detected_source.lower() != source.lower():

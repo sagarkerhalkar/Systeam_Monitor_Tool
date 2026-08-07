@@ -49,7 +49,7 @@ class PrivateStagingMirrorTests(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             _origin_repository("https://example.com/sagarkerhalkar/Systeam_Monitor_Tool.git")
 
-    def test_dry_run_requires_clean_checkout_exact_commit_and_private_target(self) -> None:
+    def test_dry_run_requires_clean_complete_checkout_exact_commit_and_private_target(self) -> None:
         with TemporaryDirectory() as directory:
             root = Path(directory)
             (root / ".git").mkdir()
@@ -57,6 +57,8 @@ class PrivateStagingMirrorTests(unittest.TestCase):
             def fake_run(command: list[str], **_: object) -> CompletedProcess[str]:
                 if "status" in command:
                     return completed("")
+                if command[-2:] == ["rev-parse", "--is-shallow-repository"]:
+                    return completed("false\n")
                 if command[-3:] == ["remote", "get-url", "origin"]:
                     return completed("https://github.com/sagarkerhalkar/Systeam_Monitor_Tool.git\n")
                 if "fetch" in command:
@@ -82,6 +84,30 @@ class PrivateStagingMirrorTests(unittest.TestCase):
             self.assertEqual(result["source_commit"], COMMIT)
             self.assertEqual(result["target_visibility"], "PRIVATE")
 
+    def test_shallow_checkout_is_rejected(self) -> None:
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / ".git").mkdir()
+
+            def fake_run(command: list[str], **_: object) -> CompletedProcess[str]:
+                if "status" in command:
+                    return completed("")
+                if command[-2:] == ["rev-parse", "--is-shallow-repository"]:
+                    return completed("true\n")
+                return completed("")
+
+            with patch("sagar_monitor.staging.mirror._which", side_effect=lambda value: value), patch(
+                "sagar_monitor.staging.mirror._run", side_effect=fake_run
+            ):
+                with self.assertRaisesRegex(RuntimeError, "non-shallow clone"):
+                    sync_private_mirror(
+                        root,
+                        source_repository=SOURCE,
+                        target_repository=TARGET,
+                        expected_source_commit=COMMIT,
+                        dry_run=True,
+                    )
+
     def test_dry_run_rejects_wrong_fetched_commit(self) -> None:
         wrong = "0" * 40
         with TemporaryDirectory() as directory:
@@ -91,6 +117,8 @@ class PrivateStagingMirrorTests(unittest.TestCase):
             def fake_run(command: list[str], **_: object) -> CompletedProcess[str]:
                 if "status" in command:
                     return completed("")
+                if command[-2:] == ["rev-parse", "--is-shallow-repository"]:
+                    return completed("false\n")
                 if command[-3:] == ["remote", "get-url", "origin"]:
                     return completed("https://github.com/sagarkerhalkar/Systeam_Monitor_Tool.git\n")
                 if "fetch" in command:
@@ -160,6 +188,8 @@ class PrivateStagingMirrorTests(unittest.TestCase):
         self.assertIn("private-mirror-sync", ubuntu)
         self.assertIn("issue-runner-token", windows_token)
         self.assertIn("issue-runner-token", ubuntu_token)
+        self.assertIn("icacls.exe", windows_token)
+        self.assertIn("chmod 0600", ubuntu_token)
         self.assertIn("No production deployment was performed", windows)
         self.assertIn("No production deployment was performed", ubuntu)
 

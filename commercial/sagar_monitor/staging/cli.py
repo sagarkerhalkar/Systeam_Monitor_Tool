@@ -65,6 +65,7 @@ def parser() -> argparse.ArgumentParser:
     runner_token = sub.add_parser("issue-runner-token", help="Write a short-lived runner registration token to a protected file")
     runner_token.add_argument("--repository", required=True)
     runner_token.add_argument("--output", required=True)
+    runner_token.add_argument("--repository-root", default=".")
     runner_token.add_argument("--gh-executable", default="gh")
 
     write_receipt = sub.add_parser("write-runner-receipt", help="Write a hashed ephemeral runner receipt")
@@ -158,6 +159,7 @@ def main(argv: list[str] | None = None) -> int:
                     arguments.repository,
                     arguments.output,
                     gh_executable=arguments.gh_executable,
+                    forbidden_root=arguments.repository_root,
                 )
             )
             return 0

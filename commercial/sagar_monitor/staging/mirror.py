@@ -67,17 +67,6 @@ def _origin_repository(remote_url: str) -> str:
     raise RuntimeError("origin must be a github.com repository URL")
 
 
-def _gh_json(gh: str, arguments: list[str]) -> dict[str, Any]:
-    result = _run([gh, *arguments])
-    try:
-        payload = json.loads(result.stdout)
-    except json.JSONDecodeError as exc:
-        raise RuntimeError("GitHub CLI returned invalid JSON") from exc
-    if not isinstance(payload, dict):
-        raise RuntimeError("GitHub CLI returned an unexpected JSON shape")
-    return payload
-
-
 def _target_visibility(gh: str, repository: str) -> str | None:
     completed = subprocess.run(
         [gh, "repo", "view", repository, "--json", "visibility"],
@@ -233,8 +222,19 @@ def issue_runner_registration_token(
     output_path: str | Path,
     *,
     gh_executable: str = "gh",
+    forbidden_root: str | Path | None = None,
 ) -> dict[str, Any]:
     target = _validate_repository(repository)
+    destination = Path(output_path).expanduser().resolve()
+    if forbidden_root is not None:
+        root = Path(forbidden_root).expanduser().resolve()
+        try:
+            destination.relative_to(root)
+        except ValueError:
+            pass
+        else:
+            raise RuntimeError("runner registration token file must be stored outside the source repository")
+
     gh = _which(gh_executable)
     _run([gh, "auth", "status", "--hostname", "github.com"])
     visibility = _target_visibility(gh, target)
@@ -246,7 +246,6 @@ def issue_runner_registration_token(
     if not token or any(character.isspace() for character in token):
         raise RuntimeError("GitHub CLI did not return a valid runner registration token")
 
-    destination = Path(output_path).expanduser().resolve()
     destination.parent.mkdir(parents=True, exist_ok=True)
     temporary = destination.with_name(destination.name + ".tmp")
     temporary.write_text(token, encoding="utf-8")

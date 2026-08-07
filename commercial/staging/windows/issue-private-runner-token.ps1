@@ -35,5 +35,13 @@ finally {
     $env:PYTHONPATH = $previousPythonPath
 }
 
-Write-Host "Runner token written to protected file: $OutputPath"
+$resolvedToken = (Resolve-Path -LiteralPath $OutputPath).Path
+$currentIdentity = [Security.Principal.WindowsIdentity]::GetCurrent().Name
+& icacls.exe $resolvedToken /inheritance:r /grant:r "${currentIdentity}:(R,W)" 'SYSTEM:(F)' 'BUILTIN\Administrators:(F)' | Out-Null
+if ($LASTEXITCODE -ne 0) {
+    Remove-Item -LiteralPath $resolvedToken -Force -ErrorAction SilentlyContinue
+    throw 'Unable to apply a restricted ACL to the runner token file; the token file was deleted.'
+}
+
+Write-Host "Runner token written to protected file: $resolvedToken"
 Write-Host 'The token value was not printed. Delete the file immediately after runner registration.'

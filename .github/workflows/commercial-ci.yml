@@ -103,6 +103,8 @@ jobs:
             commercial/staging/ubuntu/prepare-staging-host.sh
             commercial/staging/ubuntu/install-ephemeral-runner.sh
             commercial/staging/ubuntu/remove-staging-runner.sh
+            commercial/staging/ubuntu/bootstrap-private-staging.sh
+            commercial/staging/ubuntu/issue-private-runner-token.sh
           )
           for file in "${required[@]}"; do
             test -f "$file"
@@ -115,6 +117,8 @@ jobs:
           grep -q '^ProtectSystem=strict$' commercial/server/ubuntu/sagar-monitor-commercial-server.service
           grep -q -- '--ephemeral' commercial/staging/ubuntu/install-ephemeral-runner.sh
           grep -q 'repository-check' commercial/staging/ubuntu/install-ephemeral-runner.sh
+          grep -q 'private-mirror-sync' commercial/staging/ubuntu/bootstrap-private-staging.sh
+          grep -q 'issue-runner-token' commercial/staging/ubuntu/issue-private-runner-token.sh
 
   windows-contracts:
     name: Windows agent, server, certification and staging PowerShell syntax
@@ -142,7 +146,9 @@ jobs:
             'commercial/server/windows/run-physical-certification.ps1',
             'commercial/staging/windows/prepare-staging-host.ps1',
             'commercial/staging/windows/install-ephemeral-runner.ps1',
-            'commercial/staging/windows/remove-staging-runner.ps1'
+            'commercial/staging/windows/remove-staging-runner.ps1',
+            'commercial/staging/windows/bootstrap-private-staging.ps1',
+            'commercial/staging/windows/issue-private-runner-token.ps1'
           )
           foreach ($file in $required) {
             if (-not (Test-Path -LiteralPath $file)) {
@@ -163,4 +169,9 @@ jobs:
           $runnerScript = Get-Content -LiteralPath 'commercial/staging/windows/install-ephemeral-runner.ps1' -Raw
           if ($runnerScript -notmatch '--ephemeral' -or $runnerScript -notmatch 'repository-check') {
             throw 'Windows staging runner must remain private-repository gated and ephemeral.'
+          }
+          $mirrorScript = Get-Content -LiteralPath 'commercial/staging/windows/bootstrap-private-staging.ps1' -Raw
+          $tokenScript = Get-Content -LiteralPath 'commercial/staging/windows/issue-private-runner-token.ps1' -Raw
+          if ($mirrorScript -notmatch 'private-mirror-sync' -or $tokenScript -notmatch 'issue-runner-token') {
+            throw 'Windows private staging mirror launchers are missing required safety commands.'
           }

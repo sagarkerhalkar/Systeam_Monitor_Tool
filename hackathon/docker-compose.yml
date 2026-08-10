@@ -1,0 +1,69 @@
+services:
+  monitor:
+    build:
+      context: ..
+      dockerfile: hackathon/services/monitor/Dockerfile
+    environment:
+      MONITOR_ADMIN_USERNAME: ${MONITOR_ADMIN_USERNAME:-hackathon-admin}
+      MONITOR_ADMIN_PASSWORD: ${MONITOR_ADMIN_PASSWORD:?Set MONITOR_ADMIN_PASSWORD in hackathon/.env}
+      MONITOR_ORG_NAME: ${MONITOR_ORG_NAME:-Sagar Monitor Hackathon}
+      MONITOR_ORG_ID: ${MONITOR_ORG_ID:-sagar-monitor-hackathon}
+    volumes:
+      - monitor-data:/data
+    ports:
+      - "8443:8443"
+    restart: unless-stopped
+    cap_drop: ["ALL"]
+    security_opt:
+      - no-new-privileges:true
+
+  ai-ops:
+    build:
+      context: ..
+      dockerfile: hackathon/services/ai_ops/Dockerfile
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,noexec,nosuid
+    ports:
+      - "8081:8081"
+    restart: unless-stopped
+    cap_drop: ["ALL"]
+    security_opt:
+      - no-new-privileges:true
+
+  dora:
+    build:
+      context: ..
+      dockerfile: hackathon/services/dora_collector/Dockerfile
+    volumes:
+      - dora-data:/data
+    ports:
+      - "8082:8082"
+    restart: unless-stopped
+    cap_drop: ["ALL"]
+    security_opt:
+      - no-new-privileges:true
+
+  ui:
+    build:
+      context: ..
+      dockerfile: hackathon/ui/Dockerfile
+    depends_on:
+      - monitor
+      - ai-ops
+      - dora
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx:size=16m
+      - /var/run:size=4m
+      - /tmp:size=8m
+    cap_drop: ["ALL"]
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  monitor-data:
+  dora-data:

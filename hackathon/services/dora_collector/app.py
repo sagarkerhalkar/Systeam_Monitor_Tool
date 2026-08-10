@@ -16,7 +16,6 @@ import uuid
 SERVICE = "sagar-monitor-dora-collector"
 PORT = int(os.getenv("PORT", "8082"))
 DB_PATH = Path(os.getenv("DORA_DB", "/data/dora.db")).expanduser()
-DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 LOCK = threading.RLock()
 
 
@@ -41,6 +40,7 @@ def parse_ts(value: Any) -> datetime:
 
 
 def connect() -> sqlite3.Connection:
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     connection = sqlite3.connect(DB_PATH, timeout=10.0)
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA journal_mode=WAL")

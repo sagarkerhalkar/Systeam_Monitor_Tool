@@ -24,6 +24,26 @@ function Invoke-Checked {
     }
 }
 
+function Test-GitHubRepositoryExists {
+    param([string]$Repository)
+
+    # Windows PowerShell 5.1 turns native stderr into ErrorRecord objects. A normal
+    # GitHub 404 during an existence probe must not terminate the publisher.
+    $savedPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = 'SilentlyContinue'
+        & $GitHubCli repo view $Repository --json visibility 1>$null 2>$null
+        $exitCode = $LASTEXITCODE
+    }
+    finally {
+        $ErrorActionPreference = $savedPreference
+    }
+
+    if ($exitCode -eq 0) { return $true }
+    if ($exitCode -eq 1) { return $false }
+    throw "Unable to check target repository existence (gh exit code $exitCode): $Repository"
+}
+
 if (-not (Get-Command $GitHubCli -ErrorAction SilentlyContinue)) {
     throw 'GitHub CLI (gh) is required. Install from https://cli.github.com/ and run gh auth login.'
 }
@@ -45,10 +65,7 @@ Invoke-Checked $GitExe @('-C',$repoRoot,'fetch','origin',$SourceBranch,'--no-tag
 $sourceSha = (& $GitExe -C $repoRoot rev-parse 'FETCH_HEAD').Trim()
 if ($sourceSha -notmatch '^[0-9a-f]{40}$') { throw 'Unable to resolve source branch SHA.' }
 
-$targetExists = $true
-& $GitHubCli repo view $TargetRepository --json visibility 1>$null 2>$null
-if ($LASTEXITCODE -ne 0) { $targetExists = $false }
-if ($targetExists) {
+if (Test-GitHubRepositoryExists -Repository $TargetRepository) {
     throw "Target repository already exists: $TargetRepository. Refusing to overwrite it."
 }
 

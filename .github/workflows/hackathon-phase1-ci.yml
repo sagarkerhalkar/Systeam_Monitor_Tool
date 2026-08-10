@@ -3,6 +3,7 @@ name: Hackathon Phase 1 CI
 on:
   push:
     branches:
+      - main
       - 'hackathon/**'
   pull_request:
     paths:

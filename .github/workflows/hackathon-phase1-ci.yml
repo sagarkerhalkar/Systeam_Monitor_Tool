@@ -24,6 +24,8 @@ jobs:
     name: Four-service stack and contracts
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      MONITOR_ADMIN_PASSWORD: CI-Hackathon-Only-2026!
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -46,18 +48,12 @@ jobs:
         run: bash -n hackathon/services/monitor/entrypoint.sh
 
       - name: Validate Docker Compose
-        env:
-          MONITOR_ADMIN_PASSWORD: CI-Hackathon-Only-2026!
         run: docker compose -f hackathon/docker-compose.yml config --quiet
 
       - name: Build all four application images
-        env:
-          MONITOR_ADMIN_PASSWORD: CI-Hackathon-Only-2026!
         run: docker compose -f hackathon/docker-compose.yml build --pull
 
       - name: Start complete System Monitor hackathon stack
-        env:
-          MONITOR_ADMIN_PASSWORD: CI-Hackathon-Only-2026!
         run: docker compose -f hackathon/docker-compose.yml up -d
 
       - name: Wait for application health

@@ -1,0 +1,11 @@
+V30 STATIC TEST REPORT
+
+PASS: V30 block JavaScript syntax validated with node --check.
+PASS: no server.py/database/client changes included.
+PASS: global refresh banner suppression included.
+PASS: active text/search typing protection included.
+PASS: typed value/focus/caret restoration included.
+PASS: manual refresh is not blocked.
+PASS: automatic /api/overview polling remains possible while typing; page redraw is deferred.
+
+Live browser behavior must still be verified on the user's actual machine because the live app contains layered historical compatibility patches.

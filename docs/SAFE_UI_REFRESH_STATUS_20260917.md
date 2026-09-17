@@ -1,92 +1,43 @@
-# Safe UI / Refresh Recovery Status — V25 to V27
+# Safe UI / Refresh Recovery Status — 2026-09-17
 
-Date: 2026-09-17
 Repository: `sagarkerhalkar/Systeam_Monitor_Tool`
+
 Safety branch: `safe-ui-refresh-v25-v27-20260917`
-Base branch: `workingcode`
 
-## Important source-of-truth note
+Base branch kept untouched: `workingcode`
 
-The repository `workingcode` branch is older than the current Google Drive / live server frontend. For that reason the V25-V27 work was delivered as **safe append-only / in-place patch installers** rather than by replacing `public/app.js` from GitHub.
+## Source-of-truth warning
 
-Do not copy `public/app.js` from this branch over the live server unless the current live source has first been reconciled and tested.
+The GitHub `workingcode` branch is older than the current live/Drive frontend. For that reason, the recovery work is being kept as rollback-capable patch/install documentation rather than replacing `public/app.js` in GitHub.
 
-## User-confirmed problem sequence
+## Live recovery sequence
 
-The live application had several frontend issues:
+- V25 — selected-client live refresh/cache correction.
+- V26 — search overlay + mobile/touch layering correction.
+- V27 — mobile-first layout correction. User reported roughly 70% acceptable on mobile.
+- V28 — reduced frequency of UI-only maintenance/self-heal timers. Main 5-second monitoring poll remains unchanged.
+- V29 — attempted silent background refresh. Did not fully solve visible refresh/re-render interruption.
+- V30 — attempted typing-protected silent refresh. Did not fully solve the issue because older refresh/render layers can still rebuild the active page/search DOM.
+- V31 — incremental DOM live-update architecture correction. Automatic 5-second polling fetches `/api/overview`, updates state, and patches stable visible values without calling `renderAll()` or replacing page/search DOM. Manual refresh, page changes, and user machine selection keep the existing full-render behavior.
 
-- Machine 360 and other machine-detail tabs could show stale data until the browser was manually refreshed.
-- Network, Software and USB machine search suggestions could be clipped/hidden behind page containers.
-- Mobile layout was desktop-first and consumed too much screen space, especially the navigation and top action area.
-- General UI smoothness remains below target because the current frontend contains multiple historical compatibility layers, recurring UI maintenance timers, repeated render wrappers and heavy visual effects.
+## Critical bug being addressed by V31
 
-## V25 — Selected client live refresh
+The current frontend contains a global 5-second refresh plus legacy UI maintenance loops, including a client-host search maintenance loop around every 1.8 seconds. When the active page is rebuilt, the hostname search control can be recreated, which destroys user typing/focus/caret and disturbs reading/scroll position.
 
-Purpose: remove the need for repeated browser refreshes when changing/refreshing the selected machine.
+V31 changes the automatic poll path so the active page is no longer rebuilt during polling. Search inputs should remain physically in the DOM while the user types.
 
-Scope:
-
-- selected-machine detail cache invalidation based on the latest machine `updated_at`
-- fresh `/api/machine` loading only when required
-- Machine 360 / Network / Software / USB selected-machine refresh flow
-- Assets Inventory excluded from the machine-detail lazy loader
-
-Not changed:
+## What V31 does not change
 
 - `server.py`
 - database/schema/data
+- API contracts
 - Windows/Linux clients
-- heartbeat/offline rules
-- notification logic
-- inventory save/edit/import rules
+- heartbeat/offline logic
+- notifications
+- hardware/assets inventory data or import rules
+- machine identity
+- the 5-second polling frequency itself
 
-Live application result reported by user: V25 installed successfully.
+## Merge policy
 
-## V26 — Search overlay + mobile/touch compatibility
-
-Purpose: fix machine search suggestions being hidden/clipped and improve basic mobile control behavior.
-
-Scope:
-
-- portals visible search suggestions to a top-level overlay
-- keeps existing V16/V17 machine selection behavior
-- improves touch control sizing and mobile viewport positioning
-- reduces expensive effects on small/touch devices
-
-Not changed: backend, APIs, DB or monitoring logic.
-
-## V27 — Mobile-first layout correction
-
-Purpose: replace the oversized mobile navigation/header presentation with a compact mobile-first layout while retaining all pages.
-
-Scope:
-
-- compact horizontally scrollable mobile navigation
-- smaller title/action area
-- single-column mobile content where appropriate
-- horizontally scrollable data tables instead of page breakage
-- lower visual-effect cost on mobile
-
-User feedback after V27: approximately **70% acceptable**. Further mobile polishing and smoothness work is still required.
-
-## Next step — V28 smoothness / performance cleanup
-
-V28 must stay frontend-only first. The first safe targets are UI-only recurring maintenance loops that are already backed by event/render hooks:
-
-1. approved login layout maintenance loop
-2. Machine 360 selection/text maintenance loop
-3. V16 client hostname search maintenance loop
-4. V17 USB / Software Inventory UI maintenance loop
-
-The plan is to reduce unnecessary repeated DOM work without changing monitoring, refresh, API, DB or collection logic. Every modification must have:
-
-- `-CheckOnly`
-- backup before change
-- exact anchor/count validation
-- `node --check`
-- automatic rollback on syntax failure
-- explicit rollback command
-
-## Safety rule
-
-Do not directly overwrite the live frontend from an older GitHub branch. The live server / Drive source must be treated as newer until source reconciliation is complete.
+This PR must remain draft and must not be merged into `workingcode` until V31 is verified on the live machine and the current live source is reconciled with GitHub.

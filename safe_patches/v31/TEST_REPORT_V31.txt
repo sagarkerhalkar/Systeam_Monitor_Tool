@@ -1,0 +1,7 @@
+V31 STATIC TEST REPORT
+PASS: JavaScript syntax against current Drive app.js.
+PASS: V31 automatic path uses direct /api/overview fetch and does not call renderAll().
+PASS: active element value/focus/caret and window scroll are preserved.
+PASS: legacy refresh banner suppressed.
+PASS: manual refresh delegates to pre-V31 refresh function unchanged.
+PASS: no server.py/database/client/API/inventory-data changes.
